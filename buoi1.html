@@ -253,20 +253,19 @@ async function speakFPT(text, gen){
     if(gen !== speakGen) return false;
     if(!data.async) { console.warn('FPT.AI no audio URL'); return false; }
     audioSrc = new Audio(data.async);
-    const duration = text.length * 65; // estimate
+    const estMs = (text.length * 65) / Math.max(0.5, voiceRate);
     let start = null;
     function tick(ts){
       if(!speaking||!audioSrc||gen!==speakGen) return;
       if(!start) start = ts;
-      const pct = Math.min(100,((ts-start)/duration)*100);
-      vlBar.style.width = pct+'%';
-      if(pct<100) requestAnimationFrame(tick);
+      vlBar.style.width = Math.min(100,((ts-start)/estMs)*100)+'%';
+      if(speaking) requestAnimationFrame(tick);
     }
     audioSrc.onplay = ()=>{ speaking=true; requestAnimationFrame(tick); };
     audioSrc.onended = audioSrc.onerror = ()=>{ if(gen===speakGen) onSpeakEnd(); };
     await audioSrc.play();
     return true;
-  } catch(e){ console.warn('FPT.AI TTS failed',e); return false; }
+  } catch(e){ console.warn('FPT.AI TTS failed',e); if(audioSrc){ audioSrc.onended=null; audioSrc.onerror=null; audioSrc.pause(); audioSrc=null; } return false; }
 }
 
 function onSpeakEnd(){
@@ -304,18 +303,11 @@ async function speak(text){
   icoPause.style.display = '';
   const ok = await speakFPT(text, gen);
   if(gen !== speakGen) return;
-  if(!ok){ speaking=false; vPlay.classList.remove('playing'); icoPlay.style.display=''; icoPause.style.display='none'; }
+  if(!ok){ if(audioSrc){ audioSrc.onended=null; audioSrc.onerror=null; audioSrc.pause(); audioSrc=null; } speaking=false; vPlay.classList.remove('playing'); icoPlay.style.display=''; icoPause.style.display='none'; if(gen===speakGen) onSpeakEnd(); }
 }
 
 function onAutoSpeakDone(){
-  const s = SLIDES[cur];
-  if(s.type === 'question'){
-    // handled inside showQPanel / qState flow
-  } else {
-    // minimum 2.5s on screen even if TTS fails, so slides never fly by silently
-    const delay = speaking ? 900 : 2500;
-    slideMinTimer = setTimeout(()=>{ slideMinTimer=null; if(autoMode) go(cur+1, true); }, delay);
-  }
+  slideMinTimer = setTimeout(()=>{ slideMinTimer=null; if(autoMode) go(cur+1, true); }, 2500);
 }
 
 function startAutoCountdown(){

@@ -278,7 +278,7 @@ async function speakFPT(text, gen){
     audioSrc.onended=audioSrc.onerror=()=>{ if(gen===speakGen) onSpeakEnd(); };
     await audioSrc.play();
     return true;
-  }catch(e){ console.warn('FPT failed',e); return false; }
+  }catch(e){ console.warn('FPT failed',e); if(audioSrc){ audioSrc.onended=null; audioSrc.onerror=null; audioSrc.pause(); audioSrc=null; } return false; }
 }
 
 function onSpeakEnd(){
@@ -307,14 +307,7 @@ async function speak(text){
   icoPlay.style.display='none'; icoPause.style.display='';
   const ok=await speakFPT(text,gen);
   if(gen!==speakGen) return;
-  if(!ok){
-    // silent fallback
-    console.warn('FPT unavailable');
-    speaking=false;
-    vPlay.classList.remove('playing');
-    icoPlay.style.display=''; icoPause.style.display='none';
-    if(gen===speakGen) onSpeakEnd();
-  }
+  if(!ok){ if(audioSrc){ audioSrc.onended=null; audioSrc.onerror=null; audioSrc.pause(); audioSrc=null; } speaking=false; vPlay.classList.remove('playing'); icoPlay.style.display=''; icoPause.style.display='none'; if(gen===speakGen) onSpeakEnd(); }
 }
 
 function onAutoSpeakDone(){
