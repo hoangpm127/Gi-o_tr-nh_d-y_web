@@ -289,9 +289,10 @@ async function speakOpenAI(text, gen){
 
 async function speakFPT(text, gen){
   try {
+    const fptSpeed = String(Math.max(-3, Math.min(3, Math.round((voiceRate - 1.0) * 7.5))));
     const resp = await fetch('https://api.fpt.ai/hmi/tts/v5', {
       method:'POST',
-      headers:{'api-key': FPT_KEY, 'speed': '', 'voice': FPT_VOICE},
+      headers:{'api-key': FPT_KEY, 'speed': fptSpeed, 'voice': FPT_VOICE},
       body: text
     });
     if(gen !== speakGen) return false;
