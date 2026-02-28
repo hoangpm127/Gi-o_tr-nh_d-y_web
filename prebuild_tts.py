@@ -1,51 +1,25 @@
 """
-prebuild_tts.py — Tải toàn bộ audio TTS về local để chạy offline
+prebuild_tts.py — Tạo toàn bộ audio TTS offline dùng Microsoft Edge TTS
+Hoàn toàn miễn phí, không cần API key.
+Giọng: vi-VN-HoaiMyNeural (nữ, tiếng Việt)
+
+Cài trước: pip install edge-tts
 Chạy 1 lần: python prebuild_tts.py
-Kết quả:
-  - audio/buoi1/ ... audio/buoi5/  ← file MP3
-  - Mỗi buoiX.html được patch thêm TTS_PRELOAD, không cần gọi API nữa
+Hoặc 1 buổi: python prebuild_tts.py buoi1.html
 """
 
-import re, json, os, time, sys
-import urllib.request, urllib.error
+import re, json, os, sys, asyncio
+import edge_tts
 
-FPT_KEY   = 'XNZzpBQVWhTOCRc7MhOGbezPQznkhNew'
-FPT_VOICE = 'banmai'
-FPT_SPEED = '0'          # neutral speed cho bản lưu; người dùng có thể đổi tốc độ sau
+EDGE_VOICE = 'vi-VN-HoaiMyNeural'
 BUOI_FILES = ['buoi1.html','buoi2.html','buoi3.html','buoi4.html','buoi5.html']
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
-def fpt_get_url(text):
-    """Gọi FPT API, trả về audio URL (string)."""
-    body = text.encode('utf-8')
-    req = urllib.request.Request(
-        'https://api.fpt.ai/hmi/tts/v5',
-        data=body,
-        headers={'api-key': FPT_KEY, 'speed': FPT_SPEED, 'voice': FPT_VOICE},
-        method='POST'
-    )
-    with urllib.request.urlopen(req, timeout=30) as resp:
-        data = json.loads(resp.read().decode('utf-8'))
-    url = data.get('async') or data.get('url')
-    if not url:
-        raise ValueError(f'FPT trả về không có URL: {data}')
-    return url
-
-def download_mp3(audio_url, outpath, retries=6, wait=2):
-    """Tải MP3 từ URL về file (FPT cần vài giây để generate)."""
-    for attempt in range(retries):
-        try:
-            urllib.request.urlretrieve(audio_url, outpath)
-            size = os.path.getsize(outpath)
-            if size > 500:          # file hợp lệ
-                return True
-            os.remove(outpath)      # file rỗng / lỗi — thử lại
-        except Exception:
-            pass
-        print(f'      chờ {wait}s rồi thử lại ({attempt+1}/{retries})...')
-        time.sleep(wait)
-    return False
+async def _gen(text, outpath):
+    """edge-tts tạo MP3 trực tiếp, không cần API key."""
+    communicate = edge_tts.Communicate(text, EDGE_VOICE)
+    await communicate.save(outpath)
 
 def extract_texts(slides):
     """Lấy tất cả narration + feedback text từ SLIDES array."""
@@ -111,21 +85,14 @@ def process_file(html_file):
             preload_map[text] = rel_path
             continue
 
-        print(f'  [{i+1:02d}/{len(texts)}] Gọi API… {label}')
+        print(f'  [{i+1:02d}/{len(texts)}] Tao...    {label}')
         try:
-            audio_url = fpt_get_url(text)
-            time.sleep(2)                   # đợi FPT generate
-            ok = download_mp3(audio_url, mp3_path)
-            if ok:
-                size_kb = os.path.getsize(mp3_path) // 1024
-                print(f'           → {mp3_name} ({size_kb} KB)')
-                preload_map[text] = rel_path
-            else:
-                print(f'           → THẤT BẠI sau nhiều lần thử')
+            asyncio.run(_gen(text, mp3_path))
+            size_kb = os.path.getsize(mp3_path) // 1024
+            print(f'             -> {mp3_name} ({size_kb} KB)')
+            preload_map[text] = rel_path
         except Exception as e:
-            print(f'           → LỖI: {e}')
-
-        time.sleep(0.8)     # tránh rate limit
+            print(f'             -> LOI: {e}')
 
     if not preload_map:
         print('  Không có file nào tải được — không patch HTML')
@@ -160,7 +127,7 @@ def process_file(html_file):
 
 if __name__ == '__main__':
     targets = sys.argv[1:] if len(sys.argv) > 1 else BUOI_FILES
-    print('Prebuild TTS — tải audio về local')
+    print('Prebuild TTS (edge-tts / vi-VN-HoaiMyNeural)')
     print(f'Target: {targets}')
     for f in targets:
         if os.path.exists(f):
