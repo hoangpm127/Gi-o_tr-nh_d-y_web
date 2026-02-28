@@ -284,16 +284,6 @@ async function speakFPT(text, gen){
   }catch(e){ console.warn('FPT TTS failed',e); return false; }
 }
 
-function speakSysFallback(text, gen){
-  // fallback if FPT fails - silent fallback, just mark done
-  console.warn('All TTS failed, skipping narration');
-  speaking = false;
-  vPlay.classList.remove('playing');
-  icoPlay.style.display = '';
-  icoPause.style.display = 'none';
-  if(gen===speakGen) onSpeakEnd();
-}
-
 function onSpeakEnd(){
   speaking = false;
   audioSrc = null;
@@ -324,7 +314,7 @@ async function speak(text){
   icoPause.style.display = '';
   const ok = await speakFPT(text, gen);
   if(gen !== speakGen) return;
-  if(!ok) speakSysFallback(text, gen);
+  if(!ok){ speaking=false; vPlay.classList.remove('playing'); icoPlay.style.display=''; icoPause.style.display='none'; }
 }
 
 function onAutoSpeakDone(){

@@ -254,39 +254,6 @@ function stopVoice(){
   if(cbEl) cbEl.style.display = 'none';
 }
 
-async function speakOpenAI(text, gen){
-  try {
-    const resp = await fetch('https://api.openai.com/v1/audio/speech', {
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+openaiKey},
-      body: JSON.stringify({model:'tts-1',voice:openaiVoice,input:text,speed: Math.max(0.25,Math.min(4,voiceRate))})
-    });
-    if(gen !== speakGen) return false;
-    if(!resp.ok){ console.warn('OpenAI TTS error',resp.status); return false; }
-    const blob = await resp.blob();
-    if(gen !== speakGen) return false;
-    const url = URL.createObjectURL(blob);
-    audioSrc = new Audio(url);
-    const duration = await new Promise(res=>{
-      audioSrc.onloadedmetadata = ()=>res(audioSrc.duration*1000);
-      audioSrc.onerror = ()=>res(text.length*65);
-    });
-    if(gen !== speakGen) return false;
-    let start = null;
-    function tick(ts){
-      if(!speaking||!audioSrc||gen!==speakGen) return;
-      if(!start) start = ts;
-      const pct = Math.min(100,((ts-start)/duration)*100);
-      vlBar.style.width = pct+'%';
-      if(pct<100) requestAnimationFrame(tick);
-    }
-    audioSrc.onplay = ()=>{ speaking=true; requestAnimationFrame(tick); };
-    audioSrc.onended = audioSrc.onerror = ()=>{ if(gen===speakGen) onSpeakEnd(); };
-    await audioSrc.play();
-    return true;
-  } catch(e){ console.warn('OpenAI TTS failed',e); return false; }
-}
-
 async function speakFPT(text, gen){
   try {
     const fptSpeed = String(Math.max(-3, Math.min(3, Math.round((voiceRate - 1.0) * 7.5))));
@@ -315,31 +282,6 @@ async function speakFPT(text, gen){
     await audioSrc.play();
     return true;
   } catch(e){ console.warn('FPT.AI TTS failed',e); return false; }
-}
-
-function speakSys(text, gen){
-  const utt = new SpeechSynthesisUtterance(text);
-  const voices = speechSynthesis.getVoices();
-  const preferred = voices.find(v=>v.name.includes('HoaiMy') || v.name.includes('Hoai My'))
-    || voices.find(v=>v.name.includes('NamMinh') || v.name.includes('Nam Minh'))
-    || voices.find(v=>v.lang.startsWith('vi'))
-    || voices.find(v=>v.lang==='en-US')
-    || null;
-  if(preferred) utt.voice = preferred;
-  utt.lang = 'vi-VN';
-  utt.rate = voiceRate;
-  utt.pitch = 1;
-  const estMs = text.length * 60 / voiceRate;
-  let start = null;
-  function tick(ts){
-    if(!speaking||gen!==speakGen) return;
-    if(!start) start = ts;
-    vlBar.style.width = Math.min(100,((ts-start)/estMs)*100)+'%';
-    if(speaking) requestAnimationFrame(tick);
-  }
-  utt.onstart = ()=>{ speaking=true; requestAnimationFrame(tick); };
-  utt.onend = utt.onerror = ()=>{ if(gen===speakGen) onSpeakEnd(); };
-  speechSynthesis.speak(utt);
 }
 
 function onSpeakEnd(){
@@ -375,7 +317,7 @@ async function speak(text){
   icoPause.style.display = '';
   const ok = await speakFPT(text, gen);
   if(gen !== speakGen) return;
-  if(!ok) speakSys(text, gen);
+  if(!ok){ speaking=false; vPlay.classList.remove('playing'); icoPlay.style.display=''; icoPause.style.display='none'; }
 }
 
 function onAutoSpeakDone(){
