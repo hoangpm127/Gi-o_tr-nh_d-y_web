@@ -421,9 +421,10 @@ function showQPanel(s){
       qContinue.style.color = '#fff';
       qContinue.classList.add('show');
       qState = 'reading_feedback';
+      const capturedAuto = autoMode;
       speak(opt.feedback);
       if(qFallbackTimer) clearTimeout(qFallbackTimer);
-      qFallbackTimer = setTimeout(()=>{ if(qState==='reading_feedback'){ qState=null; qPanel.classList.remove('show'); go(cur+1,true); } },8000);
+      qFallbackTimer = setTimeout(()=>{ if(qState==='reading_feedback'){ qState=null; qPanel.classList.remove('show'); go(cur+1,capturedAuto); } },8000);
     };
     qOpts.appendChild(btn);
   });

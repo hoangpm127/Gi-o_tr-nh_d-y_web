@@ -503,13 +503,14 @@ function showQPanel(s){
       qContinue.style.color = opt.correct ? '#0a1a0a' : '#fff';
       qContinue.classList.add('show');
       qState = 'reading_feedback';
+      const capturedAuto = autoMode;
       speak(opt.feedback);
       if(qFallbackTimer) clearTimeout(qFallbackTimer);
       qFallbackTimer = setTimeout(()=>{
         if(qState === 'reading_feedback'){
           qState = null;
           qPanel.classList.remove('show');
-          go(cur+1, true);
+          go(cur+1, capturedAuto);
         }
       }, 8000);
     };
