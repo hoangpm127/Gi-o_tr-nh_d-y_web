@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Buổi 2 — Outline</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0d0d1a; color: #e2e8f0; font-family: 'Segoe UI', system-ui, sans-serif; padding: 40px 24px; }
+  h1 { font-size: 1.6rem; color: #fdba74; margin-bottom: 6px; }
+  .meta { color: rgba(255,255,255,.4); font-size: .85rem; margin-bottom: 40px; }
+  .section { margin-bottom: 36px; }
+  .section-title { font-size: .7rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #f77f00; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid rgba(247,127,0,.25); }
+  .slide { display: flex; gap: 16px; padding: 14px 16px; border-radius: 12px; margin-bottom: 10px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07); align-items: flex-start; }
+  .slide:hover { border-color: rgba(247,127,0,.3); background: rgba(247,127,0,.04); }
+  .num { width: 28px; height: 28px; border-radius: 8px; background: rgba(247,127,0,.15); color: #fdba74; font-weight: 800; font-size: .8rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .type { font-size: .65rem; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; padding: 2px 8px; border-radius: 4px; flex-shrink: 0; margin-top: 2px; }
+  .type.teach { background: rgba(108,99,255,.2); color: #a5b4fc; }
+  .type.question { background: rgba(247,127,0,.2); color: #fdba74; }
+  .type.practice { background: rgba(6,214,160,.15); color: #34d399; }
+  .type.reflect { background: rgba(255,255,255,.08); color: rgba(255,255,255,.5); }
+  .body { flex: 1; }
+  .title { font-weight: 700; color: #fff; margin-bottom: 5px; font-size: .95rem; }
+  .narration { font-size: .83rem; color: rgba(255,255,255,.5); line-height: 1.6; margin-bottom: 6px; }
+  .options { list-style: none; margin-top: 8px; display: flex; flex-direction: column; gap: 5px; }
+  .options li { font-size: .8rem; padding: 6px 10px; border-radius: 6px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.07); color: rgba(255,255,255,.6); }
+  .options li.correct { border-color: rgba(6,214,160,.35); background: rgba(6,214,160,.08); color: #6ee7b7; }
+  .options li.correct::before { content: '✓ '; }
+  .options li.wrong::before { content: '✗ '; }
+  .prompt-box { background: rgba(108,99,255,.08); border: 1px solid rgba(108,99,255,.25); border-radius: 8px; padding: 12px 14px; font-size: .82rem; color: #c4b5fd; line-height: 1.7; margin-top: 8px; }
+  .prompt-label { font-size: .62rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #818cf8; margin-bottom: 6px; }
+  .note { font-size: .75rem; color: #f77f00; background: rgba(247,127,0,.08); border-left: 2px solid #f77f00; padding: 6px 10px; border-radius: 0 6px 6px 0; margin-top: 8px; }
+  .question-text { font-size: .88rem; color: #fdba74; font-style: italic; margin-bottom: 8px; }
+  .legend { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 32px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: .75rem; color: rgba(255,255,255,.5); }
+  hr { border: none; border-top: 1px solid rgba(255,255,255,.06); margin: 32px 0; }
+  .feedback { font-size: .78rem; color: rgba(255,255,255,.4); margin-top: 3px; font-style: italic; }
+</style>
+</head>
+<body>
+
+<h1>Buổi 2 — Logic &amp; State</h1>
+<div class="meta">2 tiếng · Màu chủ #f77f00 · 18 slides · Tiếp nối Buổi 1: Ứng dụng Quản Lý Công Việc</div>
+
+<div class="legend">
+  <div class="legend-item"><span class="type teach">teach</span> Giảng lý thuyết</div>
+  <div class="legend-item"><span class="type question">question</span> Câu hỏi tương tác</div>
+  <div class="legend-item"><span class="type practice">practice</span> Thực hành</div>
+  <div class="legend-item"><span class="type reflect">reflect</span> Checklist / Nhìn lại</div>
+</div>
+
+<!-- PHẦN 1 -->
+<div class="section">
+  <div class="section-title">Phần 1 — Recall &amp; Hook (3 slides)</div>
+
+  <div class="slide">
+    <div class="num">1</div>
+    <span class="type teach">teach</span>
+    <div class="body">
+      <div class="title">Recap: Buổi 1 bạn đã làm được gì?</div>
+      <div class="narration">Buổi 1 bạn đã có giao diện đẹp — header, ô nhập, danh sách task. Nhưng khi bấm nút Add, không có gì xảy ra. Hôm nay chúng ta sẽ làm cho nó hoạt động thật sự. Bí mật nằm ở <strong>Logic</strong> — tầng thứ 2 trong mô hình UI + Logic + Data.</div>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="num">2</div>
+    <span class="type question">question</span>
+    <div class="body">
+      <div class="question-text">"Khi người dùng bấm Add, điều gì cần xảy ra theo đúng thứ tự?"</div>
+      <ul class="options">
+        <li class="wrong">Giao diện tự cập nhật vì đã có HTML</li>
+        <li class="wrong">CSS animation chạy để hiện task mới</li>
+        <li class="correct">Lấy text từ ô nhập → lưu vào danh sách → render lại giao diện</li>
+        <li class="wrong">Reload trang để lấy data mới</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="num">3</div>
+    <span class="type teach">teach</span>
+    <div class="body">
+      <div class="title">Mental Model #2 — State</div>
+      <div class="narration">App không phải HTML tĩnh. App là <strong>dữ liệu (State)</strong> + giao diện phản ánh dữ liệu đó. Khi State thay đổi, UI phải cập nhật theo. Đây là cách mọi app hoạt động — từ ứng dụng note đơn giản đến Facebook.</div>
+      <div class="note">Visual: 2 cột — "State (data)" ↔ "UI (giao diện)" với mũi tên 2 chiều</div>
+    </div>
+  </div>
+</div>
+
+<!-- PHẦN 2 -->
+<div class="section">
+  <div class="section-title">Phần 2 — Hiểu State (4 slides)</div>
+
+  <div class="slide">
+    <div class="num">4</div>
+    <span class="type teach">teach</span>
+    <div class="body">
+      <div class="title">State trông như thế nào trong code?</div>
+      <div class="narration">State của Ứng dụng Quản Lý Công Việc là một danh sách — mảng JavaScript chứa các task. Mỗi task có text và trạng thái đã làm hay chưa. AI sẽ viết code này cho bạn — bạn chỉ cần hiểu nó đang lưu cái gì.</div>
+      <div class="note">Visual: Sơ đồ trực quan — box "tasks = [...]" với 3 item mẫu, KHÔNG phải code thô</div>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="num">5</div>
+    <span class="type question">question</span>
+    <div class="body">
+      <div class="question-text">"Bạn thêm task vào JavaScript array nhưng không render lại UI — chuyện gì xảy ra?"</div>
+      <ul class="options">
+        <li class="wrong">Task xuất hiện trên màn hình ngay lập tức</li>
+        <li class="correct">Data đã có trong bộ nhớ nhưng người dùng không thấy gì</li>
+        <li class="wrong">App bị lỗi và crash</li>
+        <li class="wrong">Task tự xóa sau vài giây</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="num">6</div>
+    <span class="type teach">teach</span>
+    <div class="body">
+      <div class="title">Vòng lặp của mọi app: Action → State → UI</div>
+      <div class="narration">Mọi app đều chạy theo 1 vòng lặp: người dùng thực hiện Action → Logic cập nhật State → UI render lại để phản ánh State mới. React, Vue, hay Vanilla JS đều là biến thể của vòng lặp này.</div>
+      <div class="note">Visual: Diagram vòng tròn 3 bước: Action (👆) → Update State (🗂️) → Re-render UI (🖥️)</div>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="num">7</div>
+    <span class="type question">question</span>
+    <div class="body">
+      <div class="question-text">"Ứng dụng Quản Lý Công Việc có 3 action. Chọn đúng cả 3?"</div>
+      <ul class="options">
+        <li class="wrong">Thêm task / Đổi màu task / Xóa task</li>
+        <li class="correct">Thêm task / Tick hoàn thành / Xóa task</li>
+        <li class="wrong">Tìm kiếm / Lọc / Sort task</li>
+        <li class="wrong">Thêm task / Sửa text / Share task</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- PHẦN 3 -->
+<div class="section">
+  <div class="section-title">Phần 3 — Prompt AI để thêm Logic (4 slides)</div>
+
+  <div class="slide">
+    <div class="num">8</div>
+    <span class="type teach">teach</span>
+    <div class="body">
+      <div class="title">Prompt cho Logic — thêm yếu tố thứ 6</div>
+      <div class="narration">Công thức 5 yếu tố từ buổi 1 vẫn dùng được. Nhưng khi yêu cầu Logic, cần thêm yếu tố thứ 6: mô tả State và hành vi — dữ liệu app trông như thế nào, và khi nào thì cập nhật.</div>
+      <div class="note">Visual: Danh sách 6 yếu tố — 5 cũ (mờ hơn) + 1 mới nổi bật màu cam</div>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="num">9</div>
+    <span class="type teach">teach</span>
+    <div class="body">
+      <div class="title">Prompt UI vs Prompt Logic — cùng 1 app</div>
+      <div class="narration">So sánh 2 prompt cho cùng Ứng dụng Quản Lý Công Việc. Prompt buổi 1 chỉ mô tả giao diện. Prompt buổi 2 mô tả thêm hành vi: khi bấm Add thì làm gì, khi tick thì state thay đổi thế nào, khi xóa thì xóa khỏi array.</div>
+      <div class="prompt-box">
+        <div class="prompt-label">Prompt Logic mẫu — Buổi 2</div>
+        Thêm JavaScript vào file index.html hiện có (đã có HTML + CSS). Yêu cầu:<br>
+        (1) State: mảng <code>tasks = []</code>, mỗi task có <code>id, text, done</code>.<br>
+        (2) Add: lấy text từ #task-input, thêm vào tasks[], clear input, render lại.<br>
+        (3) Tick: toggle done=true/false, render lại (gạch ngang text khi done).<br>
+        (4) Delete: xóa task khỏi tasks[] theo id, render lại.<br>
+        (5) renderTasks(): xóa list cũ, vẽ lại từ tasks[]. Giải thích từng phần.
+      </div>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="num">10</div>
+    <span class="type question">question</span>
+    <div class="body">
+      <div class="question-text">"Prompt nào sẽ cho kết quả Add task hoạt động đúng ngay lần đầu?"</div>
+      <ul class="options">
+        <li class="wrong">"Thêm JavaScript để nút Add hoạt động"</li>
+        <li class="wrong">"Làm cho app quản lý task chạy được"</li>
+        <li class="correct">"Khi bấm nút #add-btn: lấy value từ #task-input, nếu không rỗng thì push vào mảng tasks[], gọi renderTasks() để vẽ lại list, sau đó clear input. Giải thích code."</li>
+        <li class="wrong">"Viết event listener cho Add button"</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="num">11</div>
+    <span class="type practice">practice</span>
+    <div class="body">
+      <div class="title">Thực hành: Thêm Logic vào app của bạn</div>
+      <div class="narration">Mở file index.html từ buổi 1. Gửi prompt mẫu cho AI. Copy JavaScript AI tạo ra vào cuối file, trước thẻ đóng body. Lưu, test: Add task, tick, delete. Tất cả phải hoạt động.</div>
+      <div class="note">Step-by-step: 4 bước có đánh số, có mũi tên chỉ chỗ paste code</div>
+    </div>
+  </div>
+</div>
+
+<!-- PHẦN 4 -->
+<div class="section">
+  <div class="section-title">Phần 4 — Đọc hiểu code AI tạo ra (4 slides)</div>
+
+  <div class="slide">
+    <div class="num">12</div>
+    <span class="type teach">teach</span>
+    <div class="body">
+      <div class="title">4 Pattern cần nhận ra trong mọi JavaScript</div>
+      <div class="narration">Không cần nhớ syntax. Chỉ cần nhận ra 4 pattern: Khai báo State, Event Listener, Update State, Render. Mọi JavaScript logic đều là tổ hợp của 4 pattern này.</div>
+      <div class="note">Visual: 4 box màu khác nhau với ví dụ visual, KHÔNG hiển thị code dạng text thuần</div>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="num">13</div>
+    <span class="type question">question</span>
+    <div class="body">
+      <div class="question-text">"Trong đoạn app đang chạy, phần nào là Event Listener, phần nào là Render?"</div>
+      <ul class="options">
+        <li class="wrong">Khai báo tasks[] là Render</li>
+        <li class="wrong">Vòng lặp vẽ list là Event Listener</li>
+        <li class="correct">Bắt sự kiện click nút là Event Listener — Vòng lặp vẽ list là Render</li>
+        <li class="wrong">Cả hai đều là Update State</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="num">14</div>
+    <span class="type teach">teach</span>
+    <div class="body">
+      <div class="title">Khi app bị bug — mô tả đúng để AI fix đúng</div>
+      <div class="narration">Công thức bug report: (1) Tôi đang làm gì, (2) Tôi mong đợi gì xảy ra, (3) Thực tế xảy ra gì. Càng cụ thể AI càng fix đúng ngay lần đầu. Đừng nói "bị lỗi" — hãy mô tả hành vi cụ thể.</div>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="num">15</div>
+    <span class="type question">question</span>
+    <div class="body">
+      <div class="question-text">"Bug report nào giúp AI fix đúng nhất?"</div>
+      <ul class="options">
+        <li class="wrong">"Code bị lỗi, không chạy được"</li>
+        <li class="wrong">"JavaScript không hoạt động"</li>
+        <li class="correct">"Khi bấm Add với ô nhập trống, app vẫn thêm 1 task rỗng vào danh sách. Mong muốn: không thêm gì nếu input trống. Đây là hàm addTask hiện tại: [paste code]"</li>
+        <li class="wrong">"Tại sao nút Add không hoạt động đúng?"</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- PHẦN 5 -->
+<div class="section">
+  <div class="section-title">Phần 5 — Tổng kết &amp; Preview (3 slides)</div>
+
+  <div class="slide">
+    <div class="num">16</div>
+    <span class="type reflect">reflect</span>
+    <div class="body">
+      <div class="title">Checklist cuối buổi 2</div>
+      <ul class="options" style="margin-top:0">
+        <li class="correct">Nút Add hoạt động — thêm task vào danh sách</li>
+        <li class="correct">Tick checkbox — task gạch ngang, state cập nhật</li>
+        <li class="correct">Nút Delete — task biến mất khỏi list</li>
+        <li class="correct">Hiểu vòng lặp Action → State → UI</li>
+        <li class="correct">Nhận ra được 4 pattern trong code AI tạo ra</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="num">17</div>
+    <span class="type teach">teach</span>
+    <div class="body">
+      <div class="title">Vấn đề còn lại: Reload → mất hết data</div>
+      <div class="narration">App hoạt động tốt — nhưng thử reload trang. Toàn bộ task biến mất. Vì State đang sống trong RAM — tắt tab là mất. Đây chính xác là vấn đề của tầng thứ 3: Data. Buổi 3 sẽ dùng localStorage để fix điều này.</div>
+      <div class="note">Visual: Minh họa RAM vs ổ cứng — data trong RAM "bốc hơi" khi tắt tab</div>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="num">18</div>
+    <span class="type teach">teach</span>
+    <div class="body">
+      <div class="title">Preview Buổi 3: Data — localStorage</div>
+      <div class="narration">Buổi 3: bạn sẽ thêm tầng Data vào app. Tasks sẽ được lưu vào localStorage — một kho lưu nhỏ ngay trong trình duyệt. Reload 10 lần data vẫn còn. Câu hỏi mang về nhà: nếu không có server, data lưu ở đâu?</div>
+    </div>
+  </div>
+</div>
+
+<hr>
+<div style="color:rgba(255,255,255,.3);font-size:.8rem;text-align:center;padding:20px 0">
+  ── Hết outline Buổi 2 · Chỉnh sửa xong → báo để build ──
+</div>
+
+</body>
+</html>

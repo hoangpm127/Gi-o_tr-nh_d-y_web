@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Web Builder Foundation – Slides</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --s1:#6c63ff;--s2:#f77f00;--s3:#06d6a0;--s4:#ec4899;--s5:#ef4444;
+  --dark:#0a0a14;--surface:#12122a;--white:#fff;
+  --text:#e0e0f0;--muted:#8888aa;
+}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--dark);font-family:'Inter',sans-serif;color:var(--text)}
+
+/* ── Deck ── */
+#deck{position:fixed;inset:0;perspective:1200px}
+.slide{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  opacity:0;pointer-events:none;
+  transition:opacity .45s ease,transform .45s ease;
+  transform:translateX(60px);
+  will-change:opacity,transform;
+}
+.slide.active{opacity:1;pointer-events:auto;transform:translateX(0)}
+.slide.prev{opacity:0;transform:translateX(-60px)}
+
+/* ── Components ── */
+.bg-img{
+  position:absolute;inset:0;background-size:cover;background-position:center;
+  filter:brightness(.35) saturate(.8);
+}
+.bg-color{position:absolute;inset:0}
+.content{position:relative;z-index:2;width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:60px 80px;text-align:center}
+.content.left{align-items:flex-start;text-align:left}
+.content.split{flex-direction:row;align-items:stretch;padding:0;gap:0}
+
+.tag{display:inline-block;padding:5px 16px;border-radius:99px;font-size:.75rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:20px}
+.session-tag{padding:5px 18px;border-radius:8px;font-size:.8rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:24px;border:1px solid currentColor;opacity:.9}
+
+h1.huge{font-size:clamp(2.8rem,6vw,5rem);font-weight:900;line-height:1.1;color:var(--white)}
+h2.big{font-size:clamp(2rem,4vw,3.2rem);font-weight:900;line-height:1.15;color:var(--white)}
+h3.med{font-size:clamp(1.3rem,2.5vw,2rem);font-weight:700;color:var(--white)}
+p.sub{font-size:clamp(.95rem,1.8vw,1.25rem);color:rgba(255,255,255,.65);margin-top:14px;line-height:1.6;max-width:720px}
+p.sub strong{color:rgba(255,255,255,.9)}
+
+.rule{width:64px;height:4px;border-radius:2px;margin:24px auto}
+.rule.left{margin:24px 0}
+
+/* diagram boxes */
+.diagram{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:36px;flex-wrap:wrap}
+.dbox{padding:16px 28px;border-radius:12px;font-weight:700;font-size:1rem;text-align:center;line-height:1.4}
+.darr{color:rgba(255,255,255,.35);font-size:1.6rem;flex-shrink:0}
+
+.col-half{flex:1;display:flex;flex-direction:column;justify-content:center;padding:60px}
+.col-half img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;filter:brightness(.38) saturate(.7)}
+
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:20px;width:100%;max-width:860px;margin-top:32px}
+.cbox{padding:20px 24px;border-radius:12px;text-align:left;font-size:.93rem;line-height:1.6}
+.bad{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3)}
+.good{background:rgba(6,214,160,.1);border:1px solid rgba(6,214,160,.3)}
+.cbox .clabel{font-size:.72rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;display:block}
+.bad .clabel{color:#f87171}.good .clabel{color:#34d399}
+code{font-family:'Fira Code',monospace;background:rgba(255,255,255,.07);padding:2px 8px;border-radius:4px;font-size:.88em;color:#a5b4fc}
+.code-slide{font-family:'Fira Code',monospace;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:24px 28px;font-size:clamp(.78rem,1.4vw,1rem);line-height:1.9;text-align:left;margin-top:28px;max-width:740px;width:100%}
+.kw{color:#e96c8f}.str{color:#86efac}.num{color:#ffd166}.cmt{color:#4b5563;font-style:italic}
+
+.risk-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;width:100%;max-width:920px;margin-top:32px}
+.risk-item{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:18px 20px;text-align:left}
+.risk-icon{width:36px;height:36px;margin-bottom:10px}
+.risk-title{font-size:.9rem;font-weight:700;color:var(--white);margin-bottom:4px}
+.risk-desc{font-size:.78rem;color:var(--muted);line-height:1.5}
+
+.checklist{list-style:none;text-align:left;max-width:640px;width:100%;margin-top:28px}
+.checklist li{display:flex;align-items:flex-start;gap:14px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:.97rem}
+.checklist li:last-child{border-bottom:none}
+.check-icon{width:22px;height:22px;flex-shrink:0;margin-top:1px}
+
+.list-items{list-style:none;text-align:left;max-width:700px;width:100%;margin-top:32px}
+.list-items li{display:flex;align-items:flex-start;gap:16px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:1.05rem;line-height:1.5}
+.list-items li:last-child{border-bottom:none}
+.li-icon{width:28px;height:28px;flex-shrink:0;margin-top:2px}
+
+.prompt-block{background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.35);border-radius:12px;padding:22px 26px;max-width:780px;width:100%;text-align:left;margin-top:28px;font-size:.92rem;line-height:1.7;color:#c4b5fd}
+.prompt-block .plabel{font-size:.7rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#818cf8;margin-bottom:10px;display:block}
+
+/* ── Nav ── */
+#nav-prev,#nav-next{
+  position:fixed;top:50%;transform:translateY(-50%);z-index:200;
+  width:52px;height:52px;border-radius:50%;border:none;cursor:pointer;
+  background:rgba(255,255,255,.08);backdrop-filter:blur(8px);
+  display:flex;align-items:center;justify-content:center;
+  transition:background .2s;
+}
+#nav-prev:hover,#nav-next:hover{background:rgba(255,255,255,.18)}
+#nav-prev{left:20px}
+#nav-next{right:20px}
+
+/* ── Progress ── */
+#progress-bar{position:fixed;top:0;left:0;height:3px;background:var(--s1);transition:width .35s ease,background .35s ease;z-index:300}
+#slide-counter{position:fixed;bottom:20px;right:24px;font-size:.82rem;color:rgba(255,255,255,.3);z-index:300;font-weight:600;letter-spacing:.5px}
+#session-label{position:fixed;bottom:20px;left:24px;font-size:.78rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;z-index:300;transition:color .35s}
+
+/* ── Hint ── */
+#hint{position:fixed;bottom:48px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,.25);font-size:.78rem;letter-spacing:1px;z-index:300;pointer-events:none;transition:opacity .5s}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="session-label"></div>
+<div id="slide-counter"></div>
+<div id="hint">← → to navigate · Space to advance</div>
+
+<div id="deck"></div>
+
+<button id="nav-prev" aria-label="Previous">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+</button>
+<button id="nav-next" aria-label="Next">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+</button>
+
+<script>
+const slides = [
+
+// ══════════════════════════════════════
+// INTRO
+// ══════════════════════════════════════
+{session:'',color:'#6c63ff',html:`
+<div class="bg-img" style="background-image:url('https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=1600&q=80')"></div>
+<div class="content">
+  <div class="tag" style="background:rgba(108,99,255,.25);color:#a5b4fc;border:1px solid rgba(108,99,255,.4)">Khóa học</div>
+  <h1 class="huge">Web Builder<br/>Foundation</h1>
+  <div class="rule" style="background:#6c63ff"></div>
+  <p class="sub">AI-Supported · 5 Buổi · Project: Task Manager<br/><strong>Học cách tư duy — không phải học syntax</strong></p>
+</div>
+`},
+
+{session:'',color:'#6c63ff',html:`
+<div class="bg-color" style="background:linear-gradient(135deg,#0a0a20,#12122a)"></div>
+<div class="content">
+  <div class="tag" style="background:rgba(6,214,160,.15);color:#34d399;border:1px solid rgba(6,214,160,.3)">Triết lý</div>
+  <h2 class="big" style="max-width:760px">AI viết code.<br/>Bạn hiểu hệ thống.</h2>
+  <div class="rule" style="background:#06d6a0"></div>
+  <p class="sub">Không học thuộc syntax. Học cách <strong>nhìn</strong> — biết đặt câu hỏi đúng cho AI, và biết khi nào AI đang sai.</p>
+</div>
+`},
+
+{session:'',color:'#6c63ff',html:`
+<div class="bg-color" style="background:#0a0a18"></div>
+<div class="content">
+  <h3 class="med" style="margin-bottom:8px;color:var(--muted);font-weight:600;font-size:1rem;letter-spacing:2px;text-transform:uppercase">5 Buổi — 5 Mental Model</h3>
+  <div class="diagram" style="flex-direction:column;gap:10px;margin-top:28px;width:100%;max-width:700px">
+    <div style="display:flex;align-items:center;gap:16px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.2);border-radius:12px;padding:14px 24px;width:100%">
+      <div style="width:34px;height:34px;background:#6c63ff;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;font-size:1rem;flex-shrink:0">1</div>
+      <div style="text-align:left"><div style="font-weight:700;color:#fff">Web = UI + Logic + Data</div><div style="font-size:.8rem;color:var(--muted)">Hiểu cấu trúc của mọi website</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px;background:rgba(247,127,0,.08);border:1px solid rgba(247,127,0,.2);border-radius:12px;padding:14px 24px;width:100%">
+      <div style="width:34px;height:34px;background:#f77f00;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;font-size:1rem;flex-shrink:0">2</div>
+      <div style="text-align:left"><div style="font-weight:700;color:#fff">Action → State → UI</div><div style="font-size:.8rem;color:var(--muted)">Mọi tương tác đều theo 1 chiều</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px;background:rgba(6,214,160,.08);border:1px solid rgba(6,214,160,.2);border-radius:12px;padding:14px 24px;width:100%">
+      <div style="width:34px;height:34px;background:#06d6a0;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;font-size:1rem;flex-shrink:0">3</div>
+      <div style="text-align:left"><div style="font-weight:700;color:#fff">RAM mất khi tắt → cần Persistence</div><div style="font-size:.8rem;color:var(--muted)">Data phải sống ngoài RAM</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px;background:rgba(236,72,153,.08);border:1px solid rgba(236,72,153,.2);border-radius:12px;padding:14px 24px;width:100%">
+      <div style="width:34px;height:34px;background:#ec4899;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;font-size:1rem;flex-shrink:0">4</div>
+      <div style="text-align:left"><div style="font-weight:700;color:#fff">Code tốt = người đọc hiểu được</div><div style="font-size:.8rem;color:var(--muted)">Kể cả chính mình sau 1 tuần</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:12px;padding:14px 24px;width:100%">
+      <div style="width:34px;height:34px;background:#ef4444;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;font-size:1rem;flex-shrink:0">5</div>
+      <div style="text-align:left"><div style="font-weight:700;color:#fff">Dev ≠ Production + Invisible Risks</div><div style="font-size:.8rem;color:var(--muted)">Trước khi mở cửa hàng, phải kiểm tra kỹ</div></div>
+    </div>
+  </div>
+</div>
+`},
+
+// ══════════════════════════════════════
+// BUỔI 1
+// ══════════════════════════════════════
+{session:'Buổi 1',color:'#6c63ff',html:`
+<div class="bg-img" style="background-image:url('https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=1600&q=80')"></div>
+<div class="content">
+  <div class="session-tag" style="color:#a5b4fc;border-color:#6c63ff;background:rgba(108,99,255,.2)">Buổi 1 — 2 tiếng</div>
+  <h1 class="huge">Web là gì?</h1>
+  <div class="rule" style="background:#6c63ff"></div>
+  <p class="sub">Build giao diện Task Manager đầu tiên bằng AI</p>
+</div>
+`},
+
+{session:'Buổi 1',color:'#6c63ff',html:`
+<div class="bg-color" style="background:#0a0a18"></div>
+<div class="content">
+  <div class="tag" style="background:rgba(108,99,255,.2);color:#a5b4fc;border:1px solid rgba(108,99,255,.4)">Mental Model #1</div>
+  <h2 class="big">Web = UI + Logic + Data</h2>
+  <div class="rule" style="background:#6c63ff"></div>
+  <div class="diagram">
+    <div class="dbox" style="background:rgba(108,99,255,.25);border:1px solid rgba(108,99,255,.5);color:#c4b5fd">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a5b4fc" stroke-width="1.8" stroke-linecap="round" style="display:block;margin:0 auto 6px"><rect x="3" y="3" width="18" height="18" rx="3"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+      UI<br/><small style="opacity:.6;font-size:.75rem;font-weight:400">Giao diện</small>
+    </div>
+    <div class="darr">+</div>
+    <div class="dbox" style="background:rgba(255,209,102,.18);border:1px solid rgba(255,209,102,.4);color:#fcd34d">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fcd34d" stroke-width="1.8" stroke-linecap="round" style="display:block;margin:0 auto 6px"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+      Logic<br/><small style="opacity:.6;font-size:.75rem;font-weight:400">Xử lý</small>
+    </div>
+    <div class="darr">+</div>
+    <div class="dbox" style="background:rgba(6,214,160,.18);border:1px solid rgba(6,214,160,.4);color:#6ee7b7">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6ee7b7" stroke-width="1.8" stroke-linecap="round" style="display:block;margin:0 auto 6px"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0018 0V5"/><path d="M3 12a9 3 0 0018 0"/></svg>
+      Data<br/><small style="opacity:.6;font-size:.75rem;font-weight:400">Dữ liệu</small>
+    </div>
+  </div>
+  <p class="sub" style="margin-top:28px">Thiếu 1 trong 3 → không thành <strong>hệ thống</strong></p>
+</div>
+`},
+
+{session:'Buổi 1',color:'#6c63ff',html:`
+<div class="bg-img" style="background-image:url('https://images.unsplash.com/photo-1563013544-824ae1b704d3?auto=format&fit=crop&w=1600&q=80')"></div>
+<div class="content">
+  <div class="tag" style="background:rgba(0,0,0,.5);color:#a5b4fc;border:1px solid rgba(108,99,255,.4)">Ví dụ thực tế</div>
+  <h2 class="big">Shopee có 3 tầng gì?</h2>
+  <div class="rule" style="background:#6c63ff"></div>
+  <div class="diagram" style="margin-top:28px">
+    <div class="dbox" style="background:rgba(0,0,0,.55);border:1px solid rgba(108,99,255,.4);color:#c4b5fd;backdrop-filter:blur(8px)">UI<br/><small style="opacity:.7;font-size:.8rem">Trang sản phẩm,<br/>giỏ hàng, thanh toán</small></div>
+    <div class="darr">→</div>
+    <div class="dbox" style="background:rgba(0,0,0,.55);border:1px solid rgba(255,209,102,.4);color:#fcd34d;backdrop-filter:blur(8px)">Logic<br/><small style="opacity:.7;font-size:.8rem">Kiểm tra tồn kho,<br/>tính giá, xử lý đơn</small></div>
+    <div class="darr">→</div>
+    <div class="dbox" style="background:rgba(0,0,0,.55);border:1px solid rgba(6,214,160,.4);color:#6ee7b7;backdrop-filter:blur(8px)">Data<br/><small style="opacity:.7;font-size:.8rem">Sản phẩm, user,<br/>đơn hàng, tồn kho</small></div>
+  </div>
+</div>
+`},
+
+{session:'Buổi 1',color:'#6c63ff',html:`
+<div class="bg-color" style="background:linear-gradient(135deg,#0a0a1a,#0f0f25)"></div>
+<div class="content">
+  <div class="tag" style="background:rgba(108,99,255,.2);color:#a5b4fc;border:1px solid rgba(108,99,255,.4)">Project: Task Manager</div>
+  <h2 class="big">Data trông như thế nào?</h2>
+  <div class="rule" style="background:#6c63ff"></div>
+  <div class="code-slide">
+<span class="cmt">// Mỗi task là 1 object với 3 field</span>
+{
+  <span class="str">"id"</span>: <span class="num">1706234567890</span>,
+  <span class="str">"title"</span>: <span class="str">"Học cách dùng AI"</span>,
+  <span class="str">"completed"</span>: <span class="kw">false</span>
+}
+  </div>
+  <p class="sub" style="margin-top:20px">Tại sao có <strong>id</strong>? — Để tìm đúng task khi xóa.<br/>Nếu muốn thêm deadline, cần field gì?</p>
+</div>
+`},
+
+{session:'Buổi 1',color:'#6c63ff',html:`
+<div class="bg-color" style="background:#0a0a18"></div>
+<div class="content">
+  <div class="tag" style="background:rgba(168,85,247,.2);color:#d8b4fe;border:1px solid rgba(168,85,247,.4)">Kỹ năng cốt lõi</div>
+  <h2 class="big">Prompt AI đúng cách</h2>
+  <div class="rule" style="background:#a855f7"></div>
+  <div class="compare">
+    <div class="cbox bad">
+      <span class="clabel">Prompt xấu</span>
+      "Làm cho tôi 1 trang web quản lý task."
+      <div style="margin-top:12px;font-size:.82rem;color:#f87171;opacity:.8">AI tự quyết định mọi thứ → output không như kỳ vọng</div>
+    </div>
+    <div class="cbox good">
+      <span class="clabel">Prompt tốt</span>
+      "Tôi đang học web. Tạo HTML+CSS cho Task Manager: (1) Header 'My Tasks'. (2) Form: input + nút Add. (3) List: checkbox + text + xóa. Responsive. Giải thích từng phần."
+      <div style="margin-top:12px;font-size:.82rem;color:#34d399;opacity:.8">Rõ context · Rõ yêu cầu · Giới hạn phạm vi</div>
+    </div>
+  </div>
+</div>
+`},
+
+{session:'Buổi 1',color:'#6c63ff',html:`
+<div class="bg-color" style="background:linear-gradient(135deg,#0a120a,#0a1a12)"></div>
+<div class="content">
+  <div class="tag" style="background:rgba(6,214,160,.15);color:#34d399;border:1px solid rgba(6,214,160,.3)">Thực hành — 60 phút</div>
+  <h2 class="big" style="color:#34d399">Build giao diện<br/>bằng AI</h2>
+  <div class="rule" style="background:#06d6a0"></div>
+  <ul class="list-items">
+    <li>
+      <svg class="li-icon" viewBox="0 0 24 24" fill="none" stroke="#06d6a0" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span>Tạo folder <code>task-manager/</code> → file <code>index.html</code></span>
+    </li>
+    <li>
+      <svg class="li-icon" viewBox="0 0 24 24" fill="none" stroke="#06d6a0" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span>Viết prompt theo cấu trúc đã học, gửi AI</span>
+    </li>
+    <li>
+      <svg class="li-icon" viewBox="0 0 24 24" fill="none" stroke="#06d6a0" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span>Copy code vào file → mở bằng Live Server</span>
+    </li>
+    <li>
+      <svg class="li-icon" viewBox="0 0 24 24" fill="none" stroke="#06d6a0" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span>Hỏi AI giải thích từng phần không hiểu</span>
+    </li>
+    <li>
+      <svg class="li-icon" viewBox="0 0 24 24" fill="none" stroke="#06d6a0" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span>Tự đổi màu nút / font / padding để hiểu CSS</span>
+    </li>
+  </ul>
+</div>
+`},
+
+// ══════════════════════════════════════
+// BUỔI 2
+// ══════════════════════════════════════
+{session:'Buổi 2',color:'#f77f00',html:`
+<div class="bg-img" style="background-image:url('https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&w=1600&q=80')"></div>
+<div class="content">
+  <div class="session-tag" style="color:#fdba74;border-color:#f77f00;background:rgba(247,127,0,.2)">Buổi 2 — 2 tiếng</div>
+  <h1 class="huge">State &amp; Tương tác</h1>
+  <div class="rule" style="background:#f77f00"></div>
+  <p class="sub">Làm web phản ứng với người dùng — CRUD hoàn chỉnh</p>
+</div>
+`},
+
+{session:'Buổi 2',color:'#f77f00',html:`
+<div class="bg-color" style="background:#0a0a18"></div>
+<div class="content">
+  <div class="tag" style="background:rgba(247,127,0,.2);color:#fdba74;border:1px solid rgba(247,127,0,.4)">Mental Model #2</div>
+  <h2 class="big">Action → State → UI</h2>
+  <div class="rule" style="background:#f77f00"></div>
+  <div class="diagram" style="margin-top:40px">
+    <div class="dbox" style="background:rgba(99,102,241,.22);border:1px solid rgba(99,102,241,.5);color:#a5b4fc;padding:20px 32px">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#a5b4fc" stroke-width="1.8" stroke-linecap="round" style="display:block;margin:0 auto 8px"><path d="M15 15l-6-6M9 15l6-6"/><circle cx="12" cy="12" r="10"/></svg>
+      User Action
+    </div>
+    <div class="darr">
+      <svg width="32" height="20" viewBox="0 0 32 20" fill="none"><path d="M0 10 L28 10 M20 2 L28 10 L20 18" stroke="rgba(255,255,255,.3)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="dbox" style="background:rgba(247,127,0,.22);border:1px solid rgba(247,127,0,.5);color:#fdba74;padding:20px 32px">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fdba74" stroke-width="1.8" stroke-linecap="round" style="display:block;margin:0 auto 8px"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+      Update State
+    </div>
+    <div class="darr">
+      <svg width="32" height="20" viewBox="0 0 32 20" fill="none"><path d="M0 10 L28 10 M20 2 L28 10 L20 18" stroke="rgba(255,255,255,.3)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="dbox" style="background:rgba(108,99,255,.22);border:1px solid rgba(108,99,255,.5);color:#c4b5fd;padding:20px 32px">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="1.8" stroke-linecap="round" style="display:block;margin:0 auto 8px"><rect x="3" y="3" width="18" height="18" rx="3"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+      Re-render UI
+    </div>
+  </div>
+  <p class="sub" style="margin-top:28px">Khi UI sai → kiểm tra <strong>State</strong>. Khi State sai → kiểm tra <strong>Action</strong>.</p>
+</div>
+`},
+
+{session:'Buổi 2',color:'#f77f00',html:`
+<div class="bg-color" style="background:#0a0a18"></div>
+<div class="content">
+  <div class="tag" style="background:rgba(247,127,0,.2);color:#fdba74;border:1px solid rgba(247,127,0,.4)">Khái niệm</div>
+  <h2 class="big">CRUD = 4 thao tác<br/>của mọi ứng dụng</h2>
+  <div class="rule" style="background:#f77f00"></div>
+  <div class="diagram" style="margin-top:32px;gap:16px">
+    <div class="dbox" style="background:rgba(6,214,160,.18);border:1px solid rgba(6,214,160,.4);color:#6ee7b7;padding:20px 28px;font-size:1.05rem">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6ee7b7" stroke-width="2" stroke-linecap="round" style="display:block;margin:0 auto 8px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Create
+    </div>
+    <div class="dbox" style="background:rgba(108,99,255,.18);border:1px solid rgba(108,99,255,.4);color:#c4b5fd;padding:20px 28px;font-size:1.05rem">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-linecap="round" style="display:block;margin:0 auto 8px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      Read
+    </div>
+    <div class="dbox" style="background:rgba(255,209,102,.18);border:1px solid rgba(255,209,102,.4);color:#fcd34d;padding:20px 28px;font-size:1.05rem">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fcd34d" stroke-width="2" stroke-linecap="round" style="display:block;margin:0 auto 8px"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      Update
+    </div>
+    <div class="dbox" style="background:rgba(239,68,68,.18);border:1px solid rgba(239,68,68,.4);color:#fca5a5;padding:20px 28px;font-size:1.05rem">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fca5a5" stroke-width="2" stroke-linecap="round" style="display:block;margin:0 auto 8px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+      Delete
+    </div>
+  </div>
+  <p class="sub" style="margin-top:24px">Instagram, Gmail, Shopee — tất cả đều là CRUD mở rộng</p>
+</div>
+`},
+
+{session:'Buổi 2',color:'#f77f00',html:`
+<div class="bg-color" style="background:linear-gradient(135deg,#0a0a1a,#160a00)"></div>
+<div class="content">
+  <div class="tag" style="background:rgba(255,209,102,.15);color:#fcd34d;border:1px solid rgba(255,209,102,.3)">Debug</div>
+  <h2 class="big">Khi UI sai → mở<br/>F12 Console</h2>
+  <div class="rule" style="background:#fcd34d"></div>
+  <div class="code-slide">
+<span class="cmt">// Kiểm tra state trực tiếp trong Console</span>
+<span class="kw">console</span>.log(tasks)
+
+<span class="cmt">// Nếu state đúng → vấn đề ở render()</span>
+<span class="cmt">// Nếu state sai  → vấn đề ở action handler</span>
+  </div>
+  <p class="sub" style="margin-top:20px">Pattern: mỗi function thay đổi data đều kết thúc bằng <code>render()</code><br/>Quên gọi <code>render()</code> → UI không cập nhật dù state đã đúng</p>
+</div>
+`},
+
+{session:'Buổi 2',color:'#f77f00',html:`
+<div class="bg-color" style="background:linear-gradient(135deg,#0a120a,#0a1a0a)"></div>
+<div class="content">
+  <div class="tag" style="background:rgba(6,214,160,.15);color:#34d399;border:1px solid rgba(6,214,160,.3)">Thực hành — 55 phút</div>
+  <h2 class="big" style="color:#34d399">Thêm CRUD vào<br/>Task Manager</h2>
+  <div class="rule" style="background:#06d6a0"></div>
+  <div class="prompt-block">
+    <span class="plabel">Prompt mẫu gửi AI</span>
+    Đây là HTML Task Manager của tôi [paste code]. Thêm JavaScript CRUD: (1) addTask(title) thêm vào mảng tasks, (2) deleteTask(id) xóa, (3) toggleTask(id) đổi trạng thái completed, (4) render() vẽ lại danh sách. Giải thích từng dòng quan trọng.
+  </div>
+  <p class="sub" style="margin-top:20px">Sau khi nhận code: <strong>phá thử</strong> — xóa <code>render()</code> → thấy UI không cập nhật → hiểu tại sao</p>
+</div>
+`},
+
+// ══════════════════════════════════════
+// BUỔI 3
+// ══════════════════════════════════════
+{session:'Buổi 3',color:'#06d6a0',html:`
+<div class="bg-img" style="background-image:url('https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1600&q=80')"></div>
+<div class="content">
+  <div class="session-tag" style="color:#6ee7b7;border-color:#06d6a0;background:rgba(6,214,160,.2)">Buổi 3 — 2 tiếng</div>
+  <h1 class="huge">Data Persistence</h1>
+  <div class="rule" style="background:#06d6a0"></div>
+  <p class="sub">Dữ liệu không được chết khi reload</p>
+</div>
+`},
+
+{session:'Buổi 3',color:'#06d6a0',html:`
+<div class="bg-color" style="background:#0a0a18"></div>
+<div class="content">
+  <div class="tag" style="background:rgba(6,214,160,.15);color:#34d399;border:1px solid rgba(6,214,160,.3)">Mental Model #3</div>
+  <h2 class="big">State = RAM<br/>RAM tắt là mất</h2>
+  <div class="rule" style="background:#06d6a0"></div>
+  <div class="diagram" style="margin-top:36px">
+    <div class="dbox" style="background:rgba(239,68,68,.18);border:1px solid rgba(239,68,68,.4);color:#fca5a5;padding:20px 28px">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fca5a5" stroke-width="1.8" stroke-linecap="round" style="display:block;margin:0 auto 8px"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+      State (RAM)<br/><small style="opacity:.7;font-size:.78rem">Nhanh, tạm thời<br/>Tắt máy → mất</small>
+    </div>
+    <div class="darr">
+      <svg width="32" height="20" viewBox="0 0 32 20" fill="none"><path d="M0 10 L28 10 M20 2 L28 10 L20 18" stroke="rgba(255,255,255,.3)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="dbox" style="background:rgba(6,214,160,.18);border:1px solid rgba(6,214,160,.4);color:#6ee7b7;padding:20px 28px">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#6ee7b7" stroke-width="1.8" stroke-linecap="round" style="display:block;margin:0 auto 8px"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0018 0V5"/><path d="M3 12a9 3 0 0018 0"/></svg>
+      Persistence<br/><small style="opacity:.7;font-size:.78rem">Bền, còn sau reload<br/>localStorage · DB</small>
+    </div>
+  </div>
+  <p class="sub" style="margin-top:28px">Mọi app thật sự đều cần <strong>ghi ra ngoài RAM</strong> để data tồn tại</p>
+</div>
+`},
+
+{session:'Buổi 3',color:'#06d6a0',html:`
+<div class="bg-color" style="background:linear-gradient(135deg,#0a0a1a,#001a12)"></div>
+<div class="content">
+  <div class="tag" style="background:rgba(6,214,160,.15);color:#34d399;border:1px solid rgba(6,214,160,.3)">Công cụ</div>
+  <h2 class="big">localStorage — 3 điều cần biết</h2>
+  <div class="rule" style="background:#06d6a0"></div>
+  <div class="code-slide">
+<span class="cmt">// Lưu: object phải convert thành string</span>
+localStorage.setItem(<span class="str">'tasks'</span>, JSON.stringify(tasks))
+
+<span class="cmt">// Đọc: string convert lại thành object</span>
+<span class="kw">const</span> saved = localStorage.getItem(<span class="str">'tasks'</span>)
+<span class="kw">const</span> tasks = saved ? JSON.parse(saved) : []
+<span class="cmt">// ↑ kiểm tra null trước khi parse — quan trọng!</span>
+  </div>
+  <p class="sub" style="margin-top:20px">Max ~5MB · Chỉ 1 thiết bị · Không có backup<br/>Muốn nhiều thiết bị → cần <strong>Database</strong></p>
+</div>
+`},
+
+{session:'Buổi 3',color:'#06d6a0',html:`
+<div class="bg-img" style="background-image:url('https://images.unsplash.com/photo-1607706189992-eae578626c86?auto=format&fit=crop&w=1600&q=80')"></div>
+<div class="content">
+  <div class="tag" style="background:rgba(0,0,0,.5);color:#6ee7b7;border:1px solid rgba(6,214,160,.4)">DevTools</div>
+  <h2 class="big">Xem data sống và thay đổi<br/>trong Application tab</h2>
+  <div class="rule" style="background:#06d6a0"></div>
+  <p class="sub">F12 → <strong>Application</strong> → Local Storage<br/>Quan sát JSON thay đổi theo thời gian thực khi thêm/xóa task</p>
+</div>
+`},
+
+// ══════════════════════════════════════
+// BUỔI 4
+// ══════════════════════════════════════
+{session:'Buổi 4',color:'#ec4899',html:`
+<div class="bg-img" style="background-image:url('https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1600&q=80')"></div>
+<div class="content">
+  <div class="session-tag" style="color:#f9a8d4;border-color:#ec4899;background:rgba(236,72,153,.2)">Buổi 4 — 2 tiếng</div>
+  <h1 class="huge">Clean Code &amp; UX</h1>
+  <div class="rule" style="background:#ec4899"></div>
+  <p class="sub">Từ "code chạy được" lên "sản phẩm thật"</p>
+</div>
+`},
+
+{session:'Buổi 4',color:'#ec4899',html:`
+<div class="bg-color" style="background:#0a0a18"></div>
+<div class="content">
+  <div class="tag" style="background:rgba(236,72,153,.18);color:#f9a8d4;border:1px solid rgba(236,72,153,.4)">Mental Model #4</div>
+  <h2 class="big">Code tốt = người khác đọc<br/>hiểu sau 1 tuần</h2>
+  <div class="rule" style="background:#ec4899"></div>
+  <div class="compare" style="margin-top:32px">
+    <div class="cbox bad">
+      <span class="clabel">Code khó đọc</span>
+      <code>const x = t.filter(i => !i.c)</code>
+      <div style="margin-top:10px;font-size:.85rem;color:rgba(255,255,255,.5)">x là gì? t là gì? c là gì?<br/>Đọc lại sau 1 tuần → không hiểu</div>
+    </div>
+    <div class="cbox good">
+      <span class="clabel">Code dễ đọc</span>
+      <code>const pending = tasks.filter(t => !t.completed)</code>
+      <div style="margin-top:10px;font-size:.85rem;color:rgba(255,255,255,.5)">Đọc 1 lần → hiểu ngay<br/>Không cần giải thích</div>
+    </div>
+  </div>
+  <p class="sub" style="margin-top:24px">Biến = danh từ mô tả nội dung · Function = động từ mô tả hành động</p>
+</div>
+`},
+
+{session:'Buổi 4',color:'#ec4899',html:`
+<div class="bg-color" style="background:#0a0a18"></div>
+<div class="content">
+  <div class="tag" style="background:rgba(236,72,153,.18);color:#f9a8d4;border:1px solid rgba(236,72,153,.4)">UX</div>
+  <h2 class="big">4 điều UX tối thiểu</h2>
+  <div class="rule" style="background:#ec4899"></div>
+  <ul class="list-items" style="margin-top:28px">
+    <li>
+      <svg class="li-icon" viewBox="0 0 24 24" fill="none" stroke="#ec4899" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+      <span><strong style="color:#fff">Không cho nhập rỗng</strong> — validate trước khi xử lý</span>
+    </li>
+    <li>
+      <svg class="li-icon" viewBox="0 0 24 24" fill="none" stroke="#ec4899" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+      <span><strong style="color:#fff">Empty state</strong> — "Chưa có task nào" thay vì trang trắng</span>
+    </li>
+    <li>
+      <svg class="li-icon" viewBox="0 0 24 24" fill="none" stroke="#ec4899" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+      <span><strong style="color:#fff">Feedback ngay</strong> — sau khi Add: input tự clear, tự focus</span>
+    </li>
+    <li>
+      <svg class="li-icon" viewBox="0 0 24 24" fill="none" stroke="#ec4899" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <span><strong style="color:#fff">Confirm xóa</strong> — tránh lỡ tay mất data</span>
+    </li>
+  </ul>
+</div>
+`},
+
+{session:'Buổi 4',color:'#ec4899',html:`
+<div class="bg-color" style="background:linear-gradient(135deg,#0a0a1a,#1a0a1a)"></div>
+<div class="content">
+  <div class="tag" style="background:rgba(168,85,247,.18);color:#d8b4fe;border:1px solid rgba(168,85,247,.4)">AI Review</div>
+  <h2 class="big">Dùng AI làm<br/>senior reviewer</h2>
+  <div class="rule" style="background:#a855f7"></div>
+  <div class="prompt-block">
+    <span class="plabel">Prompt review code — không nhờ viết lại</span>
+    Review JavaScript này: (1) Tên biến/function có mô tả rõ không? (2) Có logic lặp lại nên tách ra không? (3) Có lỗi tiềm ẩn không? (4) Người đọc lần đầu sẽ bị mắc kẹt ở đâu? Chỉ giải thích vấn đề — đừng viết lại code.
+  </div>
+  <p class="sub" style="margin-top:20px">Mục tiêu: hiểu <strong>tại sao</strong> code cũ chưa tốt, không phải nhận code đẹp từ AI</p>
+</div>
+`},
+
+// ══════════════════════════════════════
+// BUỔI 5
+// ══════════════════════════════════════
+{session:'Buổi 5',color:'#ef4444',html:`
+<div class="bg-img" style="background-image:url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1600&q=80')"></div>
+<div class="content">
+  <div class="session-tag" style="color:#fca5a5;border-color:#ef4444;background:rgba(239,68,68,.2)">Buổi 5 — 2 tiếng</div>
+  <h1 class="huge">Deploy &amp;<br/>Hoàn thiện</h1>
+  <div class="rule" style="background:#ef4444"></div>
+  <p class="sub">Security check → Deploy thật → Demo cuối khóa</p>
+</div>
+`},
+
+{session:'Buổi 5',color:'#ef4444',html:`
+<div class="bg-color" style="background:#0a0a18"></div>
+<div class="content">
+  <div class="tag" style="background:rgba(239,68,68,.18);color:#fca5a5;border:1px solid rgba(239,68,68,.4)">Mental Model #5</div>
+  <h2 class="big">Dev = Nhà kho<br/>Production = Cửa hàng thật</h2>
+  <div class="rule" style="background:#ef4444"></div>
+  <div class="diagram" style="margin-top:36px">
+    <div class="dbox" style="background:rgba(99,102,241,.22);border:1px solid rgba(99,102,241,.5);color:#a5b4fc;padding:20px 32px">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#a5b4fc" stroke-width="1.8" stroke-linecap="round" style="display:block;margin:0 auto 8px"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      localhost<br/><small style="opacity:.7;font-size:.78rem">Chỉ mình biết<br/>Có thể bừa bộn</small>
+    </div>
+    <div class="darr">
+      <svg width="40" height="20" viewBox="0 0 40 20" fill="none"><path d="M0 10 L36 10 M28 2 L36 10 L28 18" stroke="rgba(239,68,68,.6)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="dbox" style="background:rgba(239,68,68,.22);border:1px solid rgba(239,68,68,.5);color:#fca5a5;padding:20px 32px">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fca5a5" stroke-width="1.8" stroke-linecap="round" style="display:block;margin:0 auto 8px"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+      vercel.app<br/><small style="opacity:.7;font-size:.78rem">Ai cũng vào được<br/>Phải cẩn thận</small>
+    </div>
+  </div>
+  <p class="sub" style="margin-top:28px">Trên Production: <strong>người lạ vào, nhập bất kỳ thứ gì, có thể cố ý phá</strong></p>
+</div>
+`},
+
+{session:'Buổi 5',color:'#ef4444',html:`
+<div class="bg-img" style="background-image:url('https://images.unsplash.com/photo-1614064641938-3bbdc4d5c182?auto=format&fit=crop&w=1600&q=80')"></div>
+<div class="content">
+  <div class="tag" style="background:rgba(239,68,68,.3);color:#fca5a5;border:1px solid rgba(239,68,68,.5)">Trước khi Deploy</div>
+  <h2 class="big">Invisible Risks</h2>
+  <div class="rule" style="background:#ef4444"></div>
+  <p class="sub" style="max-width:600px">Những thứ AI không nhắc —<br/>nhưng có thể <strong>phá hỏng sản phẩm</strong> sau khi lên production</p>
+</div>
+`},
+
+{session:'Buổi 5',color:'#ef4444',html:`
+<div class="bg-color" style="background:linear-gradient(135deg,#0a0a18,#1a0000)"></div>
+<div class="content left" style="max-width:900px;margin:0 auto;padding:60px 80px">
+  <div class="tag" style="background:rgba(239,68,68,.18);color:#fca5a5;border:1px solid rgba(239,68,68,.4)">Risk #1 &amp; #2</div>
+  <h2 class="big" style="text-align:left;font-size:2.4rem">Rủi ro bạn có thể<br/>tự kiểm tra ngay</h2>
+  <div class="rule left" style="background:#ef4444"></div>
+  <div class="compare" style="margin-top:28px">
+    <div class="cbox bad">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        <span style="font-weight:700;color:#f87171">API Key bị lộ</span>
+      </div>
+      Nếu paste API key vào code JS frontend → View Source → ai cũng đọc được
+      <div style="margin-top:8px;font-size:.8rem;color:#fca5a5;opacity:.8">→ Key chỉ sống trên server, không bao giờ trong file JS</div>
+    </div>
+    <div class="cbox bad">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span style="font-weight:700;color:#f87171">XSS — nhập script vào input</span>
+      </div>
+      Nếu dùng <code>innerHTML = userInput</code> → code của người dùng chạy trong browser
+      <div style="margin-top:8px;font-size:.8rem;color:#fca5a5;opacity:.8">→ Test nhanh: nhập <code>&lt;b&gt;Bold&lt;/b&gt;</code> vào ô input — nếu in đậm thật là dính</div>
+    </div>
+  </div>
+</div>
+`},
+
+{session:'Buổi 5',color:'#ef4444',html:`
+<div class="bg-color" style="background:#0a0a18"></div>
+<div class="content">
+  <div class="tag" style="background:rgba(239,68,68,.18);color:#fca5a5;border:1px solid rgba(239,68,68,.4)">Risk #3 – #6</div>
+  <h2 class="big" style="font-size:2.2rem">Những rủi ro bạn cần biết tồn tại</h2>
+  <div class="rule" style="background:#ef4444"></div>
+  <div class="risk-grid">
+    <div class="risk-item">
+      <svg class="risk-icon" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="1.8" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+      <div class="risk-title">Phân quyền sai</div>
+      <div class="risk-desc">User A đọc được data của User B — chỉ phát hiện khi có người thử cố ý</div>
+    </div>
+    <div class="risk-item">
+      <svg class="risk-icon" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <div class="risk-title">Race condition</div>
+      <div class="risk-desc">Chạy tốt 1 người — 1000 người cùng lúc: data bị ghi đè, số liệu sai</div>
+    </div>
+    <div class="risk-item">
+      <svg class="risk-icon" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="1.8" stroke-linecap="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0018 0V5"/><path d="M3 12a9 3 0 0018 0"/></svg>
+      <div class="risk-title">Không có backup</div>
+      <div class="risk-desc">Server sập → mất toàn bộ data. Câu hỏi: data recover về thời điểm nào gần nhất?</div>
+    </div>
+    <div class="risk-item" style="grid-column:span 3;background:rgba(239,68,68,.06);border-color:rgba(239,68,68,.2)">
+      <svg class="risk-icon" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+      <div>
+        <div class="risk-title">CORS &amp; Config môi trường sai</div>
+        <div class="risk-desc" style="font-size:.85rem">Code chạy tốt localhost nhưng lỗi production vì CORS, biến môi trường (PORT, DATABASE_URL) khác nhau. Hay gặp: Error 403, API không gọi được sau deploy.</div>
+      </div>
+    </div>
+  </div>
+  <p class="sub" style="margin-top:20px;font-size:.9rem">Không cần fix ngay — chỉ cần biết những thứ này <strong>tồn tại</strong> để tự hỏi trước khi deploy</p>
+</div>
+`},
+
+{session:'Buổi 5',color:'#ef4444',html:`
+<div class="bg-color" style="background:#0a0a18"></div>
+<div class="content">
+  <div class="tag" style="background:rgba(255,209,102,.15);color:#fcd34d;border:1px solid rgba(255,209,102,.3)">Câu hỏi quan trọng nhất</div>
+  <h2 class="big" style="max-width:800px;font-size:clamp(1.8rem,4vw,3rem)">"Nếu có người muốn<br/>phá app này, họ sẽ<br/>thử gì đầu tiên?"</h2>
+  <div class="rule" style="background:#fcd34d"></div>
+  <p class="sub">AI generate code theo happy path — người dùng làm đúng.<br/>Câu hỏi này là thứ AI <strong>không bao giờ tự hỏi</strong> thay bạn.</p>
+</div>
+`},
+
+{session:'Buổi 5',color:'#ef4444',html:`
+<div class="bg-color" style="background:linear-gradient(135deg,#0a0a1a,#0a1a00)"></div>
+<div class="content">
+  <div class="tag" style="background:rgba(6,214,160,.15);color:#34d399;border:1px solid rgba(6,214,160,.3)">Pre-deploy Checklist</div>
+  <h2 class="big" style="color:#34d399">Trước khi push lên Vercel</h2>
+  <div class="rule" style="background:#06d6a0"></div>
+  <ul class="checklist">
+    <li>
+      <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="#06d6a0" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+      CRUD đầy đủ, data không mất sau refresh
+    </li>
+    <li>
+      <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="#06d6a0" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+      Console F12 không có lỗi đỏ
+    </li>
+    <li>
+      <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="#06d6a0" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+      Responsive — không vỡ layout trên mobile
+    </li>
+    <li>
+      <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="#06d6a0" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+      Không có API key trong code frontend
+    </li>
+    <li>
+      <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="#06d6a0" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+      Input dùng <code>textContent</code>, không phải <code>innerHTML</code>
+    </li>
+    <li>
+      <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="#06d6a0" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+      README.md có đủ để người khác chạy được
+    </li>
+  </ul>
+</div>
+`},
+
+{session:'Buổi 5',color:'#ef4444',html:`
+<div class="bg-color" style="background:#0a0a18"></div>
+<div class="content">
+  <div class="tag" style="background:rgba(99,102,241,.18);color:#a5b4fc;border:1px solid rgba(99,102,241,.4)">Deploy lên Vercel</div>
+  <h2 class="big">5 bước — nhận URL thật</h2>
+  <div class="rule" style="background:#6c63ff"></div>
+  <ul class="list-items" style="margin-top:28px;max-width:640px">
+    <li>
+      <div style="width:32px;height:32px;background:#6c63ff;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;flex-shrink:0">1</div>
+      <span>Tạo repo trên <strong style="color:#fff">github.com</strong>, push code lên</span>
+    </li>
+    <li>
+      <div style="width:32px;height:32px;background:#6c63ff;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;flex-shrink:0">2</div>
+      <span>Vào <strong style="color:#fff">vercel.com</strong>, đăng nhập bằng GitHub</span>
+    </li>
+    <li>
+      <div style="width:32px;height:32px;background:#6c63ff;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;flex-shrink:0">3</div>
+      <span>Click <strong style="color:#fff">New Project</strong> → chọn repo vừa tạo</span>
+    </li>
+    <li>
+      <div style="width:32px;height:32px;background:#6c63ff;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;flex-shrink:0">4</div>
+      <span>Vercel auto detect → click <strong style="color:#fff">Deploy</strong></span>
+    </li>
+    <li>
+      <div style="width:32px;height:32px;background:linear-gradient(135deg,#06d6a0,#0891b2);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <span>Nhận <strong style="color:#34d399">your-project.vercel.app</strong> — deploy lại tự động khi push code</span>
+    </li>
+  </ul>
+</div>
+`},
+
+// ══════════════════════════════════════
+// CLOSING
+// ══════════════════════════════════════
+{session:'',color:'#6c63ff',html:`
+<div class="bg-img" style="background-image:url('https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1600&q=80')"></div>
+<div class="content">
+  <div class="tag" style="background:rgba(0,0,0,.5);color:#a5b4fc;border:1px solid rgba(108,99,255,.4)">Demo cuối khóa</div>
+  <h2 class="big">5 phút/người — giải thích<br/>hệ thống bạn đã build</h2>
+  <div class="rule" style="background:#6c63ff"></div>
+  <p class="sub" style="max-width:640px">
+    "App này hoạt động theo mô hình gì?" · "Khi bấm Add, điều gì xảy ra?" · 
+    "Tại sao data không mất khi refresh?" · "Điều gì xảy ra nếu 1000 người dùng cùng lúc?"
+  </p>
+</div>
+`},
+
+{session:'',color:'#6c63ff',html:`
+<div class="bg-color" style="background:#0a0a18"></div>
+<div class="content">
+  <h3 class="med" style="color:var(--muted);font-size:.9rem;letter-spacing:2px;text-transform:uppercase;margin-bottom:32px">5 Mental Models đã học</h3>
+  <div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:680px">
+    <div style="display:flex;align-items:center;gap:16px">
+      <div style="width:10px;height:10px;border-radius:50%;background:#6c63ff;flex-shrink:0"></div>
+      <div style="font-size:1.05rem;color:#fff;font-weight:600">Web = UI + Logic + Data</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px">
+      <div style="width:10px;height:10px;border-radius:50%;background:#f77f00;flex-shrink:0"></div>
+      <div style="font-size:1.05rem;color:#fff;font-weight:600">Action → State → UI</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px">
+      <div style="width:10px;height:10px;border-radius:50%;background:#06d6a0;flex-shrink:0"></div>
+      <div style="font-size:1.05rem;color:#fff;font-weight:600">RAM mất khi tắt → cần Persistence</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px">
+      <div style="width:10px;height:10px;border-radius:50%;background:#ec4899;flex-shrink:0"></div>
+      <div style="font-size:1.05rem;color:#fff;font-weight:600">Code tốt = người đọc hiểu được</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px">
+      <div style="width:10px;height:10px;border-radius:50%;background:#ef4444;flex-shrink:0"></div>
+      <div style="font-size:1.05rem;color:#fff;font-weight:600">Dev ≠ Production + Invisible Risks</div>
+    </div>
+  </div>
+  <div style="margin-top:40px;background:rgba(108,99,255,.08);border:1px solid rgba(108,99,255,.2);border-radius:12px;padding:20px 32px;max-width:680px;width:100%">
+    <div style="font-size:1.05rem;color:rgba(255,255,255,.9);line-height:1.7;font-style:italic">"Khóa này không dạy syntax. Khóa này dạy cách tư duy về hệ thống — và AI là công cụ, không phải thầy giáo thay thế."</div>
+  </div>
+</div>
+`},
+
+];
+
+// ══════════════════════════════════════
+// Engine
+// ══════════════════════════════════════
+const deck = document.getElementById('deck');
+const progressBar = document.getElementById('progress-bar');
+const counter = document.getElementById('slide-counter');
+const sessionLabel = document.getElementById('session-label');
+const hint = document.getElementById('hint');
+
+let current = 0;
+
+const sessionColors = {'Buổi 1':'#6c63ff','Buổi 2':'#f77f00','Buổi 3':'#06d6a0','Buổi 4':'#ec4899','Buổi 5':'#ef4444','':'#6c63ff'};
+
+function buildSlides() {
+  slides.forEach((s, i) => {
+    const el = document.createElement('div');
+    el.className = 'slide';
+    el.innerHTML = s.html;
+    deck.appendChild(el);
+  });
+}
+
+function go(idx) {
+  const all = deck.querySelectorAll('.slide');
+  if (idx < 0 || idx >= all.length) return;
+  if (current !== idx) {
+    all[current].className = 'slide prev';
+  }
+  all[idx].className = 'slide active';
+  current = idx;
+  // progress
+  const pct = (current / (all.length - 1)) * 100;
+  const color = slides[current].color || '#6c63ff';
+  progressBar.style.width = pct + '%';
+  progressBar.style.background = color;
+  counter.textContent = (current + 1) + ' / ' + all.length;
+  const sname = slides[current].session;
+  sessionLabel.textContent = sname;
+  sessionLabel.style.color = sessionColors[sname] || '#6c63ff';
+}
+
+buildSlides();
+go(0);
+
+document.getElementById('nav-next').onclick = () => go(current + 1);
+document.getElementById('nav-prev').onclick = () => go(current - 1);
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); go(current + 1); }
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); go(current - 1); }
+  if (e.key === 'Home') go(0);
+  if (e.key === 'End') go(slides.length - 1);
+});
+
+// touch swipe
+let tx = 0;
+document.addEventListener('touchstart', e => tx = e.touches[0].clientX, {passive:true});
+document.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - tx;
+  if (Math.abs(dx) > 60) go(dx < 0 ? current + 1 : current - 1);
+}, {passive:true});
+
+setTimeout(() => { hint.style.opacity = 0; }, 4000);
+</script>
+</body>
+</html>
