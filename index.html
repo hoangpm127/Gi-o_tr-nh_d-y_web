@@ -1,1 +1,123 @@
-TEST_OK
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Web Builder Foundation — Chọn buổi học</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#050e12;font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;color:#e0e0f0;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px}
+.header{text-align:center;margin-bottom:52px}
+.badge{display:inline-block;padding:5px 16px;border-radius:8px;font-size:.7rem;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.4);margin-bottom:18px}
+h1{font-size:clamp(1.8rem,4vw,3rem);font-weight:900;color:#fff;line-height:1.15}
+.sub{margin-top:10px;font-size:.95rem;color:rgba(255,255,255,.38)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;width:100%;max-width:1040px}
+.card{background:#0a1c22;border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:28px 26px 24px;cursor:pointer;text-decoration:none;color:inherit;transition:transform .18s ease,border-color .18s,box-shadow .18s;display:flex;flex-direction:column;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .18s;border-radius:18px}
+.card:hover{transform:translateY(-4px);box-shadow:0 16px 48px rgba(0,0,0,.4)}
+.card:hover::before{opacity:1}
+.card-b1::before{background:linear-gradient(135deg,rgba(108,99,255,.07),transparent)}.card-b1:hover{border-color:rgba(108,99,255,.4)}
+.card-b2::before{background:linear-gradient(135deg,rgba(247,127,0,.07),transparent)}.card-b2:hover{border-color:rgba(247,127,0,.4)}
+.card-b3::before{background:linear-gradient(135deg,rgba(6,214,160,.07),transparent)}.card-b3:hover{border-color:rgba(6,214,160,.4)}
+.card-b4::before{background:linear-gradient(135deg,rgba(59,130,246,.07),transparent)}.card-b4:hover{border-color:rgba(59,130,246,.4)}
+.card-b5::before{background:linear-gradient(135deg,rgba(34,211,238,.07),transparent)}.card-b5:hover{border-color:rgba(34,211,238,.4)}
+.card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;position:relative;z-index:1}
+.num{font-size:.7rem;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;padding:4px 12px;border-radius:6px}
+.slides-count{font-size:.72rem;color:rgba(255,255,255,.24);font-weight:600}
+.card-title{font-size:1.15rem;font-weight:800;color:#fff;line-height:1.3;position:relative;z-index:1;margin-bottom:10px}
+.card-desc{font-size:.82rem;color:rgba(255,255,255,.42);line-height:1.7;position:relative;z-index:1;flex:1}
+.card-topics{display:flex;flex-wrap:wrap;gap:5px;margin-top:14px;position:relative;z-index:1}
+.topic{font-size:.68rem;font-weight:600;padding:3px 9px;border-radius:5px;letter-spacing:.3px}
+.arrow{position:absolute;bottom:22px;right:22px;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;opacity:0;transform:translateX(-6px);transition:opacity .18s,transform .18s;z-index:1}
+.card:hover .arrow{opacity:1;transform:translateX(0)}
+.footer{margin-top:48px;font-size:.75rem;color:rgba(255,255,255,.18);text-align:center;line-height:2}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="badge">Web Builder Foundation</div>
+  <h1>Chọn buổi học</h1>
+  <p class="sub">5 buổi · Slide + Thuyết minh AI · Câu hỏi tương tác</p>
+</div>
+<div class="grid">
+  <a class="card card-b1" href="buoi1.html">
+    <div class="card-top">
+      <span class="num" style="background:rgba(108,99,255,.15);color:#a5b4fc">Buổi 1</span>
+      <span class="slides-count">20 slides</span>
+    </div>
+    <div class="card-title">Giao diện đầu tiên</div>
+    <div class="card-desc">Tư duy 3 tầng · HTML &amp; CSS từ con số không · Prompt AI build UI từng bước</div>
+    <div class="card-topics">
+      <span class="topic" style="background:rgba(108,99,255,.12);color:#a5b4fc">HTML</span>
+      <span class="topic" style="background:rgba(108,99,255,.12);color:#a5b4fc">CSS</span>
+      <span class="topic" style="background:rgba(108,99,255,.12);color:#a5b4fc">Tư duy 3 tầng</span>
+      <span class="topic" style="background:rgba(108,99,255,.12);color:#a5b4fc">Prompt AI</span>
+    </div>
+    <div class="arrow" style="background:rgba(108,99,255,.2)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a5b4fc" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg></div>
+  </a>
+  <a class="card card-b2" href="buoi2.html">
+    <div class="card-top">
+      <span class="num" style="background:rgba(247,127,0,.15);color:#fdba74">Buổi 2</span>
+      <span class="slides-count">18 slides</span>
+    </div>
+    <div class="card-title">Logic xử lý</div>
+    <div class="card-desc">JavaScript làm trang web phản hồi · Thêm, tick, xóa task · Đọc hiểu code AI sinh ra</div>
+    <div class="card-topics">
+      <span class="topic" style="background:rgba(247,127,0,.12);color:#fdba74">JavaScript</span>
+      <span class="topic" style="background:rgba(247,127,0,.12);color:#fdba74">DOM</span>
+      <span class="topic" style="background:rgba(247,127,0,.12);color:#fdba74">Event</span>
+      <span class="topic" style="background:rgba(247,127,0,.12);color:#fdba74">Tầng xử lý</span>
+    </div>
+    <div class="arrow" style="background:rgba(247,127,0,.2)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fdba74" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg></div>
+  </a>
+  <a class="card card-b3" href="buoi3.html">
+    <div class="card-top">
+      <span class="num" style="background:rgba(6,214,160,.12);color:#34d399">Buổi 3</span>
+      <span class="slides-count">18 slides</span>
+    </div>
+    <div class="card-title">Dữ liệu bền vững</div>
+    <div class="card-desc">LocalStorage · Trang web nhớ sau khi đóng tab · Vòng lặp Save–Load</div>
+    <div class="card-topics">
+      <span class="topic" style="background:rgba(6,214,160,.1);color:#34d399">LocalStorage</span>
+      <span class="topic" style="background:rgba(6,214,160,.1);color:#34d399">JSON</span>
+      <span class="topic" style="background:rgba(6,214,160,.1);color:#34d399">Tầng dữ liệu</span>
+    </div>
+    <div class="arrow" style="background:rgba(6,214,160,.15)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg></div>
+  </a>
+  <a class="card card-b4" href="buoi4.html">
+    <div class="card-top">
+      <span class="num" style="background:rgba(59,130,246,.15);color:#93c5fd">Buổi 4</span>
+      <span class="slides-count">18 slides</span>
+    </div>
+    <div class="card-title">Trải nghiệm người dùng</div>
+    <div class="card-desc">Đổi vai người dùng · 4 vòng test UX · Mô tả vấn đề đúng cách để AI fix</div>
+    <div class="card-topics">
+      <span class="topic" style="background:rgba(59,130,246,.12);color:#93c5fd">UX Testing</span>
+      <span class="topic" style="background:rgba(59,130,246,.12);color:#93c5fd">Edge cases</span>
+      <span class="topic" style="background:rgba(59,130,246,.12);color:#93c5fd">Mô tả lỗi</span>
+    </div>
+    <div class="arrow" style="background:rgba(59,130,246,.2)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#93c5fd" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg></div>
+  </a>
+  <a class="card card-b5" href="buoi5.html">
+    <div class="card-top">
+      <span class="num" style="background:rgba(34,211,238,.12);color:#67e8f9">Buổi 5</span>
+      <span class="slides-count">18 slides</span>
+    </div>
+    <div class="card-title">Deploy — Ra đời</div>
+    <div class="card-desc">Localhost vs Server · Netlify kéo thả · URL thật trong 30 giây · Tốt nghiệp</div>
+    <div class="card-topics">
+      <span class="topic" style="background:rgba(34,211,238,.1);color:#67e8f9">Deploy</span>
+      <span class="topic" style="background:rgba(34,211,238,.1);color:#67e8f9">Netlify</span>
+      <span class="topic" style="background:rgba(34,211,238,.1);color:#67e8f9">Tốt nghiệp</span>
+    </div>
+    <div class="arrow" style="background:rgba(34,211,238,.15)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#67e8f9" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg></div>
+  </a>
+</div>
+<div class="footer">
+  Click để vào slide · Trong mỗi buổi: ← → chuyển trang · V = Đọc · A = AUTO · Space = Tiếp<br/>
+  <span style="opacity:.5">Web Builder Foundation · Dùng nội bộ</span>
+</div>
+</body>
+</html>
