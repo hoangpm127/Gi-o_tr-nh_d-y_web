@@ -128,35 +128,18 @@ h2.big{font-size:clamp(1.6rem,3.2vw,2.8rem);font-weight:900;line-height:1.15;col
 
 <div id="settings-panel">
   <div><span class="s-title">Cài đặt giọng nói</span><button class="s-close" id="s-close">✕</button></div>
-  <span class="s-label">FPT.AI Key (miễn phí – giọng Việt)</span>
-  <input class="s-input" id="s-fpt-key" type="password" placeholder="Lấy key tại fpt.ai"/>
-  <span class="s-label">Giọng FPT.AI</span>
-  <select class="s-select" id="s-fpt-voice">
-    <option value="banmai">Ban Mai (nữ, Bắc)</option>
-    <option value="leminh">Lê Minh (nam, Bắc)</option>
-    <option value="thuminh">Thu Minh (nữ, Nam)</option>
-    <option value="giahuy">Gia Huy (nam, Nam)</option>
-    <option value="lannhi">Lan Nhi (nữ, Trung)</option>
-    <option value="linhsan">Linh San (nữ trẻ, Bắc)</option>
-  </select>
-  <div style="border-top:1px solid rgba(255,255,255,.07);margin:14px 0;padding-top:14px"></div>
-  <span class="s-label">OpenAI Key (trả phí)</span>
-  <input class="s-input" id="s-key" type="password" placeholder="sk-..."/>
-  <span class="s-label">Giọng OpenAI</span>
-  <select class="s-select" id="s-oai-voice">
-    <option value="nova">Nova (nữ)</option>
-    <option value="shimmer">Shimmer (nữ nhẹ)</option>
-    <option value="alloy">Alloy</option>
-    <option value="echo">Echo (nam)</option>
-    <option value="onyx">Onyx (nam trầm)</option>
-    <option value="fable">Fable (ấm)</option>
-  </select>
-  <div style="border-top:1px solid rgba(255,255,255,.07);margin:14px 0;padding-top:14px"></div>
-  <span class="s-label">Giọng hệ thống (fallback)</span>
-  <select class="s-select" id="s-sys-voice"></select>
+  <div style="display:flex;align-items:center;gap:10px;margin:14px 0;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:9px;padding:12px 14px">
+    <div style="width:10px;height:10px;border-radius:50%;background:#22c55e;box-shadow:0 0 8px #22c55e;flex-shrink:0"></div>
+    <div>
+      <div style="font-weight:700;color:#fff;font-size:.9rem">Ban Mai — FPT.AI</div>
+      <div style="font-size:.74rem;color:var(--muted);margin-top:2px">Giọng nữ, Hà Nội · Cài sẵn</div>
+    </div>
+  </div>
   <span class="s-label">Tốc độ đọc</span>
-  <input class="s-input" id="s-rate" type="range" min="0.6" max="1.4" step="0.05" value="0.9" style="padding:6px 0;cursor:pointer"/>
-  <div style="font-size:.77rem;color:var(--muted);margin-top:3px;text-align:right" id="s-rate-val">0.9×</div>
+  <input class="s-input" id="s-rate" type="range" min="0.6" max="1.4" step="0.05" value="0.9" style="padding:6px 0;cursor:pointer;accent-color:#f77f00"/>
+  <div style="font-size:.77rem;color:var(--muted);margin-top:3px;display:flex;justify-content:space-between">
+    <span>Chậm</span><span id="s-rate-val" style="color:#f77f00;font-weight:700">0.9×</span><span>Nhanh</span>
+  </div>
   <div class="s-row">
     <button class="s-save" id="s-save">Lưu &amp; Đóng</button>
     <button class="s-save" id="s-test" style="background:rgba(255,255,255,.11)">Test giọng</button>
@@ -217,11 +200,9 @@ let cur = 0;
 let autoMode = false;
 let speaking = false;
 let audioSrc = null;
-let voiceRate = 0.9;
-let openaiKey = localStorage.getItem('oai_key') || '';
-let openaiVoice = localStorage.getItem('oai_voice') || 'nova';
-let fptKey = localStorage.getItem('fpt_key') || 'XNZzpBQVWhTOCRc7MhOGbezPQznkhNew';
-let fptVoice = localStorage.getItem('fpt_voice') || 'banmai';
+let voiceRate = parseFloat(localStorage.getItem('b2_rate') || '0.9');
+const FPT_KEY = 'XNZzpBQVWhTOCRc7MhOGbezPQznkhNew';
+const FPT_VOICE = 'banmai';
 let qAnswered = false;
 let qState = null;
 let qThinkTimer = null;
@@ -233,49 +214,23 @@ let slideMinTimer = null;
 const settingsBtn = document.getElementById('settings-btn');
 const settingsPanel = document.getElementById('settings-panel');
 const sClose = document.getElementById('s-close');
-const sKey = document.getElementById('s-key');
-const sOaiVoice = document.getElementById('s-oai-voice');
-const sFptKey = document.getElementById('s-fpt-key');
-const sFptVoice = document.getElementById('s-fpt-voice');
-const sSysVoice = document.getElementById('s-sys-voice');
 const sRate = document.getElementById('s-rate');
 const sRateVal = document.getElementById('s-rate-val');
 const sSave = document.getElementById('s-save');
 const sTest = document.getElementById('s-test');
 
-sKey.value = openaiKey;
-sOaiVoice.value = openaiVoice;
-sFptKey.value = fptKey;
-sFptVoice.value = fptVoice;
+sRate.value = voiceRate;
+sRateVal.textContent = voiceRate.toFixed(2)+'×';
 
 sRate.addEventListener('input', ()=>{ voiceRate = +sRate.value; sRateVal.textContent = voiceRate.toFixed(2)+'×'; });
-settingsBtn.onclick = ()=>{ settingsPanel.classList.toggle('open'); populateVoices(); };
+settingsBtn.onclick = ()=>settingsPanel.classList.toggle('open');
 sClose.onclick = ()=>settingsPanel.classList.remove('open');
 sSave.onclick = ()=>{
-  openaiKey = sKey.value.trim();
-  openaiVoice = sOaiVoice.value;
-  fptKey = sFptKey.value.trim();
-  fptVoice = sFptVoice.value;
   voiceRate = +sRate.value;
-  localStorage.setItem('oai_key', openaiKey);
-  localStorage.setItem('oai_voice', openaiVoice);
-  localStorage.setItem('fpt_key', fptKey);
-  localStorage.setItem('fpt_voice', fptVoice);
+  localStorage.setItem('b2_rate', voiceRate);
   settingsPanel.classList.remove('open');
 };
-sTest.onclick = ()=>{ speak('Xin chào! Đây là giọng thuyết minh cho bài giảng Web Builder Foundation.'); };
-
-function populateVoices(){
-  sSysVoice.innerHTML = '';
-  window.speechSynthesis.getVoices().forEach(v=>{
-    const opt = document.createElement('option');
-    opt.value = v.name;
-    opt.textContent = v.name + ' (' + v.lang + ')';
-    sSysVoice.appendChild(opt);
-  });
-}
-if(speechSynthesis.onvoiceschanged !== undefined) speechSynthesis.onvoiceschanged = populateVoices;
-setTimeout(populateVoices, 800);
+sTest.onclick = ()=>speak('Xin chào! Đây là giọng Ban Mai, tốc độ ' + voiceRate.toFixed(1) + ' lần.');
 
 // ── Voice ─────────────────────────────────────────────────
 const vPlay = document.getElementById('v-play');
@@ -340,7 +295,7 @@ async function speakFPT(text, gen){
   try {
     const resp = await fetch('https://api.fpt.ai/hmi/tts/v5', {
       method:'POST',
-      headers:{'api-key': fptKey, 'speed': '', 'voice': fptVoice},
+      headers:{'api-key': FPT_KEY, 'speed': '', 'voice': FPT_VOICE},
       body: text
     });
     if(gen !== speakGen) return false;
@@ -368,9 +323,7 @@ async function speakFPT(text, gen){
 function speakSys(text, gen){
   const utt = new SpeechSynthesisUtterance(text);
   const voices = speechSynthesis.getVoices();
-  const selected = sSysVoice.value;
-  const preferred = voices.find(v=>v.name===selected)
-    || voices.find(v=>v.name.includes('HoaiMy') || v.name.includes('Hoai My'))
+  const preferred = voices.find(v=>v.name.includes('HoaiMy') || v.name.includes('Hoai My'))
     || voices.find(v=>v.name.includes('NamMinh') || v.name.includes('Nam Minh'))
     || voices.find(v=>v.lang.startsWith('vi'))
     || voices.find(v=>v.lang==='en-US')
@@ -423,18 +376,9 @@ async function speak(text){
   vPlay.classList.add('playing');
   icoPlay.style.display = 'none';
   icoPause.style.display = '';
-  if(fptKey){
-    const ok = await speakFPT(text, gen);
-    if(gen !== speakGen) return;
-    if(!ok && openaiKey){ await speakOpenAI(text, gen); return; }
-    if(!ok) speakSys(text, gen);
-  } else if(openaiKey){
-    const ok = await speakOpenAI(text, gen);
-    if(gen !== speakGen) return;
-    if(!ok) speakSys(text, gen);
-  } else {
-    speakSys(text, gen);
-  }
+  const ok = await speakFPT(text, gen);
+  if(gen !== speakGen) return;
+  if(!ok) speakSys(text, gen);
 }
 
 function onAutoSpeakDone(){
