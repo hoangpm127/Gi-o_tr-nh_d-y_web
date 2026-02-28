@@ -220,9 +220,8 @@ const vScript = document.getElementById('v-script');
 const vlBar = document.getElementById('vl');
 
 function stopVoice(){
-  speakGen++;           // invalidate any in-flight TTS callbacks
-  speechSynthesis.cancel();
-  if(audioSrc){ audioSrc.pause(); audioSrc = null; }
+  speakGen++;
+  if(audioSrc){ audioSrc.onended=null; audioSrc.onerror=null; audioSrc.pause(); audioSrc=null; }
   speaking = false;
   vPlay.classList.remove('playing');
   icoPlay.style.display = '';
@@ -293,9 +292,11 @@ function onSpeakEnd(){
 }
 
 async function speak(text){
-  stopVoice();
-  if(!text) return;
-  const gen = speakGen; // captured after stopVoice() incremented it
+  // cancel audio only — do NOT call stopVoice() which resets qState and breaks auto flow
+  speakGen++;
+  if(audioSrc){ audioSrc.onended=null; audioSrc.onerror=null; audioSrc.pause(); audioSrc=null; }
+  if(!text){ speaking=false; return; }
+  const gen = speakGen;
   vScript.textContent = text;
   speaking = true;
   vPlay.classList.add('playing');
@@ -303,7 +304,7 @@ async function speak(text){
   icoPause.style.display = '';
   const ok = await speakFPT(text, gen);
   if(gen !== speakGen) return;
-  if(!ok){ if(audioSrc){ audioSrc.onended=null; audioSrc.onerror=null; audioSrc.pause(); audioSrc=null; } speaking=false; vPlay.classList.remove('playing'); icoPlay.style.display=''; icoPause.style.display='none'; if(gen===speakGen) onSpeakEnd(); }
+  if(!ok){ speaking=false; vPlay.classList.remove('playing'); icoPlay.style.display=''; icoPause.style.display='none'; if(gen===speakGen) onSpeakEnd(); }
 }
 
 function onAutoSpeakDone(){

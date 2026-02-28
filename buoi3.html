@@ -305,8 +305,9 @@ function onSpeakEnd(){
 }
 
 async function speak(text){
-  stopVoice();
-  if(!text) return;
+  speakGen++;
+  if(audioSrc){ audioSrc.onended=null; audioSrc.onerror=null; audioSrc.pause(); audioSrc=null; }
+  if(!text){ speaking=false; return; }
   const gen = speakGen;
   vScript.textContent = text;
   speaking = true;
@@ -315,7 +316,7 @@ async function speak(text){
   icoPause.style.display = '';
   const ok = await speakFPT(text, gen);
   if(gen !== speakGen) return;
-  if(!ok){ if(audioSrc){ audioSrc.onended=null; audioSrc.onerror=null; audioSrc.pause(); audioSrc=null; } speaking=false; vPlay.classList.remove('playing'); icoPlay.style.display=''; icoPause.style.display='none'; if(gen===speakGen) onSpeakEnd(); }
+  if(!ok){ speaking=false; vPlay.classList.remove('playing'); icoPlay.style.display=''; icoPause.style.display='none'; if(gen===speakGen) onSpeakEnd(); }
 }
 
 function onAutoSpeakDone(){
