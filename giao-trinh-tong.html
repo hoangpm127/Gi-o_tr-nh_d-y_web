@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Giáo trình tổng — Web Builder Foundation</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#080812;color:#e2e8f0;font-family:'Segoe UI',system-ui,sans-serif;padding:48px 28px;max-width:1000px;margin:0 auto}
+  h1{font-size:1.8rem;color:#fff;margin-bottom:8px}
+  .tagline{color:rgba(255,255,255,.45);font-size:.9rem;line-height:1.7;margin-bottom:12px;max-width:700px}
+  .philosophy{background:rgba(108,99,255,.08);border:1px solid rgba(108,99,255,.25);border-radius:14px;padding:20px 24px;margin-bottom:48px}
+  .philosophy h2{font-size:.7rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#a5b4fc;margin-bottom:14px}
+  .phil-list{display:flex;flex-direction:column;gap:8px}
+  .phil-item{display:flex;gap:12px;align-items:flex-start;font-size:.88rem;color:rgba(255,255,255,.7);line-height:1.55}
+  .phil-num{width:24px;height:24px;border-radius:6px;background:#6c63ff;color:#fff;font-weight:800;font-size:.75rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+
+  .session{margin-bottom:40px;border:1px solid rgba(255,255,255,.07);border-radius:16px;overflow:hidden}
+  .session-header{padding:20px 24px;display:flex;gap:16px;align-items:center}
+  .session-num{font-size:2rem;font-weight:900;flex-shrink:0;width:48px;text-align:center;opacity:.5}
+  .session-meta{flex:1}
+  .session-title{font-size:1.15rem;font-weight:800;color:#fff;margin-bottom:3px}
+  .session-sub{font-size:.82rem;color:rgba(255,255,255,.45)}
+  .session-badge{font-size:.65rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:3px 10px;border-radius:20px;flex-shrink:0;align-self:flex-start}
+  .badge-done{background:rgba(6,214,160,.15);color:#34d399;border:1px solid rgba(6,214,160,.3)}
+  .badge-plan{background:rgba(255,255,255,.06);color:rgba(255,255,255,.35);border:1px solid rgba(255,255,255,.1)}
+  .badge-fix{background:rgba(247,127,0,.12);color:#fdba74;border:1px solid rgba(247,127,0,.25)}
+
+  .session-body{padding:0 24px 24px}
+  .section-label{font-size:.63rem;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;margin-bottom:10px;margin-top:20px}
+  .mental-model{background:rgba(255,255,255,.04);border-radius:10px;padding:14px 16px;font-size:.88rem;color:#c4b5fd;line-height:1.6;border-left:3px solid;margin-bottom:4px}
+  .slides-grid{display:flex;flex-direction:column;gap:6px}
+  .slide-row{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,.025);font-size:.83rem}
+  .slide-row:hover{background:rgba(255,255,255,.05)}
+  .snum{color:rgba(255,255,255,.25);width:22px;flex-shrink:0;text-align:right;font-size:.75rem;margin-top:1px}
+  .stype{font-size:.6rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:2px 7px;border-radius:4px;flex-shrink:0;margin-top:1px}
+  .stype.teach{background:rgba(108,99,255,.2);color:#a5b4fc}
+  .stype.question{background:rgba(247,127,0,.18);color:#fdba74}
+  .stype.practice{background:rgba(6,214,160,.14);color:#34d399}
+  .stype.reflect{background:rgba(255,255,255,.07);color:rgba(255,255,255,.45)}
+  .stext{flex:1;color:rgba(255,255,255,.7);line-height:1.5}
+  .stag{font-size:.65rem;padding:1px 7px;border-radius:3px;margin-left:6px;vertical-align:middle}
+  .stag.fix{background:rgba(247,127,0,.15);color:#fdba74}
+  .stag.new{background:rgba(6,214,160,.12);color:#34d399}
+  .stag.keep{background:rgba(255,255,255,.06);color:rgba(255,255,255,.3)}
+
+  .fix-box{background:rgba(247,127,0,.07);border:1px solid rgba(247,127,0,.2);border-radius:10px;padding:14px 16px;margin-top:14px}
+  .fix-box h3{font-size:.65rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#f77f00;margin-bottom:10px}
+  .fix-item{display:flex;gap:10px;font-size:.82rem;color:rgba(255,255,255,.6);margin-bottom:7px;line-height:1.5;align-items:flex-start}
+  .fix-item::before{content:'→';color:#f77f00;flex-shrink:0;margin-top:1px}
+
+  .viet-terms{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .vt{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:5px 10px;font-size:.78rem}
+  .vt .en{color:rgba(255,255,255,.3);text-decoration:line-through;margin-right:6px}
+  .vt .vi{color:#a5b4fc}
+  .arrow{color:rgba(255,255,255,.2);margin:0 4px}
+
+  .outcome{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+  .outcome-item{background:rgba(6,214,160,.07);border:1px solid rgba(6,214,160,.2);border-radius:7px;padding:6px 12px;font-size:.8rem;color:#6ee7b7}
+  h2.divider{font-size:.65rem;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:rgba(255,255,255,.2);margin:40px 0 24px;text-align:center;display:flex;align-items:center;gap:12px}
+  h2.divider::before,h2.divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.06)}
+</style>
+</head>
+<body>
+
+<h1>Web Builder Foundation</h1>
+<p class="tagline">Giáo trình 5 buổi — giúp người Việt chưa biết gì về code tự build được 1 web app chắc lõi, sạch code, bằng cách ra lệnh AI đúng cách.</p>
+
+<!-- TRIẾT LÝ -->
+<div class="philosophy">
+  <h2>Triết lý xuyên suốt</h2>
+  <div class="phil-list">
+    <div class="phil-item"><div class="phil-num">1</div><div><strong style="color:#fff">Tư duy hệ thống trước, code sau.</strong> Mỗi buổi mở đầu bằng 1 mô hình tư duy — cái khung để hiểu tại sao mọi thứ hoạt động. Không học syntax thuộc lòng.</div></div>
+    <div class="phil-item"><div class="phil-num">2</div><div><strong style="color:#fff">Ra lệnh AI ngày càng chuẩn hơn.</strong> Mỗi buổi nâng 1 bậc kỹ năng viết yêu cầu cho AI — từ mô tả giao diện → mô tả hành vi → mô tả lỗi → mô tả cải tiến.</div></div>
+    <div class="phil-item"><div class="phil-num">3</div><div><strong style="color:#fff">Biết tìm và mô tả lỗi — không chỉ sao chép code.</strong> Người học hiểu đủ để nói chính xác "cái gì đang xảy ra, cái gì mong muốn" — AI sẽ fix đúng.</div></div>
+    <div class="phil-item"><div class="phil-num">4</div><div><strong style="color:#fff">Khung xương vững trước khi trang trí.</strong> HTML là bộ xương → CSS là quần áo → JS là hành động → Data là trí nhớ → Deploy là ra đời. Đúng thứ tự.</div></div>
+    <div class="phil-item"><div class="phil-num">5</div><div><strong style="color:#fff">Tiếng Việt 100%.</strong> Mọi khái niệm đều có tên tiếng Việt dễ hiểu. Thuật ngữ kỹ thuật chỉ giới thiệu sau khi đã hiểu bằng ngôn ngữ tự nhiên.</div></div>
+  </div>
+</div>
+
+<!-- BẢNG THUẬT NGỮ VIỆT HÓA -->
+<h2 class="divider">Bảng thuật ngữ — dùng xuyên suốt 5 buổi</h2>
+<div class="viet-terms">
+  <div class="vt"><span class="en">State</span><span class="vi">Trạng thái hiện tại</span></div>
+  <div class="vt"><span class="en">Render</span><span class="vi">Vẽ lại giao diện</span></div>
+  <div class="vt"><span class="en">Event Listener</span><span class="vi">Bộ lắng nghe hành động</span></div>
+  <div class="vt"><span class="en">Array</span><span class="vi">Danh sách dữ liệu</span></div>
+  <div class="vt"><span class="en">Function</span><span class="vi">Hàm xử lý</span></div>
+  <div class="vt"><span class="en">Variable</span><span class="vi">Ô lưu giá trị</span></div>
+  <div class="vt"><span class="en">localStorage</span><span class="vi">Kho lưu của trình duyệt</span></div>
+  <div class="vt"><span class="en">Deploy</span><span class="vi">Đưa lên mạng</span></div>
+  <div class="vt"><span class="en">Bug</span><span class="vi">Lỗi</span></div>
+  <div class="vt"><span class="en">Debug</span><span class="vi">Tìm và sửa lỗi</span></div>
+  <div class="vt"><span class="en">Refactor</span><span class="vi">Dọn dẹp code</span></div>
+  <div class="vt"><span class="en">Responsive</span><span class="vi">Giao diện co dãn theo màn hình</span></div>
+  <div class="vt"><span class="en">Prompt Engineering</span><span class="vi">Kỹ năng ra lệnh AI</span></div>
+  <div class="vt"><span class="en">CRUD</span><span class="vi">4 thao tác: Thêm / Xem / Sửa / Xóa</span></div>
+  <div class="vt"><span class="en">Frontend</span><span class="vi">Phần người dùng thấy</span></div>
+  <div class="vt"><span class="en">Loop</span><span class="vi">Vòng lặp</span></div>
+</div>
+
+<h2 class="divider">5 buổi học</h2>
+
+<!-- BUỔI 1 -->
+<div class="session">
+  <div class="session-header" style="background:rgba(108,99,255,.07)">
+    <div class="session-num" style="color:#6c63ff">1</div>
+    <div class="session-meta">
+      <div class="session-title">Khung xương đầu tiên — Giao diện</div>
+      <div class="session-sub">HTML + CSS · Xây giao diện Ứng dụng Quản Lý Công Việc bằng AI · 2 tiếng</div>
+    </div>
+    <span class="session-badge badge-fix">Đã build — cần chỉnh</span>
+  </div>
+  <div class="session-body">
+    <div class="section-label" style="color:#a5b4fc">Mô hình tư duy buổi này</div>
+    <div class="mental-model" style="border-color:#6c63ff">
+      <strong>Web = Giao diện + Xử lý + Dữ liệu.</strong> Thiếu 1 trong 3 → không phải hệ thống thật. Hôm nay build tầng đầu tiên: Giao diện.
+    </div>
+
+    <div class="section-label" style="color:#a5b4fc;margin-top:18px">Kết quả người học cần đạt</div>
+    <div class="outcome">
+      <div class="outcome-item">Hiểu web gồm 3 tầng</div>
+      <div class="outcome-item">Biết viết yêu cầu AI cho giao diện (5 yếu tố)</div>
+      <div class="outcome-item">Có file giao diện chạy trên trình duyệt</div>
+      <div class="outcome-item">Hiểu tại sao nút chưa hoạt động</div>
+    </div>
+
+    <div class="section-label" style="color:#a5b4fc;margin-top:18px">Danh sách slide hiện tại &amp; đánh giá</div>
+    <div class="slides-grid">
+      <div class="slide-row"><div class="snum">1</div><span class="stype teach">teach</span><div class="stext">Giới thiệu — Web là gì? Preview app sẽ build <span class="stag keep">giữ</span></div></div>
+      <div class="slide-row"><div class="snum">2</div><span class="stype question">question</span><div class="stext">Web được tạo từ những gì? <span class="stag keep">giữ</span></div></div>
+      <div class="slide-row"><div class="snum">3</div><span class="stype teach">teach</span><div class="stext">Web = UI + Logic + Data <span class="stag keep">giữ</span></div></div>
+      <div class="slide-row"><div class="snum">4</div><span class="stype teach">teach</span><div class="stext">Ví dụ Shopee — 3 tầng <span class="stag keep">giữ</span></div></div>
+      <div class="slide-row"><div class="snum">5</div><span class="stype question">question</span><div class="stext">Shopee không có Logic → chuyện gì xảy ra? <span class="stag keep">giữ</span></div></div>
+      <div class="slide-row"><div class="snum">6</div><span class="stype teach">teach</span><div class="stext">Hành trình 5 buổi <span class="stag keep">giữ</span></div></div>
+      <div class="slide-row"><div class="snum">7</div><span class="stype teach">teach</span><div class="stext">Giới thiệu Ứng dụng Quản Lý Công Việc <span class="stag keep">giữ</span></div></div>
+      <div class="slide-row"><div class="snum">8</div><span class="stype question">question</span><div class="stext">App cần những phần giao diện nào? <span class="stag keep">giữ</span></div></div>
+      <div class="slide-row"><div class="snum">9</div><span class="stype teach">teach</span><div class="stext">Kỹ năng ra lệnh AI — giới thiệu <span class="stag fix">đổi "Prompt Engineering" → "Kỹ năng ra lệnh AI"</span></div></div>
+      <div class="slide-row"><div class="snum">10</div><span class="stype teach">teach</span><div class="stext">Yêu cầu xấu vs Yêu cầu tốt <span class="stag fix">đổi "Prompt xấu/tốt" → "Yêu cầu mơ hồ vs Yêu cầu rõ ràng"</span></div></div>
+      <div class="slide-row"><div class="snum">11</div><span class="stype question">question</span><div class="stext">Chọn yêu cầu đúng để AI tạo header <span class="stag keep">giữ</span></div></div>
+      <div class="slide-row"><div class="snum">12</div><span class="stype teach">teach</span><div class="stext">Công thức 5 yếu tố <span class="stag keep">giữ</span></div></div>
+      <div class="slide-row"><div class="snum">13</div><span class="stype practice">practice</span><div class="stext">Thực hành — Setup VS Code + Live Server <span class="stag keep">giữ</span></div></div>
+      <div class="slide-row"><div class="snum">14</div><span class="stype practice">practice</span><div class="stext">Thực hành — Gửi yêu cầu cho AI <span class="stag keep">giữ</span></div></div>
+      <div class="slide-row"><div class="snum">15</div><span class="stype question">question</span><div class="stext">Nhận code xong → làm gì đầu tiên? <span class="stag keep">giữ</span></div></div>
+      <div class="slide-row"><div class="snum">16</div><span class="stype reflect">reflect</span><div class="stext">Quan sát: click Add không làm gì — tại sao? <span class="stag keep">giữ</span></div></div>
+      <div class="slide-row"><div class="snum">17</div><span class="stype question">question</span><div class="stext">Tại sao nút Thêm chưa hoạt động? <span class="stag keep">giữ</span></div></div>
+      <div class="slide-row"><div class="snum">18</div><span class="stype reflect">reflect</span><div class="stext">Checklist cuối buổi <span class="stag keep">giữ</span></div></div>
+      <div class="slide-row"><div class="snum">19</div><span class="stype teach">teach</span><div class="stext">Tổng kết 3 thứ học được <span class="stag fix">đổi "Mental Model" → "Mô hình tư duy", "Prompt Engineering" → "Kỹ năng ra lệnh AI"</span></div></div>
+      <div class="slide-row"><div class="snum">20</div><span class="stype teach">teach</span><div class="stext">Preview Buổi 2 <span class="stag keep">giữ</span></div></div>
+    </div>
+
+    <div class="fix-box">
+      <h3>Cần chỉnh trước khi dùng</h3>
+      <div class="fix-item">Đổi tên "Prompt Engineering" → <strong>"Kỹ năng ra lệnh AI"</strong> ở tất cả slide có nhắc đến</div>
+      <div class="fix-item">Đổi "Prompt xấu / Prompt tốt" → <strong>"Yêu cầu mơ hồ / Yêu cầu rõ ràng"</strong> cho đúng ngôn ngữ người Việt mới học</div>
+      <div class="fix-item">Slide tổng kết slide 19: đổi "Mental Model #1" → <strong>"Mô hình tư duy #1"</strong></div>
+    </div>
+  </div>
+</div>
+
+<!-- BUỔI 2 -->
+<div class="session">
+  <div class="session-header" style="background:rgba(247,127,0,.06)">
+    <div class="session-num" style="color:#f77f00">2</div>
+    <div class="session-meta">
+      <div class="session-title">Làm cho app hoạt động — Xử lý</div>
+      <div class="session-sub">JavaScript · Thêm chức năng thêm / tick / xóa task · 2 tiếng</div>
+    </div>
+    <span class="session-badge badge-plan">Chưa build</span>
+  </div>
+  <div class="session-body">
+    <div class="section-label" style="color:#fdba74">Mô hình tư duy buổi này</div>
+    <div class="mental-model" style="border-color:#f77f00">
+      <strong>Hành động → Trạng thái thay đổi → Giao diện cập nhật theo.</strong> App không tĩnh — app là vòng lặp liên tục giữa người dùng và dữ liệu. Giao diện chỉ là tấm gương phản chiếu dữ liệu hiện tại.
+    </div>
+
+    <div class="section-label" style="color:#fdba74;margin-top:18px">Kết quả người học cần đạt</div>
+    <div class="outcome">
+      <div class="outcome-item">Hiểu vòng lặp Hành động → Trạng thái → Giao diện</div>
+      <div class="outcome-item">Biết viết yêu cầu AI cho phần xử lý (hành vi)</div>
+      <div class="outcome-item">App hoạt động đầy đủ: thêm / tick / xóa</div>
+      <div class="outcome-item">Nhận ra 4 mảnh ghép cơ bản trong mọi JavaScript</div>
+      <div class="outcome-item">Biết mô tả lỗi đúng cách để AI fix</div>
+    </div>
+
+    <div class="section-label" style="color:#fdba74;margin-top:18px">Kế hoạch slide (18 slides)</div>
+    <div class="slides-grid">
+      <div class="slide-row"><div class="snum">1</div><span class="stype teach">teach</span><div class="stext">Recap + Hook: giao diện đẹp nhưng chết — hôm nay cho nó sống</div></div>
+      <div class="slide-row"><div class="snum">2</div><span class="stype question">question</span><div class="stext">Khi bấm Add, chuyện gì cần xảy ra theo đúng thứ tự?</div></div>
+      <div class="slide-row"><div class="snum">3</div><span class="stype teach">teach</span><div class="stext">Mô hình tư duy #2 — Trạng thái là gì? App = Dữ liệu + Giao diện phản chiếu</div></div>
+      <div class="slide-row"><div class="snum">4</div><span class="stype teach">teach</span><div class="stext">Trạng thái trông như thế nào? (Visual: danh sách task trong "hộp nhớ", KHÔNG code thô)</div></div>
+      <div class="slide-row"><div class="snum">5</div><span class="stype question">question</span><div class="stext">Thêm task vào danh sách trong hộp nhớ nhưng không vẽ lại giao diện → chuyện gì xảy ra?</div></div>
+      <div class="slide-row"><div class="snum">6</div><span class="stype teach">teach</span><div class="stext">Vòng lặp của mọi app: Hành động → Cập nhật trạng thái → Vẽ lại giao diện</div></div>
+      <div class="slide-row"><div class="snum">7</div><span class="stype question">question</span><div class="stext">3 hành động của Ứng dụng Quản Lý Công Việc — chọn đúng cả 3</div></div>
+      <div class="slide-row"><div class="snum">8</div><span class="stype teach">teach</span><div class="stext">Kỹ năng ra lệnh AI — thêm yếu tố thứ 6: mô tả hành vi (trạng thái thay đổi thế nào)</div></div>
+      <div class="slide-row"><div class="snum">9</div><span class="stype teach">teach</span><div class="stext">So sánh: Yêu cầu giao diện (buổi 1) vs Yêu cầu hành vi (buổi 2) — cùng 1 app</div></div>
+      <div class="slide-row"><div class="snum">10</div><span class="stype question">question</span><div class="stext">Yêu cầu nào sẽ giúp AI thêm chức năng Add đúng ngay lần đầu?</div></div>
+      <div class="slide-row"><div class="snum">11</div><span class="stype practice">practice</span><div class="stext">Thực hành: Gửi yêu cầu AI — thêm JavaScript vào file đã có từ buổi 1</div></div>
+      <div class="slide-row"><div class="snum">12</div><span class="stype teach">teach</span><div class="stext">4 mảnh ghép cơ bản trong mọi JavaScript: Hộp nhớ / Lắng nghe / Cập nhật / Vẽ lại</div></div>
+      <div class="slide-row"><div class="snum">13</div><span class="stype question">question</span><div class="stext">Nhìn vào app đang chạy — phần nào là Lắng nghe hành động, phần nào là Vẽ lại?</div></div>
+      <div class="slide-row"><div class="snum">14</div><span class="stype teach">teach</span><div class="stext">Khi app có lỗi — mô tả đúng để AI sửa đúng: công thức 3 phần (đang làm gì / mong đợi gì / thực tế là gì)</div></div>
+      <div class="slide-row"><div class="snum">15</div><span class="stype question">question</span><div class="stext">Mô tả lỗi nào giúp AI sửa đúng nhất?</div></div>
+      <div class="slide-row"><div class="snum">16</div><span class="stype reflect">reflect</span><div class="stext">Checklist: Add / Tick / Xóa hoạt động ✓ · Hiểu 4 mảnh ghép ✓ · Biết mô tả lỗi ✓</div></div>
+      <div class="slide-row"><div class="snum">17</div><span class="stype teach">teach</span><div class="stext">Vấn đề còn lại: Reload trang → mất hết (vì trạng thái sống trong RAM)</div></div>
+      <div class="slide-row"><div class="snum">18</div><span class="stype teach">teach</span><div class="stext">Preview Buổi 3 — Kho lưu của trình duyệt. Câu hỏi: không có server, data lưu ở đâu?</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- BUỔI 3 -->
+<div class="session">
+  <div class="session-header" style="background:rgba(6,214,160,.05)">
+    <div class="session-num" style="color:#06d6a0">3</div>
+    <div class="session-meta">
+      <div class="session-title">App không mất data — Dữ liệu</div>
+      <div class="session-sub">Kho lưu trình duyệt (localStorage) · Data tồn tại sau reload · 2 tiếng</div>
+    </div>
+    <span class="session-badge badge-plan">Chưa build</span>
+  </div>
+  <div class="session-body">
+    <div class="section-label" style="color:#34d399">Mô hình tư duy buổi này</div>
+    <div class="mental-model" style="border-color:#06d6a0">
+      <strong>RAM vs Kho lưu.</strong> Trạng thái trong RAM là trí nhớ ngắn hạn — tắt tab là mất. Kho lưu của trình duyệt là trí nhớ dài hạn — tắt máy vẫn còn. Buổi này chuyển trạng thái từ RAM sang kho lưu.
+    </div>
+
+    <div class="section-label" style="color:#34d399;margin-top:18px">Kết quả người học cần đạt</div>
+    <div class="outcome">
+      <div class="outcome-item">Hiểu sự khác nhau giữa RAM và kho lưu</div>
+      <div class="outcome-item">Biết đọc/ghi kho lưu trình duyệt qua AI</div>
+      <div class="outcome-item">App không mất data sau reload</div>
+      <div class="outcome-item">Biết khi nào nên lưu, khi nào nên đọc</div>
+    </div>
+
+    <div class="section-label" style="color:#34d399;margin-top:18px">Kế hoạch slide (18 slides)</div>
+    <div class="slides-grid">
+      <div class="slide-row"><div class="snum">1</div><span class="stype teach">teach</span><div class="stext">Recap + Hook: Reload → task biến mất. Hôm nay fix vĩnh viễn.</div></div>
+      <div class="slide-row"><div class="snum">2</div><span class="stype question">question</span><div class="stext">Tại sao reload trang thì mất hết data?</div></div>
+      <div class="slide-row"><div class="snum">3</div><span class="stype teach">teach</span><div class="stext">Mô hình tư duy #3 — RAM (trí nhớ tạm) vs Kho lưu (trí nhớ vĩnh cửu)</div></div>
+      <div class="slide-row"><div class="snum">4</div><span class="stype teach">teach</span><div class="stext">Kho lưu của trình duyệt là gì? (Visual: ngăn kéo nhỏ trong trình duyệt, không cần server)</div></div>
+      <div class="slide-row"><div class="snum">5</div><span class="stype question">question</span><div class="stext">Kho lưu trình duyệt lưu được gì, và không lưu được gì?</div></div>
+      <div class="slide-row"><div class="snum">6</div><span class="stype teach">teach</span><div class="stext">2 thao tác cơ bản với kho lưu: Ghi vào / Đọc ra (qua AI — không cần nhớ cú pháp)</div></div>
+      <div class="slide-row"><div class="snum">7</div><span class="stype question">question</span><div class="stext">Cần ghi vào kho lưu lúc nào? Đọc ra lúc nào?</div></div>
+      <div class="slide-row"><div class="snum">8</div><span class="stype teach">teach</span><div class="stext">Kỹ năng ra lệnh AI — yếu tố thứ 7: mô tả luồng dữ liệu (khi nào ghi, khi nào đọc)</div></div>
+      <div class="slide-row"><div class="snum">9</div><span class="stype teach">teach</span><div class="stext">Yêu cầu mẫu: thêm kho lưu vào app hiện tại (đọc khi mở trang, ghi sau mỗi thay đổi)</div></div>
+      <div class="slide-row"><div class="snum">10</div><span class="stype question">question</span><div class="stext">Yêu cầu nào đúng để tích hợp kho lưu vào app?</div></div>
+      <div class="slide-row"><div class="snum">11</div><span class="stype practice">practice</span><div class="stext">Thực hành: thêm kho lưu vào app — test reload, đóng tab, mở lại</div></div>
+      <div class="slide-row"><div class="snum">12</div><span class="stype teach">teach</span><div class="stext">Vấn đề thường gặp: data lưu sai định dạng — cách mô tả để AI fix</div></div>
+      <div class="slide-row"><div class="snum">13</div><span class="stype question">question</span><div class="stext">App reload nhưng task load ra trống — mô tả lỗi nào đúng nhất?</div></div>
+      <div class="slide-row"><div class="snum">14</div><span class="stype reflect">reflect</span><div class="stext">Kiểm tra: reload ✓ · đóng mở tab ✓ · xóa task vẫn lưu đúng ✓</div></div>
+      <div class="slide-row"><div class="snum">15</div><span class="stype teach">teach</span><div class="stext">Nhìn lại hành trình: Giao diện → Xử lý → Dữ liệu. 3 tầng đã lắp xong.</div></div>
+      <div class="slide-row"><div class="snum">16</div><span class="stype question">question</span><div class="stext">App hiện tại thiếu gì để gọi là "sạch"? (UX tốt, code gọn, không fail edge case)</div></div>
+      <div class="slide-row"><div class="snum">17</div><span class="stype reflect">reflect</span><div class="stext">Checklist cuối buổi 3</div></div>
+      <div class="slide-row"><div class="snum">18</div><span class="stype teach">teach</span><div class="stext">Preview Buổi 4 — Dọn dẹp và hoàn thiện. Câu hỏi: code nào gọi là "sạch"?</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- BUỔI 4 -->
+<div class="session">
+  <div class="session-header" style="background:rgba(168,85,247,.05)">
+    <div class="session-num" style="color:#a855f7">4</div>
+    <div class="session-meta">
+      <div class="session-title">Dọn dẹp và hoàn thiện — Trải nghiệm</div>
+      <div class="session-sub">Code sạch · UX tốt · Xử lý các trường hợp biên · 2 tiếng</div>
+    </div>
+    <span class="session-badge badge-plan">Chưa build</span>
+  </div>
+  <div class="session-body">
+    <div class="section-label" style="color:#d8b4fe">Mô hình tư duy buổi này</div>
+    <div class="mental-model" style="border-color:#a855f7">
+      <strong>App tốt là app người dùng không cần hướng dẫn.</strong> Hôm nay bạn đổi vai — từ người build sang người dùng — và tự phát hiện những chỗ app đang "bất lịch sự" với người dùng. Sau đó yêu cầu AI sửa từng vấn đề một.
+    </div>
+
+    <div class="section-label" style="color:#d8b4fe;margin-top:18px">Kết quả người học cần đạt</div>
+    <div class="outcome">
+      <div class="outcome-item">Biết cách tự test app như người dùng thật</div>
+      <div class="outcome-item">Nhận ra 4 loại vấn đề UX phổ biến qua trải nghiệm trực tiếp</div>
+      <div class="outcome-item">App phản hồi đúng khi người dùng làm điều "sai"</div>
+      <div class="outcome-item">Biết mô tả vấn đề UX để AI sửa chính xác</div>
+    </div>
+
+    <div class="section-label" style="color:#d8b4fe;margin-top:18px">Kế hoạch slide (18 slides)</div>
+    <div class="slides-grid">
+      <div class="slide-row"><div class="snum">1</div><span class="stype teach">teach</span><div class="stext">Recap + Hook: App chạy đúng theo con mắt người build — nhưng người dùng thật dùng khác bạn nghĩ</div></div>
+      <div class="slide-row"><div class="snum">2</div><span class="stype teach">teach</span><div class="stext">Mô hình tư duy #4 — Đổi vai: bạn không còn là người build, bạn là người dùng lần đầu mở app</div></div>
+      <div class="slide-row"><div class="snum">3</div><span class="stype practice">practice</span><div class="stext">Thực hành — Vòng test 1: Bấm Add với ô nhập <strong>để trống</strong>. Quan sát: app làm gì?</div></div>
+      <div class="slide-row"><div class="snum">4</div><span class="stype question">question</span><div class="stext">App vừa thêm 1 task rỗng vào danh sách — đây là lỗi hay tính năng? Người dùng cảm thấy thế nào?</div></div>
+      <div class="slide-row"><div class="snum">5</div><span class="stype teach">teach</span><div class="stext">Vấn đề UX loại 1 — App không bảo vệ người dùng khỏi thao tác vô nghĩa (thêm task trống, xóa nhầm không hỏi lại)</div></div>
+      <div class="slide-row"><div class="snum">6</div><span class="stype practice">practice</span><div class="stext">Thực hành — Vòng test 2: Xóa hết task. Quan sát: danh sách trống trông như thế nào? App "câm" hay có phản hồi?</div></div>
+      <div class="slide-row"><div class="snum">7</div><span class="stype question">question</span><div class="stext">Khi danh sách trống, app nên hiển thị gì? — 4 lựa chọn về trải nghiệm người dùng</div></div>
+      <div class="slide-row"><div class="snum">8</div><span class="stype teach">teach</span><div class="stext">Vấn đề UX loại 2 — App "câm": không nói gì khi trạng thái thay đổi (thêm xong, xóa xong, danh sách trống)</div></div>
+      <div class="slide-row"><div class="snum">9</div><span class="stype practice">practice</span><div class="stext">Thực hành — Vòng test 3: Thêm task có tên rất dài (50+ chữ). Quan sát: giao diện có bị vỡ không?</div></div>
+      <div class="slide-row"><div class="snum">10</div><span class="stype teach">teach</span><div class="stext">Vấn đề UX loại 3 — Giao diện vỡ khi dữ liệu "ngoài dự kiến": tên quá dài, số lượng quá nhiều</div></div>
+      <div class="slide-row"><div class="snum">11</div><span class="stype practice">practice</span><div class="stext">Thực hành — Vòng test 4: Dùng app trên điện thoại (hoặc thu nhỏ cửa sổ). Có dùng được không?</div></div>
+      <div class="slide-row"><div class="snum">12</div><span class="stype teach">teach</span><div class="stext">Vấn đề UX loại 4 — Giao diện không co dãn theo màn hình: nút bé quá, chữ tràn ra ngoài</div></div>
+      <div class="slide-row"><div class="snum">13</div><span class="stype teach">teach</span><div class="stext">Kỹ năng ra lệnh AI — mô tả vấn đề UX đúng cách: "Khi tôi làm X, app phản hồi Y, tôi muốn nó phản hồi Z thay vì vậy"</div></div>
+      <div class="slide-row"><div class="snum">14</div><span class="stype question">question</span><div class="stext">Mô tả nào giúp AI sửa đúng vấn đề "xóa nhầm không hỏi lại"?</div></div>
+      <div class="slide-row"><div class="snum">15</div><span class="stype practice">practice</span><div class="stext">Thực hành: Chọn 2 vấn đề vừa tự phát hiện → mô tả → yêu cầu AI sửa → test lại</div></div>
+      <div class="slide-row"><div class="snum">16</div><span class="stype teach">teach</span><div class="stext">Nguyên tắc: Sau mỗi lần AI sửa → test lại đúng tình huống đó trước — không test tổng ngay</div></div>
+      <div class="slide-row"><div class="snum">17</div><span class="stype reflect">reflect</span><div class="stext">Checklist: Bảo vệ thao tác sai ✓ · Phản hồi khi trống ✓ · Không vỡ layout ✓ · Dùng được trên điện thoại ✓</div></div>
+      <div class="slide-row"><div class="snum">18</div><span class="stype teach">teach</span><div class="stext">App hoàn chỉnh — nhưng chỉ chạy trên máy bạn. Preview Buổi 5: đưa lên mạng để ai cũng vào được.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- BUỔI 5 -->
+<div class="session">
+  <div class="session-header" style="background:rgba(6,182,212,.05)">
+    <div class="session-num" style="color:#22d3ee">5</div>
+    <div class="session-meta">
+      <div class="session-title">Đưa lên mạng — Ra đời</div>
+      <div class="session-sub">Deploy · URL thật · Người khác truy cập được · 2 tiếng</div>
+    </div>
+    <span class="session-badge badge-plan">Chưa build</span>
+  </div>
+  <div class="session-body">
+    <div class="section-label" style="color:#67e8f9">Mô hình tư duy buổi này</div>
+    <div class="mental-model" style="border-color:#22d3ee">
+      <strong>Localhost vs Internet.</strong> Máy bạn là "nhà riêng" — chỉ bạn vào được. Server là "nhà công cộng" — ai cũng vào được. Deploy là chuyển file từ nhà riêng lên nhà công cộng.
+    </div>
+
+    <div class="section-label" style="color:#67e8f9;margin-top:18px">Kết quả người học cần đạt</div>
+    <div class="outcome">
+      <div class="outcome-item">Hiểu localhost khác URL thật như thế nào</div>
+      <div class="outcome-item">Deploy được app lên Netlify (không cần code)</div>
+      <div class="outcome-item">Có URL thật để gửi cho người khác</div>
+      <div class="outcome-item">Biết cập nhật app sau khi đã deploy</div>
+    </div>
+
+    <div class="section-label" style="color:#67e8f9;margin-top:18px">Kế hoạch slide (18 slides)</div>
+    <div class="slides-grid">
+      <div class="slide-row"><div class="snum">1</div><span class="stype teach">teach</span><div class="stext">Recap + Hook: App hoàn chỉnh — giờ gửi link cho ai đó. Bạn có thể gửi "localhost:5500" không?</div></div>
+      <div class="slide-row"><div class="snum">2</div><span class="stype question">question</span><div class="stext">Tại sao gửi localhost:5500 cho người khác thì họ không vào được?</div></div>
+      <div class="slide-row"><div class="snum">3</div><span class="stype teach">teach</span><div class="stext">Mô hình tư duy #5 — Localhost (máy bạn) vs Server (máy công cộng trên mạng)</div></div>
+      <div class="slide-row"><div class="snum">4</div><span class="stype teach">teach</span><div class="stext">Deploy là gì? — Đẩy file lên một máy tính luôn bật, luôn kết nối mạng, ai cũng gõ URL vào được</div></div>
+      <div class="slide-row"><div class="snum">5</div><span class="stype question">question</span><div class="stext">Sau khi deploy, người dùng ở Hà Nội và TP.HCM cùng vào — file HTML đang ở đâu?</div></div>
+      <div class="slide-row"><div class="snum">6</div><span class="stype teach">teach</span><div class="stext">Netlify — nền tảng deploy miễn phí bằng cách kéo thả folder (không cần terminal, không cần Git)</div></div>
+      <div class="slide-row"><div class="snum">7</div><span class="stype practice">practice</span><div class="stext">Thực hành: Kéo folder task-manager lên Netlify — có URL trong vòng 30 giây</div></div>
+      <div class="slide-row"><div class="snum">8</div><span class="stype reflect">reflect</span><div class="stext">Mở URL trên điện thoại — app chạy trên mobile không? Đây là thời khắc App thật sự "ra đời"</div></div>
+      <div class="slide-row"><div class="snum">9</div><span class="stype question">question</span><div class="stext">Sau khi fix lỗi trên máy, làm thế nào để URL trên Netlify cập nhật theo?</div></div>
+      <div class="slide-row"><div class="snum">10</div><span class="stype practice">practice</span><div class="stext">Thực hành: Sửa tiêu đề app → deploy lại → xác nhận URL đã cập nhật</div></div>
+      <div class="slide-row"><div class="snum">11</div><span class="stype teach">teach</span><div class="stext">Tên miền riêng — tuỳ chọn: đổi URL mặc định của Netlify thành tên dễ nhớ hơn</div></div>
+      <div class="slide-row"><div class="snum">12</div><span class="stype question">question</span><div class="stext">Data trong kho lưu trình duyệt — mỗi người dùng có data riêng không? Tại sao?</div></div>
+      <div class="slide-row"><div class="snum">13</div><span class="stype teach">teach</span><div class="stext">Giới hạn của app hiện tại: mỗi người 1 kho riêng — không chia sẻ được. Đó là bài toán của database thật (học sau).</div></div>
+      <div class="slide-row"><div class="snum">14</div><span class="stype reflect">reflect</span><div class="stext">Nhìn lại hành trình: 5 buổi → 1 app thật, có URL, chạy trên mọi thiết bị</div></div>
+      <div class="slide-row"><div class="snum">15</div><span class="stype teach">teach</span><div class="stext">Bộ kỹ năng bạn đã có: Tư duy hệ thống · Ra lệnh AI · Tìm sửa lỗi · Build · Deploy</div></div>
+      <div class="slide-row"><div class="snum">16</div><span class="stype question">question</span><div class="stext">Nếu tự build 1 app mới (ví dụ: quản lý chi tiêu) — bạn bắt đầu từ đâu?</div></div>
+      <div class="slide-row"><div class="snum">17</div><span class="stype reflect">reflect</span><div class="stext">Checklist tốt nghiệp: 5 tiêu chí của 1 web app chắc lõi</div></div>
+      <div class="slide-row"><div class="snum">18</div><span class="stype teach">teach</span><div class="stext">Lời kết: Bạn không học code — bạn học cách tư duy và cách làm chủ công cụ. Đó là kỹ năng không lỗi thời.</div></div>
+    </div>
+  </div>
+</div>
+
+<div style="color:rgba(255,255,255,.2);font-size:.8rem;text-align:center;padding:40px 0 20px">
+  ── Đọc xong → góp ý → tôi build từng buổi ──
+</div>
+
+</body>
+</html>

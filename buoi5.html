@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Buổi 5 — Web Builder Foundation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--dark:#050f12;--surface:#0a1f24;--border:rgba(255,255,255,.09);--muted:#526e74;--accent:#22d3ee;--accent2:#67e8f9;--accent-dim:rgba(34,211,238,.18);--accent-mid:rgba(34,211,238,.35)}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--dark);font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI','Roboto','Helvetica Neue',Arial,'Noto Sans',sans-serif;color:#e0e0f0}
+#deck{position:fixed;inset:0;bottom:80px}
+.slide{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .4s ease,transform .4s ease;transform:translateX(30px)}
+.slide.active{opacity:1;pointer-events:auto;transform:translateX(0)}
+.slide.out{opacity:0;transform:translateX(-30px);pointer-events:none}
+.bg-img{position:absolute;inset:0;background-size:cover;background-position:center;filter:brightness(.22) saturate(.5)}
+.bg-color{position:absolute;inset:0}
+.content{position:relative;z-index:2;width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:48px 80px;text-align:center}
+.stag{display:inline-block;padding:5px 18px;border-radius:8px;font-size:.72rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:20px;border:1px solid}
+h1.huge{font-size:clamp(2.4rem,5vw,4.4rem);font-weight:900;line-height:1.1;color:#fff}
+h2.big{font-size:clamp(1.6rem,3.2vw,2.8rem);font-weight:900;line-height:1.15;color:#fff;max-width:860px}
+.sub{font-size:clamp(.9rem,1.55vw,1.12rem);color:rgba(255,255,255,.55);margin-top:14px;line-height:1.75;max-width:700px}
+.sub strong{color:rgba(255,255,255,.88)}
+.rule{width:52px;height:4px;border-radius:2px;margin:18px auto}
+/* Question panel */
+#q-panel{position:fixed;inset:0;bottom:80px;z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 48px;background:rgba(5,15,18,.95);backdrop-filter:blur(20px);opacity:0;pointer-events:none;transition:opacity .35s ease}
+#q-panel.show{opacity:1;pointer-events:auto}
+#q-text{font-size:clamp(1.1rem,2.2vw,1.6rem);font-weight:800;color:#fff;max-width:820px;text-align:center;line-height:1.4;margin-bottom:28px}
+#q-opts{display:flex;flex-direction:column;gap:11px;width:100%;max-width:720px}
+.q-opt{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 20px;text-align:left;cursor:pointer;font-size:.93rem;color:rgba(255,255,255,.8);line-height:1.5;transition:background .15s,border-color .15s,transform .12s;display:flex;align-items:flex-start;gap:12px}
+.q-opt:hover:not(:disabled){background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.2);transform:translateX(3px)}
+.opt-num{min-width:26px;height:26px;border-radius:7px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:700;color:rgba(255,255,255,.5);flex-shrink:0;margin-top:1px}
+.q-opt.correct{background:rgba(34,211,238,.12);border-color:rgba(34,211,238,.4)}
+.q-opt.correct .opt-num{background:#22d3ee;color:#050f12;border-color:#22d3ee}
+.q-opt.wrong{background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.3)}
+.q-opt.wrong .opt-num{background:rgba(239,68,68,.6);color:#fff;border-color:transparent}
+.q-opt:disabled{cursor:default}
+#q-countdown{display:none;margin-top:16px;font-size:.84rem;font-weight:700;color:#67e8f9;text-align:center}
+.q-cbar-wrap{width:100%;max-width:720px;height:3px;background:rgba(255,255,255,.07);border-radius:2px;margin-top:8px;overflow:hidden;display:none}
+.q-cbar-fill{height:100%;background:#22d3ee;width:100%;transition:none}
+#q-feedback{max-width:720px;width:100%;margin-top:16px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 18px;font-size:.88rem;line-height:1.65;color:rgba(255,255,255,.78);display:none;text-align:left}
+#q-feedback.show{display:block}
+#q-continue{margin-top:18px;padding:11px 32px;border-radius:10px;border:none;cursor:pointer;font-size:.9rem;font-weight:700;letter-spacing:.3px;display:none;transition:opacity .2s,transform .2s}
+#q-continue.show{display:inline-flex;align-items:center;gap:8px}
+#q-continue:hover{opacity:.85;transform:translateY(-1px)}
+/* Bar */
+#bar{position:fixed;bottom:0;left:0;right:0;height:80px;z-index:400;background:rgba(5,15,18,.93);backdrop-filter:blur(14px);border-top:1px solid var(--border);display:flex;align-items:center}
+#prog{position:fixed;top:0;left:0;height:3px;z-index:600;transition:width .35s,background .35s}
+#nav-prev,#nav-next{position:fixed;top:calc(50% - 40px);width:44px;height:44px;border-radius:50%;border:none;cursor:pointer;background:rgba(255,255,255,.07);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;transition:background .18s;z-index:300}
+#nav-prev:hover,#nav-next:hover{background:rgba(255,255,255,.16)}
+#nav-prev{left:16px}#nav-next{right:16px}
+#bar-left{display:flex;align-items:center;gap:10px;padding:0 20px;flex-shrink:0}
+#bar-center{flex:1;display:flex;align-items:center;padding:0 8px;overflow:hidden}
+#bar-right{display:flex;align-items:center;gap:8px;padding:0 18px;flex-shrink:0}
+#v-script{font-size:.79rem;color:rgba(255,255,255,.4);line-height:1.45;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-style:italic}
+.b-btn{width:38px;height:38px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .18s;flex-shrink:0}
+#v-play{background:rgba(34,211,238,.2);border:1px solid rgba(34,211,238,.4)}
+#v-play:hover{background:rgba(34,211,238,.36)}
+#v-play.playing{background:rgba(239,68,68,.22);border-color:rgba(239,68,68,.4)}
+#v-auto{padding:0 12px;width:auto;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);font-size:.72rem;font-weight:700;color:rgba(255,255,255,.42);letter-spacing:.8px}
+#v-auto.on{background:rgba(34,211,238,.22);border-color:rgba(34,211,238,.5);color:#67e8f9}
+#settings-btn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1)}
+#settings-btn:hover{background:rgba(255,255,255,.12)}
+/* Settings panel — simplified */
+#settings-panel{position:fixed;bottom:88px;right:14px;z-index:700;width:280px;background:#0a1f24;border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:20px;box-shadow:0 8px 40px rgba(0,0,0,.6);display:none}
+#settings-panel.open{display:block}
+.s-label{font-size:.72rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:block;margin-top:14px}
+.s-label:first-child{margin-top:0}
+.s-title{font-weight:800;color:#fff;margin-bottom:14px;font-size:.95rem}
+.s-close{float:right;background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.1rem}
+.s-row{display:flex;gap:8px;margin-top:14px}
+.s-btn{flex:1;padding:9px;border-radius:8px;border:none;font-size:.87rem;font-weight:700;cursor:pointer;transition:opacity .2s}
+.s-btn-primary{background:#22d3ee;color:#050f12}
+.s-btn-primary:hover{opacity:.85}
+.s-btn-test{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.15)}
+.s-btn-test:hover{background:rgba(255,255,255,.16)}
+.s-voice-badge{display:flex;align-items:center;gap:10px;background:rgba(34,211,238,.08);border:1px solid rgba(34,211,238,.28);border-radius:8px;padding:10px 12px;margin-bottom:14px}
+.s-voice-dot{width:8px;height:8px;border-radius:50%;background:#22d3ee;box-shadow:0 0 6px #22d3ee;flex-shrink:0}
+.s-voice-name{font-size:.85rem;font-weight:700;color:#67e8f9}
+.s-voice-desc{font-size:.74rem;color:var(--muted)}
+#counter{font-size:.74rem;color:rgba(255,255,255,.22);font-weight:600;flex-shrink:0;white-space:nowrap}
+#hint{position:fixed;bottom:92px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,.16);font-size:.69rem;letter-spacing:.8px;z-index:300;pointer-events:none;transition:opacity .8s;white-space:nowrap}
+#vl{position:absolute;top:0;left:0;height:2px;background:#22d3ee;transition:width .3s linear;z-index:1}
+</style>
+</head>
+<body>
+
+<div id="prog"></div>
+<div id="hint">← → chuyển slide · V = đọc · A = AUTO · Space = tiếp</div>
+<div id="deck"></div>
+
+<div id="q-panel">
+  <div id="q-text"></div>
+  <div id="q-opts"></div>
+  <div id="q-countdown"></div>
+  <div class="q-cbar-wrap" id="q-cbar-wrap"><div class="q-cbar-fill" id="q-cbar-fill"></div></div>
+  <div id="q-feedback"></div>
+  <button id="q-continue">Tiếp tục <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg></button>
+</div>
+
+<button id="nav-prev"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+<button id="nav-next"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg></button>
+
+<div id="bar">
+  <div id="vl"></div>
+  <div id="bar-left">
+    <button class="b-btn" id="v-play" title="Đọc thuyết minh (V)">
+      <svg id="ico-play" width="16" height="16" viewBox="0 0 24 24" fill="rgba(255,255,255,.9)"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      <svg id="ico-pause" width="16" height="16" viewBox="0 0 24 24" fill="rgba(255,255,255,.9)" style="display:none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+    </button>
+    <button class="b-btn" id="v-auto">AUTO</button>
+  </div>
+  <div id="bar-center"><span id="v-script">Nhấn ▶ để nghe · AUTO để AI tự dạy hoàn toàn</span></div>
+  <div id="bar-right">
+    <span id="counter"></span>
+    <button class="b-btn" id="settings-btn" title="Cài đặt tốc độ giọng">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.48)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    </button>
+  </div>
+</div>
+
+<div id="settings-panel">
+  <div><span class="s-title">Cài đặt giọng</span><button class="s-close" id="s-close">✕</button></div>
+  <div class="s-voice-badge">
+    <div class="s-voice-dot"></div>
+    <div>
+      <div class="s-voice-name">Ban Mai — FPT.AI</div>
+      <div class="s-voice-desc">Giọng nữ, Hà Nội · Tự động</div>
+    </div>
+  </div>
+  <span class="s-label">Tốc độ đọc</span>
+  <input id="s-rate" type="range" min="0.6" max="1.6" step="0.05" value="0.9" style="width:100%;cursor:pointer;accent-color:#22d3ee"/>
+  <div style="display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);margin-top:4px">
+    <span>Chậm</span><span id="s-rate-val" style="color:#67e8f9;font-weight:700">0.90×</span><span>Nhanh</span>
+  </div>
+  <div class="s-row">
+    <button class="s-btn s-btn-test" id="s-test">▶ Test giọng</button>
+    <button class="s-btn s-btn-primary" id="s-save">Lưu</button>
+  </div>
+</div>
+
+<script>
+const SLIDES = [
+{"type":"teach","color":"#22d3ee","narration":"Buổi 5 — buổi cuối. Chào mừng bạn đến đích. App Ứng dụng Quản Lý Công Việc của bạn đã có đủ 3 tầng, vượt qua 4 vòng test UX, và đang chạy ổn định. Nhưng có một câu hỏi thực tế: nếu bạn muốn gửi cho ai đó dùng thử — bạn gửi cái gì? Thư mục trên máy tính? Hay file zip? Cả hai đều không dùng được. Ngày hôm nay, app của bạn sẽ có địa chỉ thật trên internet — ai cũng gõ vào được.","html":"<div class=\"bg-img\" style=\"background-image:url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1600&q=80')\"></div>\n<div class=\"content\"><div class=\"stag\" style=\"color:#67e8f9;border-color:rgba(34,211,238,.5);background:rgba(34,211,238,.18)\">Buổi 5 · Buổi cuối</div>\n<h1 class=\"huge\">Đưa lên mạng — Ra đời</h1>\n<div class=\"rule\" style=\"background:#22d3ee\"></div>\n<p class=\"sub\">App đang sống trên máy bạn — chỉ bạn vào được.<br/><strong>Hôm nay app có URL thật. Ai cũng vào được.</strong></p></div>"},
+
+{"type":"question","color":"#22d3ee","narration":"Câu hỏi đầu tiên. Bạn muốn bạn bè thử app. Bạn gõ localhost hai chấm năm năm không không vào thanh địa chỉ — URL đó trông ổn. Bạn sao chép link đó và gửi. Người nhận bấm vào và không vào được. Tại sao?","question":"Tại sao gửi địa chỉ localhost:5500 cho người khác thì họ không mở được?","options":[{"text":"Vì họ chưa cài VS Code — cần cài VS Code mới vào được","correct":false,"feedback":"VS Code là công cụ trên máy bạn. Người dùng cuối không cần và không nên phải cài VS Code để xem một trang web. Vấn đề không liên quan đến VS Code mà liên quan đến địa chỉ localhost."},{"text":"localhost là địa chỉ chỉ có nghĩa trên chính máy đó — máy khác không biết localhost là đâu","correct":true,"feedback":"Chính xác! localhost là tên đặc biệt nghĩa là 'máy này' — tức là máy đang chạy lệnh đó. Khi bạn gửi localhost:5500 cho người khác, trình duyệt của họ tìm localhost trên máy họ — mà máy họ không có server nào đang chạy. Đây là giới hạn cơ bản của môi trường phát triển cục bộ."},{"text":"Vì cổng 5500 bị firewall chặn","correct":false,"feedback":"Firewall có thể là vấn đề trong một số trường hợp, nhưng không phải nguyên nhân chính ở đây. Dù firewall mở hoàn toàn, localhost vẫn chỉ có nghĩa trên máy đang chạy server. Máy người nhận không có server nào chạy ở cổng 5500."},{"text":"Vì file HTML cần được nén lại thành .zip trước khi gửi","correct":false,"feedback":"Nén file không liên quan gì đến việc truy cập qua URL. File zip cũng không thể mở bằng trình duyệt như một website. Vấn đề hoàn toàn khác: cần đưa file lên một server thật để có URL thật."}]},
+
+{"type":"teach","color":"#22d3ee","narration":"Mô hình tư duy số 5: Localhost versus Server. Máy tính của bạn là nhà riêng — chỉ bạn bước vào được. LocalHost là địa chỉ nhà bạn — không ai ngoài bạn tìm đến được. Server là nhà ở mặt đường công cộng, có biển số rõ ràng, ai cũng gõ địa chỉ vào là đến được. Deploy là hành động chuyển file từ nhà riêng ra nhà công cộng. Sau khi deploy, file của bạn sống trên máy chủ luôn bật, luôn kết nối internet, ai trên thế giới cũng vào được bằng URL.","html":"<div class=\"bg-color\" style=\"background:linear-gradient(135deg,#02080a,#051618)\"></div>\n<div class=\"content\"><div class=\"stag\" style=\"color:#67e8f9;border-color:rgba(34,211,238,.45);background:rgba(34,211,238,.12)\">Mô hình tư duy #5</div>\n<h2 class=\"big\">Localhost vs Server</h2>\n<div class=\"rule\" style=\"background:#22d3ee\"></div>\n<div style=\"display:grid;grid-template-columns:1fr auto 1fr;gap:12px;width:100%;max-width:820px;margin-top:28px;align-items:center\">\n  <div style=\"background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.22);border-radius:16px;padding:24px;text-align:center\">\n    <div style=\"font-size:2rem;margin-bottom:10px\">🏠</div>\n    <div style=\"font-weight:800;color:#f87171;font-size:1rem;margin-bottom:8px\">Localhost</div>\n    <div style=\"font-size:.83rem;color:rgba(255,255,255,.5);line-height:1.8\">Máy bạn<br/>Chỉ bạn vào được<br/>Tắt máy là mất</div>\n  </div>\n  <div style=\"display:flex;flex-direction:column;align-items:center;gap:6px\">\n    <svg width=\"32\" height=\"32\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#22d3ee\" stroke-width=\"2\" stroke-linecap=\"round\"><line x1=\"5\" y1=\"12\" x2=\"19\" y2=\"12\"/><polyline points=\"12 5 19 12 12 19\"/></svg>\n    <div style=\"font-size:.65rem;font-weight:700;color:#22d3ee;letter-spacing:1px\">DEPLOY</div>\n  </div>\n  <div style=\"background:rgba(34,211,238,.08);border:2px solid rgba(34,211,238,.35);border-radius:16px;padding:24px;text-align:center\">\n    <div style=\"font-size:2rem;margin-bottom:10px\">🌐</div>\n    <div style=\"font-weight:800;color:#67e8f9;font-size:1rem;margin-bottom:8px\">Server (Netlify)</div>\n    <div style=\"font-size:.83rem;color:rgba(255,255,255,.5);line-height:1.8\">Luôn bật<br/>Ai cũng vào được<br/>Có URL thật ✓</div>\n  </div>\n</div></div>"},
+
+{"type":"teach","color":"#22d3ee","narration":"Deploy là gì? Theo nghĩa đơn giản: deploy là sao chép file của bạn lên một máy tính khác — máy đó luôn bật 24/7, kết nối internet liên tục, và có địa chỉ IP công khai để ai trên thế giới cũng đến được. Khi ai gõ URL vào trình duyệt, họ đang nhờ máy tính đó gửi file HTML về. File đó đang chạy trên máy của họ, không phải trên server. Server chỉ lưu và phân phát file. Đây là lý do tại sao website có thể phục vụ hàng triệu người cùng lúc — mỗi người tải file về máy họ và tự chạy.","html":"<div class=\"bg-color\" style=\"background:#02080a\"></div>\n<div class=\"content\"><h2 class=\"big\">Deploy là gì?</h2>\n<div class=\"rule\" style=\"background:#22d3ee\"></div>\n<div style=\"display:flex;flex-direction:column;gap:12px;max-width:780px;width:100%;margin-top:26px\">\n  <div style=\"display:flex;align-items:flex-start;gap:16px;background:rgba(34,211,238,.06);border:1px solid rgba(34,211,238,.18);border-radius:12px;padding:16px 20px\">\n    <div style=\"font-size:1.6rem;flex-shrink:0\">📁</div>\n    <div style=\"text-align:left\"><div style=\"font-weight:700;color:#67e8f9\">Trước deploy</div><div style=\"font-size:.84rem;color:rgba(255,255,255,.55);margin-top:3px\">File HTML nằm trên ổ cứng máy bạn. Chỉ bạn mở được bằng trình duyệt trên chính máy đó.</div></div>\n  </div>\n  <div style=\"display:flex;align-items:flex-start;gap:16px;background:rgba(34,211,238,.06);border:1px solid rgba(34,211,238,.18);border-radius:12px;padding:16px 20px\">\n    <div style=\"font-size:1.6rem;flex-shrink:0\">⬆️</div>\n    <div style=\"text-align:left\"><div style=\"font-weight:700;color:#67e8f9\">Trong lúc deploy</div><div style=\"font-size:.84rem;color:rgba(255,255,255,.55);margin-top:3px\">Bạn tải file lên Netlify (kéo thả hoặc click). Netlify sao chép file vào server của họ và cấp cho bạn một URL.</div></div>\n  </div>\n  <div style=\"display:flex;align-items:flex-start;gap:16px;background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.3);border-radius:12px;padding:16px 20px\">\n    <div style=\"font-size:1.6rem;flex-shrink:0\">✅</div>\n    <div style=\"text-align:left\"><div style=\"font-weight:700;color:#34d399\">Sau deploy</div><div style=\"font-size:.84rem;color:rgba(255,255,255,.55);margin-top:3px\">Ai gõ URL đó vào trình duyệt — ở bất kỳ đâu trên thế giới — đều nhận được file HTML của bạn và app chạy trên máy họ.</div></div>\n  </div>\n</div></div>"},
+
+{"type":"question","color":"#22d3ee","narration":"Kiểm tra hiểu biết về cách deploy hoạt động. Bạn đã deploy app lên Netlify. Hai người — một ở Hà Nội, một ở Thành phố Hồ Chí Minh — cùng mở URL đó. Lúc này file HTML đang ở đâu?","question":"Sau khi deploy, người dùng ở Hà Nội và TP.HCM cùng mở URL. File HTML đang ở đâu?","options":[{"text":"File nằm trên máy bạn — server Netlify chỉ chuyển tiếp","correct":false,"feedback":"Không đúng. Sau khi deploy, file đã được sao chép lên server Netlify. Nếu file vẫn nằm trên máy bạn và bạn tắt máy, website sẽ không truy cập được. Server Netlify lưu và phân phối file độc lập với máy bạn."},{"text":"Một bản trên server Netlify · mỗi người tải về máy của họ khi mở URL","correct":true,"feedback":"Chính xác! Server Netlify lưu một bản file HTML. Khi ai mở URL, trình duyệt của họ tải file đó về máy và chạy. Mỗi người có bản chạy riêng trên máy của mình. Điều này giải thích tại sao kho lưu trình duyệt của mỗi người là riêng biệt — vì app thực sự đang chạy trên máy họ, không phải trên server."},{"text":"File được chia đôi — một nửa ở Hà Nội, một nửa ở TP.HCM","correct":false,"feedback":"File không bị chia. Server lưu nguyên bản và gửi đầy đủ cho mỗi người yêu cầu. Mạng CDN có thể sao chép file ra nhiều điểm địa lý để gửi nhanh hơn, nhưng mỗi người vẫn nhận file nguyên vẹn."},{"text":"File nằm trong đám mây — không nằm trên máy cụ thể nào","correct":false,"feedback":"'Đám mây' thực ra là máy chủ vật lý đặt trong các data center. File của bạn nằm trên ổ cứng của máy chủ Netlify — rất cụ thể. 'Cloud' chỉ là cách gọi thân thiện cho hạ tầng server mà bạn không cần quản lý trực tiếp."}]},
+
+{"type":"teach","color":"#22d3ee","narration":"Công cụ deploy hôm nay là Netlify — miễn phí hoàn toàn cho dự án cá nhân, không cần thẻ tín dụng. Cách dùng đơn giản đến bất ngờ: bạn chỉ cần kéo thả thư mục chứa file HTML vào trang web của Netlify — xong. Không cần cài phần mềm gì. Không cần dùng terminal. Không cần biết Git. Trong vòng 30 giây bạn có một URL dạng ten-ngau-nhien.netlify.app, ai cũng vào được. Đây là lý do Netlify là công cụ đầu tiên mọi người học làm web nên biết.","html":"<div class=\"bg-color\" style=\"background:linear-gradient(135deg,#02080a,#051618)\"></div>\n<div class=\"content\"><h2 class=\"big\">Netlify — Deploy bằng kéo thả</h2>\n<div class=\"rule\" style=\"background:#22d3ee\"></div>\n<div style=\"display:flex;flex-direction:column;gap:10px;max-width:760px;width:100%;margin-top:26px\">\n  <div style=\"display:flex;gap:14px;align-items:center;background:rgba(255,255,255,.04);border-radius:10px;padding:14px 18px\">\n    <div style=\"width:32px;height:32px;border-radius:8px;background:#22d3ee;color:#02080a;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.85rem;flex-shrink:0\">1</div>\n    <div style=\"font-size:.9rem;color:rgba(255,255,255,.8);text-align:left\">Vào <strong style=\"color:#67e8f9\">netlify.com</strong> → Đăng ký miễn phí (dùng email hoặc GitHub)</div>\n  </div>\n  <div style=\"display:flex;gap:14px;align-items:center;background:rgba(255,255,255,.04);border-radius:10px;padding:14px 18px\">\n    <div style=\"width:32px;height:32px;border-radius:8px;background:#22d3ee;color:#02080a;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.85rem;flex-shrink:0\">2</div>\n    <div style=\"font-size:.9rem;color:rgba(255,255,255,.8);text-align:left\">Cuộn xuống trang chủ — thấy khu vực \"Deploy manually\"</div>\n  </div>\n  <div style=\"display:flex;gap:14px;align-items:center;background:rgba(34,211,238,.07);border:1px solid rgba(34,211,238,.2);border-radius:10px;padding:14px 18px\">\n    <div style=\"width:32px;height:32px;border-radius:8px;background:#22d3ee;color:#02080a;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.85rem;flex-shrink:0\">3</div>\n    <div style=\"font-size:.9rem;color:rgba(255,255,255,.8);text-align:left\"><strong style=\"color:#67e8f9\">Kéo thư mục</strong> chứa index.html vào khu vực đó → thả → đợi 10–30 giây</div>\n  </div>\n  <div style=\"display:flex;gap:14px;align-items:center;background:rgba(34,211,238,.07);border:1px solid rgba(34,211,238,.2);border-radius:10px;padding:14px 18px\">\n    <div style=\"font-size:1.2rem;flex-shrink:0\">🎉</div>\n    <div style=\"font-size:.9rem;color:rgba(255,255,255,.8);text-align:left\">URL xuất hiện: <span style=\"color:#34d399;font-weight:700\">ten-ngau-nhien.netlify.app</span> — sao chép và gửi cho ai cũng được</div>\n  </div>\n</div></div>"},
+
+{"type":"practice","color":"#22d3ee","narration":"Đến thực hành. Mở netlify.com trong trình duyệt. Đăng ký hoặc đăng nhập nếu đã có tài khoản. Kéo thư mục chứa file index.html của bạn vào khu vực kéo thả. Đợi Netlify xử lý — thường mất dưới 30 giây. Khi URL xuất hiện, sao chép lại. Bước kiểm tra: dán URL vào tab trình duyệt mới và mở — app phải chạy đúng.","html":"<div class=\"bg-color\" style=\"background:linear-gradient(135deg,#02080a,#051618)\"></div>\n<div class=\"content\"><div class=\"stag\" style=\"background:rgba(34,211,238,.1);color:#67e8f9;border-color:rgba(34,211,238,.3)\">Thực hành</div>\n<h2 class=\"big\" style=\"color:#67e8f9\">Deploy lên Netlify — có URL trong 30 giây</h2>\n<div class=\"rule\" style=\"background:#22d3ee\"></div>\n<div style=\"display:flex;flex-direction:column;gap:10px;max-width:760px;width:100%;margin-top:24px\">\n  <div style=\"display:flex;gap:12px;align-items:flex-start;background:rgba(255,255,255,.04);border-radius:10px;padding:13px 16px;font-size:.9rem;color:rgba(255,255,255,.75)\">\n    <div style=\"width:26px;height:26px;border-radius:7px;background:#22d3ee;color:#02080a;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.8rem;flex-shrink:0\">1</div>\n    Mở <strong>netlify.com</strong> → Đăng nhập hoặc đăng ký tài khoản\n  </div>\n  <div style=\"display:flex;gap:12px;align-items:flex-start;background:rgba(255,255,255,.04);border-radius:10px;padding:13px 16px;font-size:.9rem;color:rgba(255,255,255,.75)\">\n    <div style=\"width:26px;height:26px;border-radius:7px;background:#22d3ee;color:#02080a;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.8rem;flex-shrink:0\">2</div>\n    Kéo thư mục dự án vào khu vực \"Deploy manually\"\n  </div>\n  <div style=\"display:flex;gap:12px;align-items:flex-start;background:rgba(34,211,238,.08);border:1px solid rgba(34,211,238,.2);border-radius:10px;padding:13px 16px;font-size:.9rem;color:rgba(255,255,255,.75)\">\n    <div style=\"width:26px;height:26px;border-radius:7px;background:#22d3ee;color:#02080a;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.8rem;flex-shrink:0\">3</div>\n    <div>Đợi 10–30 giây → <strong style=\"color:#67e8f9\">Sao chép URL</strong> → Dán vào tab mới → App chạy ✓</div>\n  </div>\n  <div style=\"display:flex;gap:12px;align-items:flex-start;background:rgba(34,211,238,.08);border:1px solid rgba(34,211,238,.2);border-radius:10px;padding:13px 16px;font-size:.9rem;color:rgba(255,255,255,.75)\">\n    <div style=\"width:26px;height:26px;border-radius:7px;background:#22d3ee;color:#02080a;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.8rem;flex-shrink:0\">4</div>\n    <div><strong style=\"color:#34d399\">Bonus:</strong> Gửi URL cho ai đó — họ mở được ngay không cần cài gì</div>\n  </div>\n</div></div>"},
+
+{"type":"reflect","color":"#22d3ee","narration":"Khoảnh khắc quan trọng nhất hôm nay. Bạn vừa có URL thật. Bây giờ mở URL đó trên điện thoại của bạn. Không phải trên máy tính — trên điện thoại. Đây là lần đầu tiên app của bạn chạy trên một thiết bị bạn không cài VS Code, không có Live Server, hoàn toàn độc lập. Đây là khoảnh khắc app thật sự ra đời. Nếu app chạy tốt trên điện thoại — bạn đã build được một sản phẩm thật.","html":"<div class=\"bg-color\" style=\"background:linear-gradient(135deg,#02080a,#051618)\"></div>\n<div class=\"content\"><div class=\"stag\" style=\"background:rgba(34,211,238,.1);color:#67e8f9;border-color:rgba(34,211,238,.3)\">Khoảnh khắc</div>\n<h2 class=\"big\">Mở URL trên điện thoại</h2>\n<div class=\"rule\" style=\"background:#22d3ee\"></div>\n<div style=\"font-size:4rem;margin:20px 0\">📱</div>\n<p class=\"sub\">Gõ URL vào trình duyệt điện thoại.<br/>App chạy — không cần VS Code, không cần Live Server.<br/><strong>Đây là khoảnh khắc app thật sự ra đời.</strong></p>\n<div style=\"margin-top:28px;padding:16px 28px;background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.3);border-radius:12px;font-size:.88rem;color:#67e8f9;max-width:520px\">\n  Nếu ai hỏi \"bạn đã làm được gì?\" — hãy gửi link này.\n</div></div>"},
+
+{"type":"question","color":"#22d3ee","narration":"Bạn vừa deploy và có URL. Sau đó bạn phát hiện một lỗi nhỏ trong app — muốn sửa và cập nhật lên URL đó. Cần làm gì để URL tự động hiển thị phiên bản mới?","question":"Bạn sửa lỗi trong app trên máy. Làm thế nào để URL trên Netlify hiển thị phiên bản đã sửa?","options":[{"text":"Tự động — Netlify theo dõi file trên máy bạn và cập nhật liên tục","correct":false,"feedback":"Netlify không có khả năng theo dõi file trên máy bạn. Sau khi deploy lần đầu, Netlify chỉ có bản bạn đã upload. Muốn cập nhật phải chủ động upload lại."},{"text":"Kéo thả thư mục đã cập nhật lên Netlify lần nữa — Netlify deploy lại và URL vẫn giữ nguyên","correct":true,"feedback":"Đúng! Quy trình deploy lại cũng đơn giản như lần đầu: sửa file trên máy, kéo thả thư mục vào cùng project trên Netlify, chọi deploy. URL không thay đổi — người đang dùng app reload là thấy phiên bản mới. Đây là quy trình deploy cập nhật tiêu chuẩn."},{"text":"Sửa file trực tiếp trên Netlify bằng trình soạn thảo online","correct":false,"feedback":"Netlify có tính năng chỉnh sửa online nhưng không được khuyến khích cho code thật. Quy trình đúng là sửa trên máy, test cục bộ, rồi deploy lại. Chỉnh sửa online dễ gây lỗi vì không test được trước."},{"text":"Xóa site cũ và tạo site mới — URL sẽ thay đổi","correct":false,"feedback":"Xóa và tạo lại sẽ cho bạn URL mới — mọi link đã chia sẻ trước đó đều hỏng. Không cần làm vậy. Deploy lại vào cùng một project là URL giữ nguyên và tự động nhận phiên bản mới."}]},
+
+{"type":"practice","color":"#22d3ee","narration":"Thực hành deploy lại. Mở file index.html trên máy, sửa tiêu đề trang — ví dụ đổi từ Task Manager thành tên riêng của bạn. Lưu file. Vào Netlify, kéo thả thư mục lần nữa. Chờ deploy xong. Mở URL — tiêu đề mới phải xuất hiện. Đây là vòng lặp bạn sẽ dùng mỗi khi cập nhật app: sửa cục bộ, test, rồi deploy lại.","html":"<div class=\"bg-color\" style=\"background:linear-gradient(135deg,#02080a,#051618)\"></div>\n<div class=\"content\"><div class=\"stag\" style=\"background:rgba(34,211,238,.1);color:#67e8f9;border-color:rgba(34,211,238,.3)\">Thực hành</div>\n<h2 class=\"big\" style=\"color:#67e8f9\">Sửa → Deploy lại → Xác nhận URL cập nhật</h2>\n<div class=\"rule\" style=\"background:#22d3ee\"></div>\n<div style=\"display:flex;flex-direction:column;gap:10px;max-width:760px;width:100%;margin-top:24px\">\n  <div style=\"display:flex;gap:12px;align-items:flex-start;background:rgba(255,255,255,.04);border-radius:10px;padding:13px 16px;font-size:.9rem;color:rgba(255,255,255,.75)\">\n    <div style=\"width:26px;height:26px;border-radius:7px;background:#22d3ee;color:#02080a;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.8rem;flex-shrink:0\">1</div>\n    Mở file index.html → đổi tiêu đề thành tên riêng của bạn → Ctrl+S\n  </div>\n  <div style=\"display:flex;gap:12px;align-items:flex-start;background:rgba(255,255,255,.04);border-radius:10px;padding:13px 16px;font-size:.9rem;color:rgba(255,255,255,.75)\">\n    <div style=\"width:26px;height:26px;border-radius:7px;background:#22d3ee;color:#02080a;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.8rem;flex-shrink:0\">2</div>\n    Vào Netlify → kéo thả thư mục vào cùng project cũ\n  </div>\n  <div style=\"display:flex;gap:12px;align-items:flex-start;background:rgba(34,211,238,.08);border:1px solid rgba(34,211,238,.2);border-radius:10px;padding:13px 16px;font-size:.9rem;color:rgba(255,255,255,.75)\">\n    <div style=\"width:26px;height:26px;border-radius:7px;background:#22d3ee;color:#02080a;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.8rem;flex-shrink:0\">3</div>\n    <div>Đợi deploy xong → mở URL → <strong style=\"color:#67e8f9\">tiêu đề mới xuất hiện ✓</strong><br/><span style=\"font-size:.82rem;color:var(--muted)\">URL giữ nguyên — không thay đổi</span></div>\n  </div>\n</div></div>"},
+
+{"type":"teach","color":"#22d3ee","narration":"Một chi tiết nhỏ nhưng hữu ích: bạn có thể đổi URL mặc định của Netlify. Mặc định bạn sẽ nhận URL kiểu chữ số ngẫu nhiên chấm netlify.app — khó nhớ và trông không chuyên nghiệp. Trong phần cài đặt site trên Netlify, bạn có thể đổi phần trước thành tên bạn muốn — miễn là chưa ai dùng. Ví dụ: task-manager-of-minh.netlify.app. Đây là tên miền phụ miễn phí. Nếu sau này muốn tên miền hoàn toàn riêng như taskapp.vn thì cần mua và kết nối thêm — nhưng không cần thiết cho giai đoạn học này.","html":"<div class=\"bg-color\" style=\"background:#02080a\"></div>\n<div class=\"content\"><h2 class=\"big\">Đặt tên miền dễ nhớ</h2>\n<div class=\"rule\" style=\"background:#22d3ee\"></div>\n<div style=\"display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:800px;width:100%;margin-top:26px\">\n  <div style=\"background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:22px;text-align:left\">\n    <div style=\"font-size:.68rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:10px\">Mặc định</div>\n    <div style=\"font-family:monospace;font-size:.88rem;color:#f87171;padding:8px 12px;background:rgba(239,68,68,.06);border-radius:6px;margin-bottom:10px\">amazing-baboon-3f2d1.netlify.app</div>\n    <div style=\"font-size:.82rem;color:rgba(255,255,255,.4)\">Khó nhớ, trông không chuyên nghiệp</div>\n  </div>\n  <div style=\"background:rgba(34,211,238,.07);border:1px solid rgba(34,211,238,.22);border-radius:14px;padding:22px;text-align:left\">\n    <div style=\"font-size:.68rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#22d3ee;margin-bottom:10px\">Sau khi đổi tên</div>\n    <div style=\"font-family:monospace;font-size:.88rem;color:#34d399;padding:8px 12px;background:rgba(34,211,238,.06);border-radius:6px;margin-bottom:10px\">task-app-cua-minh.netlify.app</div>\n    <div style=\"font-size:.82rem;color:rgba(255,255,255,.5)\">Dễ nhớ, có thể dùng trong CV</div>\n  </div>\n</div>\n<p class=\"sub\" style=\"margin-top:22px\">Site Settings → General → Site details → <strong>Change site name</strong></p></div>"},
+
+{"type":"question","color":"#22d3ee","narration":"Câu hỏi về kho lưu sau khi deploy. Bạn đã biết kho lưu trình duyệt lưu dữ liệu cục bộ trên máy của từng người dùng. Nếu cả bạn và người bạn của bạn cùng dùng app trên cùng một URL — mỗi người có danh sách task riêng hay dùng chung một danh sách?","question":"Bạn và bạn bè cùng dùng app tại cùng một URL. Danh sách task của hai người quan hệ thế nào?","options":[{"text":"Dùng chung — ai thêm task thì cả hai đều thấy","correct":false,"feedback":"Kho lưu trình duyệt là cục bộ — nó chỉ tồn tại trên máy của người dùng đó, trong trình duyệt của họ. Dữ liệu không đi qua server và không được chia sẻ. Để hai người thấy cùng một danh sách cần dùng database thật trên server."},{"text":"Hoàn toàn riêng biệt — mỗi người có danh sách của riêng mình trên máy của họ","correct":true,"feedback":"Đúng! localStorage là kho lưu của từng trình duyệt trên từng máy. App chạy trên máy của ai thì đọc và ghi vào kho lưu của máy đó. Bạn và bạn bè dùng cùng URL nhưng app chạy hoàn toàn độc lập trên mỗi máy — không có dữ liệu nào được chia sẻ qua URL hay server."},{"text":"Phụ thuộc vào cài đặt trong Netlify","correct":false,"feedback":"Netlify chỉ phân phát file HTML — nó không kiểm soát hay biết gì về dữ liệu người dùng đang lưu. localStorage hoạt động hoàn toàn ở phía người dùng, không liên quan đến Netlify hay bất kỳ setting nào của hosting."},{"text":"Dữ liệu được lưu trên server Netlify — ai vào URL đó đều thấy","correct":false,"feedback":"Netlify không lưu dữ liệu người dùng. Netlify chỉ lưu các file tĩnh bạn upload (HTML, CSS, JS). localStorage chạy trong trình duyệt của người dùng và không bao giờ gửi data về Netlify."}]},
+
+{"type":"teach","color":"#22d3ee","narration":"Đây là giới hạn tự nhiên của app hiện tại. Mỗi người có kho lưu riêng — dữ liệu không chia sẻ được giữa những người khác nhau. Nếu bạn muốn nhiều người dùng cùng thấy và cùng quản lý một danh sách task chung — đó là bài toán của database thật trên server và cần phần backend. Đó không phải là ứng dụng của khóa học này. Nhưng bạn đã hiểu tại sao bài toán đó tồn tại và tại sao nó phức tạp hơn. Với mục tiêu làm app cá nhân — danh sách của riêng bạn, luôn có mặt trên mọi thiết bị — app này đã đáp ứng hoàn toàn.","html":"<div class=\"bg-color\" style=\"background:#02080a\"></div>\n<div class=\"content\"><h2 class=\"big\">Giới hạn và bước tiếp theo</h2>\n<div class=\"rule\" style=\"background:#22d3ee\"></div>\n<div style=\"display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:840px;width:100%;margin-top:26px\">\n  <div style=\"background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.2);border-radius:14px;padding:22px;text-align:left\">\n    <div style=\"font-size:.68rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#fbbf24;margin-bottom:12px\">App hiện tại</div>\n    <div style=\"font-size:.85rem;color:rgba(255,255,255,.6);line-height:1.85\">\n      ✓ Mỗi người có kho lưu riêng<br/>\n      ✓ Hoàn hảo cho app cá nhân<br/>\n      ✗ Không chia sẻ được dữ liệu<br/>\n      ✗ Đổi thiết bị là mất data\n    </div>\n  </div>\n  <div style=\"background:rgba(34,211,238,.06);border:1px solid rgba(34,211,238,.2);border-radius:14px;padding:22px;text-align:left\">\n    <div style=\"font-size:.68rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#22d3ee;margin-bottom:12px\">Bài học tiếp theo</div>\n    <div style=\"font-size:.85rem;color:rgba(255,255,255,.6);line-height:1.85\">\n      Database trên server<br/>\n      Đăng nhập / tài khoản<br/>\n      Đồng bộ giữa thiết bị<br/>\n      Chia sẻ dữ liệu thời gian thực\n    </div>\n  </div>\n</div></div>"},
+
+{"type":"reflect","color":"#22d3ee","narration":"Nhìn lại toàn bộ hành trình 5 buổi. Buổi 1: bạn build giao diện đầu tiên — bộ xương HTML và CSS. Buổi 2: bạn thêm logic xử lý — JavaScript làm app thật sự phản hồi. Buổi 3: bạn tích hợp kho lưu — app nhớ dữ liệu vĩnh viễn. Buổi 4: bạn đổi vai người dùng — tìm và sửa 4 loại vấn đề UX. Buổi 5: bạn deploy — app có URL thật, ai cũng vào được. 5 buổi, 5 kỹ năng, 1 sản phẩm thật. Bạn không chỉ làm theo hướng dẫn — bạn đã tự phát hiện vấn đề và tự giải quyết với sự hỗ trợ của AI.","html":"<div class=\"bg-color\" style=\"background:linear-gradient(180deg,#02080a,#05121a)\"></div>\n<div class=\"content\"><div class=\"stag\" style=\"color:#67e8f9;border-color:rgba(34,211,238,.5);background:rgba(34,211,238,.18)\">Hành trình</div>\n<h2 class=\"big\">5 buổi → 1 app thật</h2>\n<div class=\"rule\" style=\"background:#22d3ee\"></div>\n<div style=\"display:flex;flex-direction:column;gap:0;width:100%;max-width:580px;margin-top:24px\">\n  <div style=\"display:flex;gap:16px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.06)\">\n    <div style=\"width:14px;height:14px;border-radius:50%;background:#6c63ff;flex-shrink:0;margin-top:4px;box-shadow:0 0 8px #6c63ff\"></div>\n    <div><div style=\"font-weight:700;color:#a5b4fc\">Buổi 1 — Giao diện ✅</div><div style=\"font-size:.82rem;color:var(--muted);margin-top:2px\">HTML + CSS · Bộ xương trực quan</div></div>\n  </div>\n  <div style=\"display:flex;gap:16px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.06)\">\n    <div style=\"width:14px;height:14px;border-radius:50%;background:#f77f00;flex-shrink:0;margin-top:4px;box-shadow:0 0 8px #f77f00\"></div>\n    <div><div style=\"font-weight:700;color:#fdba74\">Buổi 2 — Xử lý ✅</div><div style=\"font-size:.82rem;color:var(--muted);margin-top:2px\">JavaScript · Logic thêm, tick, xóa</div></div>\n  </div>\n  <div style=\"display:flex;gap:16px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.06)\">\n    <div style=\"width:14px;height:14px;border-radius:50%;background:#06d6a0;flex-shrink:0;margin-top:4px;box-shadow:0 0 8px #06d6a0\"></div>\n    <div><div style=\"font-weight:700;color:#34d399\">Buổi 3 — Dữ liệu ✅</div><div style=\"font-size:.82rem;color:var(--muted);margin-top:2px\">LocalStorage · Nhớ dữ liệu vĩnh viễn</div></div>\n  </div>\n  <div style=\"display:flex;gap:16px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.06)\">\n    <div style=\"width:14px;height:14px;border-radius:50%;background:#3b82f6;flex-shrink:0;margin-top:4px;box-shadow:0 0 8px #3b82f6\"></div>\n    <div><div style=\"font-weight:700;color:#93c5fd\">Buổi 4 — Trải nghiệm ✅</div><div style=\"font-size:.82rem;color:var(--muted);margin-top:2px\">UX · Tự test và sửa 4 loại vấn đề</div></div>\n  </div>\n  <div style=\"display:flex;gap:16px;padding:12px 0\">\n    <div style=\"width:14px;height:14px;border-radius:50%;background:#22d3ee;flex-shrink:0;margin-top:4px;box-shadow:0 0 8px #22d3ee\"></div>\n    <div><div style=\"font-weight:700;color:#67e8f9\">Buổi 5 — Ra đời ✅</div><div style=\"font-size:.82rem;color:var(--muted);margin-top:2px\">Deploy · URL thật · Ai cũng vào được</div></div>\n  </div>\n</div></div>"},
+
+{"type":"teach","color":"#22d3ee","narration":"Hãy nhìn lại bộ kỹ năng bạn đã có sau 5 buổi. Kỹ năng một: Tư duy hệ thống — bạn không nhìn app là một thứ ma thuật nữa mà thấy rõ 3 tầng Giao diện, Xử lý, Dữ liệu. Kỹ năng hai: Ra lệnh AI hiệu quả — từ 5 yếu tố ban đầu đến 7 yếu tố với mô tả luồng dữ liệu. Kỹ năng ba: Tìm và mô tả lỗi đúng cách — công thức 3 phần. Kỹ năng bốn: Build từ giao diện đến logic đến dữ liệu. Kỹ năng năm: Deploy — đưa sản phẩm ra thế giới. Đây không phải kỹ năng code — đây là kỹ năng tư duy và làm chủ công cụ.","html":"<div class=\"bg-color\" style=\"background:#02080a\"></div>\n<div class=\"content\"><h2 class=\"big\">Bộ kỹ năng bạn đã có</h2>\n<div class=\"rule\" style=\"background:#22d3ee\"></div>\n<div style=\"display:flex;flex-direction:column;gap:9px;max-width:700px;width:100%;margin-top:26px\">\n  <div style=\"display:flex;gap:14px;align-items:center;padding:12px 16px;background:rgba(108,99,255,.08);border:1px solid rgba(108,99,255,.2);border-radius:10px\">\n    <span style=\"font-size:1.2rem;flex-shrink:0\">🧠</span>\n    <div style=\"text-align:left\"><span style=\"font-weight:700;color:#a5b4fc\">Tư duy hệ thống</span> <span style=\"font-size:.83rem;color:rgba(255,255,255,.45)\">— thấy rõ 3 tầng, không còn thấy code là ma thuật</span></div>\n  </div>\n  <div style=\"display:flex;gap:14px;align-items:center;padding:12px 16px;background:rgba(34,211,238,.06);border:1px solid rgba(34,211,238,.18);border-radius:10px\">\n    <span style=\"font-size:1.2rem;flex-shrink:0\">💬</span>\n    <div style=\"text-align:left\"><span style=\"font-weight:700;color:#67e8f9\">Ra lệnh AI</span> <span style=\"font-size:.83rem;color:rgba(255,255,255,.45)\">— 7 yếu tố, mô tả luồng dữ liệu, không cần nhớ cú pháp</span></div>\n  </div>\n  <div style=\"display:flex;gap:14px;align-items:center;padding:12px 16px;background:rgba(247,127,0,.07);border:1px solid rgba(247,127,0,.2);border-radius:10px\">\n    <span style=\"font-size:1.2rem;flex-shrink:0\">🔍</span>\n    <div style=\"text-align:left\"><span style=\"font-weight:700;color:#fdba74\">Tìm và mô tả lỗi</span> <span style=\"font-size:.83rem;color:rgba(255,255,255,.45)\">— công thức 3 phần: đang làm / mong đợi / thực tế</span></div>\n  </div>\n  <div style=\"display:flex;gap:14px;align-items:center;padding:12px 16px;background:rgba(6,214,160,.06);border:1px solid rgba(6,214,160,.18);border-radius:10px\">\n    <span style=\"font-size:1.2rem;flex-shrink:0\">🏗️</span>\n    <div style=\"text-align:left\"><span style=\"font-weight:700;color:#34d399\">Build app đầy đủ</span> <span style=\"font-size:.83rem;color:rgba(255,255,255,.45)\">— Giao diện → Xử lý → Dữ liệu → UX</span></div>\n  </div>\n  <div style=\"display:flex;gap:14px;align-items:center;padding:12px 16px;background:rgba(59,130,246,.07);border:1px solid rgba(59,130,246,.2);border-radius:10px\">\n    <span style=\"font-size:1.2rem;flex-shrink:0\">🚀</span>\n    <div style=\"text-align:left\"><span style=\"font-weight:700;color:#93c5fd\">Deploy</span> <span style=\"font-size:.83rem;color:rgba(255,255,255,.45)\">— đưa sản phẩm ra thế giới, có URL thật</span></div>\n  </div>\n</div></div>"},
+
+{"type":"question","color":"#22d3ee","narration":"Câu hỏi cuối khóa. Hãy thử áp dụng tư duy đã học. Bạn muốn tự build một app quản lý chi tiêu cá nhân — ghi lại thu nhập và chi tiêu mỗi ngày. Bạn sẽ bắt đầu từ đâu?","question":"Bạn muốn build app quản lý chi tiêu cá nhân. Bước đầu tiên là gì?","options":[{"text":"Hỏi AI viết toàn bộ code ngay lập tức","correct":false,"feedback":"Hỏi AI viết code ngay khi chưa có bản phác thảo sẽ cho kết quả không đúng với ý bạn. AI không biết bạn muốn giao diện trông thế nào, cần theo dõi những gì, hiển thị tóm tắt ra sao. Kết quả thường là generic và phải làm lại nhiều lần."},{"text":"Phác thảo giao diện ra giấy — vẽ các thành phần bạn cần thấy — rồi mô tả cho AI build từng phần","correct":true,"feedback":"Chính xác — đây là quy trình đúng bạn đã thực hành suốt 5 buổi. Tư duy hệ thống trước: giao diện cần thành phần gì? Logic xử lý ra sao? Dữ liệu cần lưu gì? Sau đó mô tả từng tầng cho AI. Khung xương vững trước khi trang trí — nguyên tắc số 4 của khóa học này."},{"text":"Tìm template có sẵn và chỉnh sửa lại","correct":false,"feedback":"Template có thể là điểm khởi đầu tốt nhưng không giúp bạn hiểu app đang hoạt động thế nào. Khi có lỗi hoặc muốn thêm tính năng, bạn sẽ không biết sửa ở đâu. Hiểu từ đầu vẫn tốt hơn chỉnh sửa code không hiểu."},{"text":"Học JavaScript nâng cao trước — sau đó mới build","correct":false,"feedback":"Học lý thuyết không có dự án cụ thể rất khó giữ động lực và khó ứng dụng. Cách hiệu quả nhất là build app thật với yêu cầu thật, gặp vấn đề thật, rồi học kỹ thuật khi cần — đúng như cách bạn đã làm 5 buổi qua."}]},
+
+{"type":"reflect","color":"#22d3ee","narration":"Checklist tốt nghiệp khóa học. Năm tiêu chí của một web app chắc lõi. Một: App có giao diện rõ ràng — người dùng biết ngay cần làm gì. Hai: App phản hồi đúng với mọi thao tác của người dùng — không câm, không bị lỗi ở các edge case thường gặp. Ba: App nhớ dữ liệu sau khi đóng tab và mở lại. Bốn: App dùng được trên điện thoại — không vỡ layout, nút đủ to. Năm: App có URL thật — ai cũng vào được mà không cần cài gì. Nếu app của bạn đạt cả 5 — bạn đã tốt nghiệp.","html":"<div class=\"bg-color\" style=\"background:#02080a\"></div>\n<div class=\"content\"><div class=\"stag\" style=\"background:rgba(34,211,238,.1);color:#67e8f9;border-color:rgba(34,211,238,.3)\">Checklist tốt nghiệp</div>\n<h2 class=\"big\">5 tiêu chí của web app chắc lõi</h2>\n<div class=\"rule\" style=\"background:#22d3ee\"></div>\n<ul style=\"list-style:none;max-width:660px;width:100%;margin-top:24px\">\n  <li style=\"display:flex;align-items:flex-start;gap:14px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:.93rem;color:rgba(255,255,255,.8)\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#22d3ee\" stroke-width=\"2.5\" stroke-linecap=\"round\" style=\"flex-shrink:0;margin-top:1px\"><polyline points=\"20 6 9 17 4 12\"/></svg><div><strong style=\"color:#67e8f9\">Giao diện rõ ràng</strong> — người dùng biết ngay cần làm gì</div></li>\n  <li style=\"display:flex;align-items:flex-start;gap:14px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:.93rem;color:rgba(255,255,255,.8)\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#22d3ee\" stroke-width=\"2.5\" stroke-linecap=\"round\" style=\"flex-shrink:0;margin-top:1px\"><polyline points=\"20 6 9 17 4 12\"/></svg><div><strong style=\"color:#67e8f9\">Phản hồi đúng</strong> — không câm, xử lý đúng khi người dùng làm điều ngoài dự kiến</div></li>\n  <li style=\"display:flex;align-items:flex-start;gap:14px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:.93rem;color:rgba(255,255,255,.8)\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#22d3ee\" stroke-width=\"2.5\" stroke-linecap=\"round\" style=\"flex-shrink:0;margin-top:1px\"><polyline points=\"20 6 9 17 4 12\"/></svg><div><strong style=\"color:#67e8f9\">Nhớ dữ liệu</strong> — đóng tab, mở lại vẫn còn đúng</div></li>\n  <li style=\"display:flex;align-items:flex-start;gap:14px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:.93rem;color:rgba(255,255,255,.8)\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#22d3ee\" stroke-width=\"2.5\" stroke-linecap=\"round\" style=\"flex-shrink:0;margin-top:1px\"><polyline points=\"20 6 9 17 4 12\"/></svg><div><strong style=\"color:#67e8f9\">Dùng được trên điện thoại</strong> — layout không vỡ, nút đủ to</div></li>\n  <li style=\"display:flex;align-items:flex-start;gap:14px;padding:11px 0;font-size:.93rem;color:rgba(255,255,255,.8)\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#22d3ee\" stroke-width=\"2.5\" stroke-linecap=\"round\" style=\"flex-shrink:0;margin-top:1px\"><polyline points=\"20 6 9 17 4 12\"/></svg><div><strong style=\"color:#67e8f9\">Có URL thật</strong> — ai cũng truy cập được, không cần cài gì</div></li>\n</ul></div>"},
+
+{"type":"teach","color":"#22d3ee","narration":"Lời kết khóa học. Nhìn lại, bạn không học code — bạn học cách tư duy. Làm thế nào để chia nhỏ vấn đề thành từng tầng có thể giải quyết được. Làm thế nào để mô tả ý tưởng đủ rõ để AI hiểu và thực thi. Làm thế nào để nhận biết khi nào kết quả đúng và khi nào cần sửa. Làm thế nào để tự phát hiện vấn đề chứ không chờ ai chỉ cho. Kỹ năng đó không gắn với JavaScript, không gắn với HTML, không gắn với công cụ nào cụ thể. Đó là kỹ năng không lỗi thời — dù công nghệ thay đổi thế nào thì tư duy hệ thống vẫn có giá trị. Chúc mừng bạn tốt nghiệp Web Builder Foundation.","html":"<div class=\"bg-img\" style=\"background-image:url('https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=1600&q=80')\"></div>\n<div class=\"content\"><div class=\"stag\" style=\"color:#67e8f9;border-color:rgba(34,211,238,.5);background:rgba(34,211,238,.18)\">Lời kết</div>\n<h1 class=\"huge\" style=\"font-size:clamp(2rem,4.5vw,3.8rem)\">Bạn không học code</h1>\n<div class=\"rule\" style=\"background:#22d3ee\"></div>\n<p class=\"sub\">Bạn học cách tư duy — cách làm chủ công cụ.<br/><strong>Kỹ năng đó không lỗi thời, dù công nghệ thay đổi thế nào.</strong></p>\n<div style=\"margin-top:32px;padding:18px 32px;background:rgba(34,211,238,.12);border:1px solid rgba(34,211,238,.35);border-radius:14px;font-size:1rem;color:#67e8f9;font-weight:700;letter-spacing:.3px\">\n  🎓 Chúc mừng tốt nghiệp Web Builder Foundation\n</div></div>"}
+];
+
+// ── Build deck ────────────────────────────────────────────
+const deck = document.getElementById('deck');
+SLIDES.forEach(s=>{
+  const el = document.createElement('div');
+  el.className = 'slide';
+  el.innerHTML = s.html;
+  deck.appendChild(el);
+});
+const allSlides = deck.querySelectorAll('.slide');
+
+// ── State ─────────────────────────────────────────────────
+let cur = 0;
+let autoMode = false;
+let speaking = false;
+let audioSrc = null;
+let voiceRate = parseFloat(localStorage.getItem('b5_rate') || '0.9');
+let qAnswered = false;
+let qState = null;
+let qThinkTimer = null;
+let qFallbackTimer = null;
+let speakGen = 0;
+let slideMinTimer = null;
+
+const FPT_KEY = 'XNZzpBQVWhTOCRc7MhOGbezPQznkhNew';
+const FPT_VOICE = 'banmai';
+
+// ── Settings ──────────────────────────────────────────────
+const settingsBtn = document.getElementById('settings-btn');
+const settingsPanel = document.getElementById('settings-panel');
+const sClose = document.getElementById('s-close');
+const sRate = document.getElementById('s-rate');
+const sRateVal = document.getElementById('s-rate-val');
+const sSave = document.getElementById('s-save');
+const sTest = document.getElementById('s-test');
+
+sRate.value = voiceRate;
+sRateVal.textContent = voiceRate.toFixed(2)+'×';
+
+sRate.addEventListener('input',()=>{
+  voiceRate = +sRate.value;
+  sRateVal.textContent = voiceRate.toFixed(2)+'×';
+});
+settingsBtn.onclick = ()=>settingsPanel.classList.toggle('open');
+sClose.onclick = ()=>settingsPanel.classList.remove('open');
+sSave.onclick = ()=>{
+  voiceRate = +sRate.value;
+  localStorage.setItem('b5_rate', voiceRate);
+  settingsPanel.classList.remove('open');
+};
+sTest.onclick = ()=>speak('Xin chào! Giọng Ban Mai, tốc độ ' + voiceRate.toFixed(1) + ' lần. Chúc mừng bạn tốt nghiệp Web Builder Foundation!');
+
+// ── Voice ─────────────────────────────────────────────────
+const vPlay = document.getElementById('v-play');
+const icoPlay = document.getElementById('ico-play');
+const icoPause = document.getElementById('ico-pause');
+const vScript = document.getElementById('v-script');
+const vlBar = document.getElementById('vl');
+
+function stopVoice(){
+  speakGen++;
+  if(audioSrc){ audioSrc.pause(); audioSrc=null; }
+  speaking=false;
+  vPlay.classList.remove('playing');
+  icoPlay.style.display=''; icoPause.style.display='none';
+  vlBar.style.width='0';
+  qState=null;
+  if(qThinkTimer){ clearInterval(qThinkTimer); qThinkTimer=null; }
+  if(qFallbackTimer){ clearTimeout(qFallbackTimer); qFallbackTimer=null; }
+  if(slideMinTimer){ clearTimeout(slideMinTimer); slideMinTimer=null; }
+  const cdEl=document.getElementById('q-countdown'); const cbEl=document.getElementById('q-cbar-wrap');
+  if(cdEl) cdEl.style.display='none'; if(cbEl) cbEl.style.display='none';
+}
+
+async function speakFPT(text, gen){
+  try{
+    const resp = await fetch('https://api.fpt.ai/hmi/tts/v5',{
+      method:'POST',
+      headers:{'api-key':FPT_KEY,'speed':'','voice':FPT_VOICE},
+      body:text
+    });
+    if(gen!==speakGen) return false;
+    if(!resp.ok){ console.warn('FPT TTS',resp.status); return false; }
+    const data = await resp.json();
+    if(gen!==speakGen) return false;
+    if(!data.async){ console.warn('FPT no URL'); return false; }
+    audioSrc = new Audio(data.async);
+    const estMs = (text.length*65)/Math.max(0.5,voiceRate);
+    let start=null;
+    function tick(ts){
+      if(!speaking||!audioSrc||gen!==speakGen) return;
+      if(!start) start=ts;
+      vlBar.style.width=Math.min(100,((ts-start)/estMs)*100)+'%';
+      if(speaking) requestAnimationFrame(tick);
+    }
+    audioSrc.onplay=()=>{ speaking=true; requestAnimationFrame(tick); };
+    audioSrc.onended=audioSrc.onerror=()=>{ if(gen===speakGen) onSpeakEnd(); };
+    await audioSrc.play();
+    return true;
+  }catch(e){ console.warn('FPT failed',e); return false; }
+}
+
+function onSpeakEnd(){
+  speaking=false; audioSrc=null;
+  vPlay.classList.remove('playing');
+  icoPlay.style.display=''; icoPause.style.display='none';
+  setTimeout(()=>vlBar.style.width='0',600);
+  if(qState==='reading_feedback'){
+    if(qFallbackTimer){ clearTimeout(qFallbackTimer); qFallbackTimer=null; }
+    qState=null; qPanel.classList.remove('show');
+    setTimeout(()=>go(cur+1,autoMode),700);
+    return;
+  }
+  if(!autoMode) return;
+  if(qState==='reading') startAutoCountdown();
+  else onAutoSpeakDone();
+}
+
+async function speak(text){
+  stopVoice();
+  if(!text) return;
+  const gen=speakGen;
+  vScript.textContent=text;
+  speaking=true;
+  vPlay.classList.add('playing');
+  icoPlay.style.display='none'; icoPause.style.display='';
+  const ok=await speakFPT(text,gen);
+  if(gen!==speakGen) return;
+  if(!ok){
+    // silent fallback
+    console.warn('FPT unavailable');
+    speaking=false;
+    vPlay.classList.remove('playing');
+    icoPlay.style.display=''; icoPause.style.display='none';
+    if(gen===speakGen) onSpeakEnd();
+  }
+}
+
+function onAutoSpeakDone(){
+  slideMinTimer=setTimeout(()=>{ slideMinTimer=null; if(autoMode) go(cur+1,true); },speaking?900:2500);
+}
+
+function startAutoCountdown(){
+  qState='countdown';
+  let secs=4;
+  const cdEl=document.getElementById('q-countdown'); const cbWrap=document.getElementById('q-cbar-wrap'); const cbFill=document.getElementById('q-cbar-fill');
+  if(cdEl){ cdEl.textContent='⏳ Suy nghĩ... '+secs+'s'; cdEl.style.display='block'; }
+  if(cbWrap) cbWrap.style.display='block';
+  if(cbFill){ cbFill.style.transition='none'; cbFill.style.width='100%'; setTimeout(()=>{ cbFill.style.transition='width '+secs+'s linear'; cbFill.style.width='0%'; },60); }
+  qThinkTimer=setInterval(()=>{
+    secs--;
+    if(cdEl) cdEl.textContent=secs>0?('⏳ Suy nghĩ... '+secs+'s'):'✨ Xem đáp án...';
+    if(secs<=0){ clearInterval(qThinkTimer); qThinkTimer=null; if(cdEl) cdEl.style.display='none'; if(cbWrap) cbWrap.style.display='none'; autoRevealAnswer(); }
+  },1000);
+}
+
+function autoRevealAnswer(){
+  if(!autoMode) return;
+  const s=SLIDES[cur];
+  if(!s||s.type!=='question') return;
+  qAnswered=true;
+  const ci=s.options.findIndex(o=>o.correct);
+  qOpts.querySelectorAll('.q-opt').forEach(b=>{ b.disabled=true; });
+  const btns=qOpts.querySelectorAll('.q-opt');
+  if(btns[ci]) btns[ci].classList.add('correct');
+  const opt=s.options[ci];
+  qFeedback.innerHTML='<strong style="color:#67e8f9">✅ Đáp án đúng:</strong> '+opt.feedback;
+  qFeedback.classList.add('show');
+  qContinue.className='b-btn';
+  qState='reading_feedback';
+  speak(opt.feedback);
+  if(qFallbackTimer) clearTimeout(qFallbackTimer);
+  qFallbackTimer=setTimeout(()=>{ if(qState==='reading_feedback'){ qState=null; qPanel.classList.remove('show'); go(cur+1,true); } },8000);
+}
+
+vPlay.onclick=()=>{ speaking?stopVoice():speak(SLIDES[cur].narration); };
+
+// ── AUTO ──────────────────────────────────────────────────
+const vAuto=document.getElementById('v-auto');
+vAuto.onclick=()=>{
+  autoMode=!autoMode;
+  vAuto.classList.toggle('on',autoMode);
+  if(autoMode){
+    const s=SLIDES[cur];
+    if(s.type==='question') showQPanel(s);
+    else speak(s.narration);
+  } else { stopVoice(); qPanel.classList.remove('show'); }
+};
+
+// ── Q Panel ───────────────────────────────────────────────
+const qPanel=document.getElementById('q-panel');
+const qText=document.getElementById('q-text');
+const qOpts=document.getElementById('q-opts');
+const qFeedback=document.getElementById('q-feedback');
+const qContinue=document.getElementById('q-continue');
+
+function showQPanel(s){
+  qAnswered=false;
+  qState=autoMode?'reading':null;
+  if(qThinkTimer){ clearInterval(qThinkTimer); qThinkTimer=null; }
+  const cdEl=document.getElementById('q-countdown'); const cbEl=document.getElementById('q-cbar-wrap');
+  if(cdEl) cdEl.style.display='none'; if(cbEl) cbEl.style.display='none';
+  qText.textContent=s.question;
+  qOpts.innerHTML=''; qFeedback.className=''; qFeedback.textContent=''; qContinue.className='b-btn';
+  const labels=['A','B','C','D'];
+  s.options.forEach((opt,i)=>{
+    const btn=document.createElement('button');
+    btn.className='q-opt';
+    btn.innerHTML=`<span class="opt-num">${labels[i]}</span><span>${opt.text}</span>`;
+    btn.onclick=()=>{
+      if(qAnswered) return;
+      if(qThinkTimer){ clearInterval(qThinkTimer); qThinkTimer=null; }
+      const cd=document.getElementById('q-countdown'); const cb=document.getElementById('q-cbar-wrap');
+      if(cd) cd.style.display='none'; if(cb) cb.style.display='none';
+      qAnswered=true;
+      qOpts.querySelectorAll('.q-opt').forEach(b=>{ b.disabled=true; });
+      btn.classList.add(opt.correct?'correct':'wrong');
+      if(!opt.correct) qOpts.querySelectorAll('.q-opt')[s.options.findIndex(o=>o.correct)].classList.add('correct');
+      const icon=opt.correct?'✅':'💡';
+      qFeedback.innerHTML=`<strong style="color:${opt.correct?'#67e8f9':'#fbbf24'}">${icon} ${opt.correct?'Chính xác!':'Chưa đúng —'}</strong> ${opt.feedback}`;
+      qFeedback.classList.add('show');
+      qContinue.style.background=opt.correct?'#22d3ee':'#f77f00';
+      qContinue.style.color=opt.correct?'#050f12':'#fff';
+      qContinue.classList.add('show');
+      qState='reading_feedback';
+      speak(opt.feedback);
+      if(qFallbackTimer) clearTimeout(qFallbackTimer);
+      qFallbackTimer=setTimeout(()=>{ if(qState==='reading_feedback'){ qState=null; qPanel.classList.remove('show'); go(cur+1,true); } },8000);
+    };
+    qOpts.appendChild(btn);
+  });
+  qPanel.classList.add('show');
+  speak(s.narration||s.question);
+}
+
+qContinue.onclick=()=>{
+  if(qFallbackTimer){ clearTimeout(qFallbackTimer); qFallbackTimer=null; }
+  qState=null; stopVoice(); qPanel.classList.remove('show');
+  setTimeout(()=>autoMode?go(cur+1,true):go(cur+1),200);
+};
+
+// ── Navigation ────────────────────────────────────────────
+const prog=document.getElementById('prog');
+const counter=document.getElementById('counter');
+
+function go(idx,fromAuto){
+  if(idx<0||idx>=SLIDES.length) return;
+  if(!fromAuto){ stopVoice(); qPanel.classList.remove('show'); autoMode=false; vAuto.classList.remove('on'); }
+  const prev=cur;
+  if(prev!==idx){ allSlides[prev].className='slide out'; setTimeout(()=>{ if(allSlides[prev]) allSlides[prev].className='slide'; },400); }
+  allSlides[idx].className='slide active';
+  cur=idx;
+  prog.style.width=(cur/(SLIDES.length-1)*100)+'%';
+  prog.style.background=SLIDES[cur].color||'#22d3ee';
+  counter.textContent=(cur+1)+'/'+SLIDES.length;
+  vScript.textContent=SLIDES[cur].narration||'(Không có thuyết minh)';
+  const s=SLIDES[cur];
+  if(s.type==='question') setTimeout(()=>showQPanel(s),350);
+  else if(fromAuto) speak(s.narration);
+}
+
+document.getElementById('nav-next').onclick=()=>go(cur+1);
+document.getElementById('nav-prev').onclick=()=>go(cur-1);
+
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT'||e.target.tagName==='TEXTAREA') return;
+  if(e.key==='ArrowRight'||e.key==='ArrowDown'||e.key===' '){ e.preventDefault(); go(cur+1); }
+  if(e.key==='ArrowLeft'||e.key==='ArrowUp'){ e.preventDefault(); go(cur-1); }
+  if(e.key==='v'||e.key==='V'){ speaking?stopVoice():speak(SLIDES[cur].narration); }
+  if(e.key==='a'||e.key==='A'){ vAuto.click(); }
+  if(e.key==='Home') go(0);
+  if(e.key==='End') go(SLIDES.length-1);
+  if(e.key==='Escape'){ qPanel.classList.remove('show'); stopVoice(); autoMode=false; vAuto.classList.remove('on'); }
+});
+
+let tx=0;
+document.addEventListener('touchstart',e=>tx=e.touches[0].clientX,{passive:true});
+document.addEventListener('touchend',e=>{ const dx=e.changedTouches[0].clientX-tx; if(Math.abs(dx)>55) go(dx<0?cur+1:cur-1); },{passive:true});
+
+// ── Init ──────────────────────────────────────────────────
+go(0);
+setTimeout(()=>document.getElementById('hint').style.opacity='0',5000);
+</script>
+</body>
+</html>

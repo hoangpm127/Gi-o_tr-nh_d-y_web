@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Buổi 3 — Web Builder Foundation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--dark:#09090f;--surface:#13132a;--border:rgba(255,255,255,.09);--muted:#666688}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--dark);font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI','Roboto','Helvetica Neue',Arial,'Noto Sans',sans-serif;color:#e0e0f0}
+#deck{position:fixed;inset:0;bottom:80px}
+.slide{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .4s ease,transform .4s ease;transform:translateX(30px)}
+.slide.active{opacity:1;pointer-events:auto;transform:translateX(0)}
+.slide.out{opacity:0;transform:translateX(-30px);pointer-events:none}
+.bg-img{position:absolute;inset:0;background-size:cover;background-position:center;filter:brightness(.25) saturate(.6)}
+.bg-color{position:absolute;inset:0}
+.content{position:relative;z-index:2;width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:48px 80px;text-align:center}
+.stag{display:inline-block;padding:5px 18px;border-radius:8px;font-size:.72rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:20px;border:1px solid}
+h1.huge{font-size:clamp(2.4rem,5vw,4.4rem);font-weight:900;line-height:1.1;color:#fff}
+h2.big{font-size:clamp(1.6rem,3.2vw,2.8rem);font-weight:900;line-height:1.15;color:#fff;max-width:860px}
+.sub{font-size:clamp(.9rem,1.55vw,1.12rem);color:rgba(255,255,255,.55);margin-top:14px;line-height:1.75;max-width:700px}
+.sub strong{color:rgba(255,255,255,.88)}
+.rule{width:52px;height:4px;border-radius:2px;margin:18px auto}
+.cards{display:flex;gap:16px;margin-top:30px;flex-wrap:wrap;justify-content:center;width:100%;max-width:900px}
+.card{flex:1;min-width:180px;padding:20px;border-radius:14px;text-align:left}
+.card-icon{font-size:1.8rem;margin-bottom:10px}
+.card-title{font-weight:800;font-size:1rem;margin-bottom:6px}
+.card-body{font-size:.83rem;line-height:1.65;color:rgba(255,255,255,.6)}
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:16px;width:100%;max-width:880px;margin-top:26px}
+.compare-box{border-radius:14px;padding:22px;text-align:left}
+.compare-label{font-size:.68rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px}
+.compare-text{font-size:.88rem;line-height:1.7;color:rgba(255,255,255,.75)}
+#q-panel{position:fixed;inset:0;bottom:80px;z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 48px;background:rgba(9,9,15,.95);backdrop-filter:blur(20px);opacity:0;pointer-events:none;transition:opacity .35s ease}
+#q-panel.show{opacity:1;pointer-events:auto}
+#q-text{font-size:clamp(1.1rem,2.2vw,1.6rem);font-weight:800;color:#fff;max-width:820px;text-align:center;line-height:1.4;margin-bottom:28px}
+#q-opts{display:flex;flex-direction:column;gap:11px;width:100%;max-width:720px}
+.q-opt{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 20px;text-align:left;cursor:pointer;font-size:.93rem;color:rgba(255,255,255,.8);line-height:1.5;transition:background .15s,border-color .15s,transform .12s;display:flex;align-items:flex-start;gap:12px}
+.q-opt:hover:not(:disabled){background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.2);transform:translateX(3px)}
+.opt-num{min-width:26px;height:26px;border-radius:7px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:700;color:rgba(255,255,255,.5);flex-shrink:0;margin-top:1px}
+.q-opt.correct{background:rgba(6,214,160,.13);border-color:rgba(6,214,160,.45)}
+.q-opt.correct .opt-num{background:#06d6a0;color:#0a1a0a;border-color:#06d6a0}
+.q-opt.wrong{background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.3)}
+.q-opt.wrong .opt-num{background:rgba(239,68,68,.6);color:#fff;border-color:transparent}
+.q-opt:disabled{cursor:default}
+#q-countdown{display:none;margin-top:16px;font-size:.84rem;font-weight:700;color:#6ee7b7;text-align:center}
+.q-cbar-wrap{width:100%;max-width:720px;height:3px;background:rgba(255,255,255,.07);border-radius:2px;margin-top:8px;overflow:hidden;display:none}
+.q-cbar-fill{height:100%;background:#06d6a0;width:100%;transition:none}
+#q-feedback{max-width:720px;width:100%;margin-top:16px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 18px;font-size:.88rem;line-height:1.65;color:rgba(255,255,255,.78);display:none;text-align:left}
+#q-feedback.show{display:block}
+#q-continue{margin-top:18px;padding:11px 32px;border-radius:10px;border:none;cursor:pointer;font-size:.9rem;font-weight:700;letter-spacing:.3px;display:none;transition:opacity .2s,transform .2s}
+#q-continue.show{display:inline-flex;align-items:center;gap:8px}
+#q-continue:hover{opacity:.85;transform:translateY(-1px)}
+#bar{position:fixed;bottom:0;left:0;right:0;height:80px;z-index:400;background:rgba(9,9,15,.93);backdrop-filter:blur(14px);border-top:1px solid var(--border);display:flex;align-items:center}
+#prog{position:fixed;top:0;left:0;height:3px;z-index:600;transition:width .35s,background .35s}
+#nav-prev,#nav-next{position:fixed;top:calc(50% - 40px);width:44px;height:44px;border-radius:50%;border:none;cursor:pointer;background:rgba(255,255,255,.07);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;transition:background .18s;z-index:300}
+#nav-prev:hover,#nav-next:hover{background:rgba(255,255,255,.16)}
+#nav-prev{left:16px}#nav-next{right:16px}
+#bar-left{display:flex;align-items:center;gap:10px;padding:0 20px;flex-shrink:0}
+#bar-center{flex:1;display:flex;align-items:center;padding:0 8px;overflow:hidden}
+#bar-right{display:flex;align-items:center;gap:8px;padding:0 18px;flex-shrink:0}
+#v-script{font-size:.79rem;color:rgba(255,255,255,.4);line-height:1.45;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-style:italic}
+.b-btn{width:38px;height:38px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .18s;flex-shrink:0}
+#v-play{background:rgba(6,214,160,.22);border:1px solid rgba(6,214,160,.4)}
+#v-play:hover{background:rgba(6,214,160,.38)}
+#v-play.playing{background:rgba(239,68,68,.22);border-color:rgba(239,68,68,.4)}
+#v-auto{padding:0 12px;width:auto;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);font-size:.72rem;font-weight:700;color:rgba(255,255,255,.42);letter-spacing:.8px}
+#v-auto.on{background:rgba(6,214,160,.25);border-color:rgba(6,214,160,.5);color:#6ee7b7}
+#settings-btn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1)}
+#settings-btn:hover{background:rgba(255,255,255,.12)}
+#settings-panel{position:fixed;bottom:88px;right:14px;z-index:700;width:340px;background:#13132a;border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:20px;box-shadow:0 8px 40px rgba(0,0,0,.6);display:none}
+#settings-panel.open{display:block}
+.s-label{font-size:.72rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:block;margin-top:14px}
+.s-label:first-child{margin-top:0}
+.s-input{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:9px 12px;color:#fff;font-size:.87rem;outline:none;font-family:inherit}
+.s-input:focus{border-color:rgba(6,214,160,.6)}
+.s-select{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:9px 12px;color:#fff;font-size:.87rem;outline:none;font-family:inherit;cursor:pointer}
+.s-row{display:flex;gap:8px;margin-top:12px}
+.s-save{flex:1;padding:9px;border-radius:8px;border:none;background:#06d6a0;color:#0a1a0a;font-size:.87rem;font-weight:700;cursor:pointer;transition:opacity .2s}
+.s-save:hover{opacity:.85}
+.s-title{font-weight:800;color:#fff;margin-bottom:2px}
+.s-close{float:right;background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.1rem}
+#counter{font-size:.74rem;color:rgba(255,255,255,.22);font-weight:600;flex-shrink:0;white-space:nowrap}
+#hint{position:fixed;bottom:92px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,.16);font-size:.69rem;letter-spacing:.8px;z-index:300;pointer-events:none;transition:opacity .8s;white-space:nowrap}
+#vl{position:absolute;top:0;left:0;height:2px;background:#06d6a0;transition:width .3s linear;z-index:1}
+</style>
+</head>
+<body>
+
+<div id="prog"></div>
+<div id="hint">← → chuyển slide · V = đọc · A = AUTO · Space = tiếp</div>
+<div id="deck"></div>
+
+<div id="q-panel">
+  <div id="q-text"></div>
+  <div id="q-opts"></div>
+  <div id="q-countdown"></div>
+  <div class="q-cbar-wrap" id="q-cbar-wrap"><div class="q-cbar-fill" id="q-cbar-fill"></div></div>
+  <div id="q-feedback"></div>
+  <button id="q-continue">Tiếp tục <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg></button>
+</div>
+
+<button id="nav-prev"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+<button id="nav-next"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg></button>
+
+<div id="bar">
+  <div id="vl"></div>
+  <div id="bar-left">
+    <button class="b-btn" id="v-play" title="Đọc thuyết minh (V)">
+      <svg id="ico-play" width="16" height="16" viewBox="0 0 24 24" fill="rgba(255,255,255,.9)"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      <svg id="ico-pause" width="16" height="16" viewBox="0 0 24 24" fill="rgba(255,255,255,.9)" style="display:none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+    </button>
+    <button class="b-btn" id="v-auto">AUTO</button>
+  </div>
+  <div id="bar-center"><span id="v-script">Nhấn ▶ để nghe · AUTO để AI tự dạy hoàn toàn</span></div>
+  <div id="bar-right">
+    <span id="counter"></span>
+    <button class="b-btn" id="settings-btn" title="Cài đặt giọng">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.48)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    </button>
+  </div>
+</div>
+
+<div id="settings-panel">
+  <div><span class="s-title">Cài đặt giọng nói</span><button class="s-close" id="s-close">✕</button></div>
+  <span class="s-label">FPT.AI Key (miễn phí – giọng Việt)</span>
+  <input class="s-input" id="s-fpt-key" type="password" placeholder="Lấy key tại fpt.ai"/>
+  <span class="s-label">Giọng FPT.AI</span>
+  <select class="s-select" id="s-fpt-voice">
+    <option value="banmai">Ban Mai (nữ, Bắc)</option>
+    <option value="leminh">Lê Minh (nam, Bắc)</option>
+    <option value="thuminh">Thu Minh (nữ, Nam)</option>
+    <option value="giahuy">Gia Huy (nam, Nam)</option>
+    <option value="lannhi">Lan Nhi (nữ, Trung)</option>
+    <option value="linhsan">Linh San (nữ trẻ, Bắc)</option>
+  </select>
+  <div style="border-top:1px solid rgba(255,255,255,.07);margin:14px 0;padding-top:14px"></div>
+  <span class="s-label">OpenAI Key (trả phí)</span>
+  <input class="s-input" id="s-key" type="password" placeholder="sk-..."/>
+  <span class="s-label">Giọng OpenAI</span>
+  <select class="s-select" id="s-oai-voice">
+    <option value="nova">Nova (nữ)</option>
+    <option value="shimmer">Shimmer (nữ nhẹ)</option>
+    <option value="alloy">Alloy</option>
+    <option value="echo">Echo (nam)</option>
+    <option value="onyx">Onyx (nam trầm)</option>
+    <option value="fable">Fable (ấm)</option>
+  </select>
+  <div style="border-top:1px solid rgba(255,255,255,.07);margin:14px 0;padding-top:14px"></div>
+  <span class="s-label">Giọng hệ thống (fallback)</span>
+  <select class="s-select" id="s-sys-voice"></select>
+  <span class="s-label">Tốc độ đọc</span>
+  <input class="s-input" id="s-rate" type="range" min="0.6" max="1.4" step="0.05" value="0.9" style="padding:6px 0;cursor:pointer"/>
+  <div style="font-size:.77rem;color:var(--muted);margin-top:3px;text-align:right" id="s-rate-val">0.9×</div>
+  <div class="s-row">
+    <button class="s-save" id="s-save">Lưu &amp; Đóng</button>
+    <button class="s-save" id="s-test" style="background:rgba(255,255,255,.11);color:#fff">Test giọng</button>
+  </div>
+</div>
+
+<script>
+const SLIDES = [
+{"type":"teach","color":"#06d6a0","narration":"Chào mừng bạn đến Buổi 3. Hai buổi trước bạn đã có giao diện và logic hoạt động đầy đủ. Nhưng có một vấn đề còn tồn tại: reload trang là mất sạch dữ liệu. Tất cả task bạn vừa nhập biến mất như chưa bao giờ tồn tại. Hôm nay chúng ta fix điều đó vĩnh viễn. Sau Buổi 3, app của bạn sẽ nhớ dữ liệu dù tắt tab, tắt máy, hay reload bao nhiêu lần.","html":"<div class=\"bg-img\" style=\"background-image:url('https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=1600&q=80')\"></div>\n<div class=\"content\"><div class=\"stag\" style=\"color:#6ee7b7;border-color:rgba(6,214,160,.5);background:rgba(6,214,160,.18)\">Buổi 3 · 2 tiếng</div>\n<h1 class=\"huge\">App không mất data</h1>\n<div class=\"rule\" style=\"background:#06d6a0\"></div>\n<p class=\"sub\">Reload trang → task biến mất.<br/><strong>Hôm nay fix vĩnh viễn — không cần server.</strong></p></div>"},
+
+{"type":"question","color":"#06d6a0","narration":"Câu hỏi mở đầu để kiểm tra hiểu biết ban đầu. Sau hai buổi học, bạn đã hiểu app hoạt động thế nào. Vậy theo bạn, tại sao reload trang lại làm mất hết task đã nhập?","question":"Tại sao reload trang thì mất hết task đã nhập?","options":[{"text":"Vì app bị lỗi — cần sửa JavaScript","correct":false,"feedback":"Không phải lỗi. Đây là hành vi hoàn toàn bình thường và đúng theo thiết kế: khi reload, trình duyệt tải lại trang từ đầu. JavaScript chạy lại, hộp nhớ được tạo mới và rỗng. Không có gì sai ở đây — chỉ là chưa có cơ chế lưu trữ lâu dài."},{"text":"Vì dữ liệu task nằm trong RAM — bộ nhớ tạm bị xóa khi trang reload","correct":true,"feedback":"Chính xác! Danh sách task đang sống trong biến JavaScript ở RAM. RAM là bộ nhớ làm việc tạm thời — tắt tab hay reload là dữ liệu bay theo. Giải pháp: chuyển dữ liệu sang nơi lưu trữ lâu dài hơn, ngay trong trình duyệt."},{"text":"Vì CSS không lưu được dữ liệu text","correct":false,"feedback":"CSS không liên quan đến lưu trữ dữ liệu. CSS chỉ quyết định giao diện trông như thế nào. Vấn đề ở đây là JavaScript lưu dữ liệu trong RAM, không phải vấn đề của CSS."},{"text":"Vì cần kết nối internet mới lưu được","correct":false,"feedback":"Không cần internet để lưu dữ liệu cục bộ. Trình duyệt có kho lưu riêng hoạt động offline hoàn toàn. Đây chính là thứ chúng ta sẽ dùng hôm nay."}]},
+
+{"type":"teach","color":"#06d6a0","narration":"Đây là Mô hình tư duy số 3: RAM versus Kho lưu. Hãy tưởng tượng bộ nhớ máy tính như 2 loại: RAM là bàn làm việc — nhanh, tiện, nhưng khi tắt máy thì mọi thứ trên bàn đều bị dọn sạch. Kho lưu là ngăn kéo trong tủ — chậm hơn một chút, nhưng đóng cửa mở ra lại vẫn còn đó. Dữ liệu task hiện tại đang nằm trên bàn làm việc. Hôm nay chúng ta chuyển nó vào ngăn kéo.","html":"<div class=\"bg-color\" style=\"background:#031a0f\"></div>\n<div class=\"content\"><div class=\"stag\" style=\"color:#6ee7b7;border-color:rgba(6,214,160,.5);background:rgba(6,214,160,.18)\">Mô hình tư duy #3</div>\n<h2 class=\"big\">RAM vs Kho lưu</h2>\n<div class=\"rule\" style=\"background:#06d6a0\"></div>\n<div style=\"display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:32px;width:100%;max-width:820px\">\n  <div style=\"background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:16px;padding:28px 24px;text-align:center\">\n    <div style=\"font-size:2.4rem;margin-bottom:12px\">🗂️</div>\n    <div style=\"font-weight:900;color:#f87171;font-size:1.1rem;margin-bottom:10px\">RAM — Bàn làm việc</div>\n    <div style=\"font-size:.85rem;color:rgba(255,255,255,.6);line-height:1.8\">\n      Nhanh và tiện<br/>\n      Dữ liệu app hiện tại<br/>\n      <span style=\"color:#f87171;font-weight:700\">Tắt tab / Reload → mất sạch</span>\n    </div>\n  </div>\n  <div style=\"background:rgba(6,214,160,.08);border:2px solid rgba(6,214,160,.4);border-radius:16px;padding:28px 24px;text-align:center\">\n    <div style=\"font-size:2.4rem;margin-bottom:12px\">🗄️</div>\n    <div style=\"font-weight:900;color:#6ee7b7;font-size:1.1rem;margin-bottom:10px\">Kho lưu — Ngăn kéo</div>\n    <div style=\"font-size:.85rem;color:rgba(255,255,255,.6);line-height:1.8\">\n      Tồn tại lâu dài<br/>\n      Ngay trong trình duyệt<br/>\n      <span style=\"color:#34d399;font-weight:700\">Tắt máy vẫn còn ✓</span>\n    </div>\n  </div>\n</div>\n<p class=\"sub\" style=\"margin-top:24px\">Hôm nay chuyển dữ liệu task từ bàn làm việc sang ngăn kéo</p></div>"},
+
+{"type":"teach","color":"#06d6a0","narration":"Kho lưu của trình duyệt là gì? Mỗi trình duyệt — Chrome, Firefox, Safari — đều có một ngăn kéo nhỏ dành riêng cho từng website. Nó nằm hoàn toàn trên máy tính của người dùng, không cần server, không cần internet. Bạn lưu dữ liệu vào đó, đóng máy, mở lại trình duyệt, dữ liệu vẫn còn nguyên. Ngăn kéo của trang nào chỉ trang đó mới đọc được. Facebook không đọc được dữ liệu app của bạn và ngược lại.","html":"<div class=\"bg-color\" style=\"background:linear-gradient(135deg,#020f07,#031a0f)\"></div>\n<div class=\"content\"><h2 class=\"big\">Kho lưu của trình duyệt</h2>\n<div class=\"rule\" style=\"background:#06d6a0\"></div>\n<div style=\"display:flex;flex-direction:column;gap:12px;margin-top:28px;max-width:720px;width:100%\">\n  <div style=\"display:flex;align-items:center;gap:16px;background:rgba(6,214,160,.07);border:1px solid rgba(6,214,160,.2);border-radius:12px;padding:16px 20px\">\n    <div style=\"font-size:1.8rem;flex-shrink:0\">🏠</div>\n    <div style=\"text-align:left\"><div style=\"font-weight:700;color:#34d399\">Sống trên máy người dùng</div><div style=\"font-size:.85rem;color:rgba(255,255,255,.55);margin-top:3px\">Không cần server, không cần internet, hoạt động offline hoàn toàn</div></div>\n  </div>\n  <div style=\"display:flex;align-items:center;gap:16px;background:rgba(6,214,160,.07);border:1px solid rgba(6,214,160,.2);border-radius:12px;padding:16px 20px\">\n    <div style=\"font-size:1.8rem;flex-shrink:0\">🔒</div>\n    <div style=\"text-align:left\"><div style=\"font-weight:700;color:#34d399\">Mỗi trang có ngăn kéo riêng</div><div style=\"font-size:.85rem;color:rgba(255,255,255,.55);margin-top:3px\">App của bạn chỉ đọc được dữ liệu của chính nó — trang khác không can thiệp</div></div>\n  </div>\n  <div style=\"display:flex;align-items:center;gap:16px;background:rgba(6,214,160,.07);border:1px solid rgba(6,214,160,.2);border-radius:12px;padding:16px 20px\">\n    <div style=\"font-size:1.8rem;flex-shrink:0\">♾️</div>\n    <div style=\"text-align:left\"><div style=\"font-weight:700;color:#34d399\">Tồn tại cho đến khi bạn xóa</div><div style=\"font-size:.85rem;color:rgba(255,255,255,.55);margin-top:3px\">Tắt máy, reload, đóng tab — dữ liệu vẫn còn. Chỉ mất khi xóa cache trình duyệt hoặc bạn tự xóa</div></div>\n  </div>\n</div></div>"},
+
+{"type":"question","color":"#06d6a0","narration":"Hãy kiểm tra hiểu biết về kho lưu trình duyệt. Kho lưu này lưu được gì và không lưu được gì?","question":"Kho lưu của trình duyệt phù hợp nhất để lưu loại dữ liệu nào?","options":[{"text":"Ảnh nặng 50MB, video, âm thanh","correct":false,"feedback":"Kho lưu trình duyệt có giới hạn dung lượng (thường 5-10MB) và chỉ lưu được dữ liệu dạng văn bản. Ảnh nặng, video cần giải pháp khác như lưu trên server hoặc dịch vụ đám mây."},{"text":"Danh sách task, cài đặt người dùng, trạng thái app","correct":true,"feedback":"Chính xác! Kho lưu trình duyệt hoàn hảo cho dữ liệu nhỏ dạng văn bản: danh sách, cài đặt, trạng thái. Đây chính xác là loại dữ liệu của Ứng dụng Quản Lý Công Việc. Nhỏ, quan trọng, cần tồn tại lâu dài."},{"text":"Dữ liệu cần chia sẻ giữa nhiều người dùng khác nhau","correct":false,"feedback":"Kho lưu trình duyệt là cục bộ — chỉ máy đó, trình duyệt đó mới đọc được. Nếu cần A nhìn thấy task của B, phải dùng server. Kho lưu trình duyệt là giải pháp cá nhân, không phải chia sẻ."},{"text":"Mật khẩu và thông tin thanh toán","correct":false,"feedback":"Tuyệt đối không! Kho lưu trình duyệt không được mã hóa an toàn. JavaScript có thể đọc dữ liệu đó. Mật khẩu và thông tin nhạy cảm phải lưu server với mã hóa đúng chuẩn."}]},
+
+{"type":"teach","color":"#06d6a0","narration":"Với kho lưu trình duyệt, bạn chỉ cần 2 thao tác cơ bản. Thao tác 1 là Ghi vào: khi dữ liệu thay đổi, ghi phiên bản mới vào kho lưu ngay lập tức. Thao tác 2 là Đọc ra: khi trang mở lần đầu, đọc dữ liệu từ kho lưu để khởi động app với dữ liệu cũ. Bạn không cần nhớ cú pháp ngôn ngữ — đó là việc của AI. Bạn chỉ cần hiểu 2 thao tác này xảy ra khi nào và tại sao.","html":"<div class=\"bg-color\" style=\"background:#020f07\"></div>\n<div class=\"content\"><div class=\"stag\" style=\"color:#6ee7b7;border-color:rgba(6,214,160,.5);background:rgba(6,214,160,.18)\">2 thao tác cơ bản</div>\n<h2 class=\"big\">Ghi vào · Đọc ra</h2>\n<div class=\"rule\" style=\"background:#06d6a0\"></div>\n<div style=\"display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:32px;width:100%;max-width:800px\">\n  <div style=\"background:rgba(247,127,0,.08);border:1px solid rgba(247,127,0,.3);border-radius:16px;padding:28px 24px;text-align:center\">\n    <div style=\"font-size:2.2rem;margin-bottom:10px\">✍️</div>\n    <div style=\"font-weight:900;color:#fdba74;font-size:1.05rem;margin-bottom:10px\">Ghi vào kho lưu</div>\n    <div style=\"font-size:.85rem;color:rgba(255,255,255,.6);line-height:1.8;text-align:left\">\n      Xảy ra sau mỗi thay đổi:<br/>\n      &ndash; Sau khi thêm task<br/>\n      &ndash; Sau khi tick task<br/>\n      &ndash; Sau khi xóa task\n    </div>\n  </div>\n  <div style=\"background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.35);border-radius:16px;padding:28px 24px;text-align:center\">\n    <div style=\"font-size:2.2rem;margin-bottom:10px\">📖</div>\n    <div style=\"font-weight:900;color:#a5b4fc;font-size:1.05rem;margin-bottom:10px\">Đọc ra từ kho lưu</div>\n    <div style=\"font-size:.85rem;color:rgba(255,255,255,.6);line-height:1.8;text-align:left\">\n      Xảy ra 1 lần duy nhất:<br/>\n      &ndash; Ngay khi trang mở<br/>\n      &ndash; Trước khi vẽ giao diện<br/>\n      &ndash; Nếu trống → danh sách rỗng\n    </div>\n  </div>\n</div></div>"},
+
+{"type":"question","color":"#06d6a0","narration":"Câu hỏi quan trọng về thời điểm. Trong app, cần ghi vào kho lưu lúc nào, và đọc ra lúc nào?","question":"Đâu là thứ tự đúng khi tích hợp kho lưu vào Ứng dụng Quản Lý Công Việc?","options":[{"text":"Đọc từ kho lưu sau khi người dùng bấm nút Add","correct":false,"feedback":"Đọc từ kho lưu phải xảy ra ngay khi trang mở, không phải khi Add. Nếu đọc sau khi Add, bạn sẽ mất tất cả task đã load trước đó và thay bằng dữ liệu cũ từ kho lưu."},{"text":"Đọc từ kho lưu khi trang mở · Ghi vào kho lưu sau mỗi thay đổi","correct":true,"feedback":"Chính xác! Đây là vòng lặp đúng: mở trang → đọc dữ liệu cũ → hiển thị. Người dùng thay đổi gì → cập nhật hộp nhớ → ghi ngay vào kho lưu → vẽ lại giao diện. Hai thao tác xảy ra ở hai thời điểm hoàn toàn khác nhau."},{"text":"Ghi vào kho lưu mỗi 30 giây tự động","correct":false,"feedback":"Lưu tự động theo thời gian khiến bạn có thể mất dữ liệu 30 giây gần nhất nếu tab đóng bất ngờ. Lưu ngay sau mỗi thay đổi là cách tốt nhất — không mất dữ liệu dù đóng tab giữa chừng."},{"text":"Ghi vào kho lưu khi người dùng bấm nút Lưu riêng","correct":false,"feedback":"Thêm nút Lưu tạo thêm bước người dùng phải nhớ. App tốt tự động lưu sau mỗi thay đổi và người dùng không cần nghĩ đến việc lưu. Đây là chuẩn UX của mọi app hiện đại."}]},
+
+{"type":"teach","color":"#06d6a0","narration":"Buổi này nâng kỹ năng ra lệnh AI lên yếu tố thứ 7: mô tả luồng dữ liệu. Luồng dữ liệu nghĩa là bạn mô tả cho AI biết dữ liệu di chuyển thế nào trong suốt vòng đời của app: lúc nào đọc từ kho lưu, lúc nào ghi vào, lúc nào xóa. Đây là lớp mô tả sâu hơn mô tả hành vi ở Buổi 2. Mô tả hành vi nói về trải nghiệm người dùng. Mô tả luồng dữ liệu nói về cách dữ liệu tồn tại và di chuyển.","html":"<div class=\"bg-color\" style=\"background:linear-gradient(135deg,#020f07,#0a0820)\"></div>\n<div class=\"content\"><div class=\"stag\" style=\"color:#d8b4fe;border-color:rgba(168,85,247,.4);background:rgba(168,85,247,.12)\">Kỹ năng ra lệnh AI — Buổi 3</div>\n<h2 class=\"big\">Yếu tố thứ 7: Mô tả luồng dữ liệu</h2>\n<div class=\"rule\" style=\"background:#a855f7\"></div>\n<div style=\"display:flex;flex-direction:column;gap:10px;margin-top:28px;max-width:740px;width:100%\">\n  <div style=\"display:flex;align-items:flex-start;gap:14px;background:rgba(108,99,255,.08);border:1px solid rgba(108,99,255,.2);border-radius:11px;padding:14px 18px\">\n    <div style=\"font-size:.7rem;font-weight:700;letter-spacing:1px;background:#6c63ff;color:#fff;padding:3px 8px;border-radius:4px;flex-shrink:0;margin-top:2px\">B1</div>\n    <div style=\"font-size:.88rem;color:rgba(255,255,255,.7);text-align:left\"><strong style=\"color:#a5b4fc\">Khi trang mở:</strong> đọc từ kho lưu trình duyệt, nếu có dữ liệu thì dùng, nếu không thì bắt đầu với danh sách rỗng</div>\n  </div>\n  <div style=\"display:flex;align-items:flex-start;gap:14px;background:rgba(247,127,0,.07);border:1px solid rgba(247,127,0,.2);border-radius:11px;padding:14px 18px\">\n    <div style=\"font-size:.7rem;font-weight:700;letter-spacing:1px;background:#f77f00;color:#fff;padding:3px 8px;border-radius:4px;flex-shrink:0;margin-top:2px\">B2</div>\n    <div style=\"font-size:.88rem;color:rgba(255,255,255,.7);text-align:left\"><strong style=\"color:#fdba74\">Sau mỗi thay đổi</strong> (thêm, tick, xóa): cập nhật hộp nhớ, ghi ngay vào kho lưu, rồi vẽ lại giao diện</div>\n  </div>\n  <div style=\"display:flex;align-items:flex-start;gap:14px;background:rgba(6,214,160,.07);border:1px solid rgba(6,214,160,.2);border-radius:11px;padding:14px 18px\">\n    <div style=\"font-size:.7rem;font-weight:700;letter-spacing:1px;background:#06d6a0;color:#0a1a0a;padding:3px 8px;border-radius:4px;flex-shrink:0;margin-top:2px\">B3</div>\n    <div style=\"font-size:.88rem;color:rgba(255,255,255,.7);text-align:left\"><strong style=\"color:#34d399\">Kiểm tra:</strong> reload trang → danh sách phải hiện ra đúng như trước khi reload</div>\n  </div>\n</div></div>"},
+
+{"type":"teach","color":"#06d6a0","narration":"Đây là yêu cầu mẫu đầy đủ để thêm kho lưu vào app. Yêu cầu bao gồm 3 phần: bối cảnh app đang có, mô tả luồng đọc khi mở trang, và mô tả luồng ghi sau mỗi thay đổi. Chú ý cách yêu cầu không đề cập đến bất kỳ tên hàm hay cú pháp nào — chỉ mô tả hành vi và luồng dữ liệu. AI sẽ tự xử lý phần kỹ thuật.","html":"<div class=\"bg-color\" style=\"background:#020f07\"></div>\n<div class=\"content\"><h2 class=\"big\">Yêu cầu mẫu — thêm kho lưu</h2>\n<div class=\"rule\" style=\"background:#06d6a0\"></div>\n<div style=\"background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.3);border-radius:12px;padding:22px 26px;max-width:820px;width:100%;text-align:left;font-size:.87rem;line-height:1.85;color:#c4b5fd;margin-top:20px\">\n  <div style=\"font-size:.65rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#818cf8;margin-bottom:10px\">Yêu cầu mẫu — copy và tùy chỉnh</div>\n  Tôi có app Ứng dụng Quản Lý Công Việc đang hoạt động (thêm, tick, xóa). Bổ sung kho lưu trình duyệt để dữ liệu tồn tại sau reload:\n  <br/><br/>\n  <span style=\"color:#34d399\">(1) Khi trang mở:</span> đọc danh sách task từ kho lưu trình duyệt. Nếu có dữ liệu thì dùng làm danh sách ban đầu. Nếu không có thì bắt đầu với danh sách rỗng. Sau đó vẽ giao diện.\n  <br/><br/>\n  <span style=\"color:#fdba74\">(2) Sau mỗi thay đổi</span> (thêm task, tick, xóa): ghi toàn bộ danh sách task hiện tại vào kho lưu ngay lập tức, trước khi vẽ lại giao diện.\n  <br/><br/>\n  Giữ nguyên toàn bộ chức năng đã có. Chỉ thêm 2 điểm lưu/đọc này.\n</div></div>"},
+
+{"type":"question","color":"#06d6a0","narration":"Kiểm tra khả năng viết yêu cầu. Bạn cần AI thêm kho lưu vào app đang có. Yêu cầu nào sau đây sẽ cho kết quả đúng và đầy đủ nhất?","question":"Yêu cầu nào sẽ giúp AI tích hợp kho lưu đúng vào app Ứng dụng Quản Lý Công Việc?","options":[{"text":"\"Thêm localStorage vào app của tôi\"","correct":false,"feedback":"Quá ngắn và thiếu ngữ cảnh. AI không biết bạn muốn đọc lúc nào, ghi lúc nào, xử lý dữ liệu trống thế nào. Kết quả có thể thêm localStorage nhưng sai vị trí hoặc thiếu một nửa chức năng."},{"text":"\"Khi trang mở đọc task từ kho lưu, sau khi thêm/tick/xóa ghi ngay vào kho lưu, nếu kho trống thì bắt đầu rỗng — giữ nguyên chức năng đã có\"","correct":true,"feedback":"Hoàn hảo! Yêu cầu này có đủ 4 yếu tố: (1) Khi nào đọc. (2) Khi nào ghi — với liệt kê đủ 3 thao tác. (3) Xử lý trường hợp kho trống. (4) Không làm hỏng chức năng cũ. AI có đủ thông tin để tích hợp đúng ngay lần đầu."},{"text":"\"Dữ liệu không được mất khi reload trang\"","correct":false,"feedback":"Mô tả mong muốn đầu ra nhưng không mô tả cách đạt được. AI sẽ có thể đưa ra nhiều giải pháp khác nhau (localStorage, sessionStorage, cookie...) và không biết bạn muốn cái nào. Hãy cụ thể về giải pháp bạn muốn dùng."},{"text":"\"Sử dụng localStorage.setItem và getItem để lưu dữ liệu\"","correct":false,"feedback":"Đây là ngôn ngữ kỹ thuật — không cần thiết. Hơn nữa, chỉ đề cập cú pháp mà không mô tả luồng: khi nào set, khi nào get, xử lý dữ liệu trống thế nào. Mô tả hành vi tốt hơn là mô tả cú pháp."}]},
+
+{"type":"practice","color":"#06d6a0","narration":"Đến giờ thực hành. Mở file index.html đã làm từ Buổi 2 — app đang có 3 chức năng thêm, tick, xóa. Gửi yêu cầu mẫu vừa học cho AI. Sau khi nhận code, paste vào file và lưu. Bước kiểm tra quan trọng: thêm 3 task, rồi reload trang. Nếu 3 task vẫn còn là kho lưu hoạt động. Sau đó thử đóng tab, mở lại URL — task vẫn phải còn.","html":"<div class=\"bg-color\" style=\"background:linear-gradient(135deg,#020f07,#031a10)\"></div>\n<div class=\"content\"><div class=\"stag\" style=\"background:rgba(6,214,160,.12);color:#34d399;border-color:rgba(6,214,160,.3)\">Thực hành</div>\n<h2 class=\"big\" style=\"color:#34d399\">Thêm kho lưu vào app</h2>\n<div class=\"rule\" style=\"background:#06d6a0\"></div>\n<div style=\"display:flex;flex-direction:column;gap:10px;max-width:760px;width:100%;margin-top:24px\">\n  <div style=\"display:flex;gap:12px;align-items:flex-start;background:rgba(255,255,255,.04);border-radius:10px;padding:12px 16px;font-size:.9rem;color:rgba(255,255,255,.75)\">\n    <div style=\"width:26px;height:26px;border-radius:7px;background:#06d6a0;color:#0a1a0a;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.8rem;flex-shrink:0\">1</div>\n    Gửi yêu cầu mẫu (slide trước) cho AI — nhận code JavaScript bổ sung\n  </div>\n  <div style=\"display:flex;gap:12px;align-items:flex-start;background:rgba(255,255,255,.04);border-radius:10px;padding:12px 16px;font-size:.9rem;color:rgba(255,255,255,.75)\">\n    <div style=\"width:26px;height:26px;border-radius:7px;background:#06d6a0;color:#0a1a0a;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.8rem;flex-shrink:0\">2</div>\n    Paste vào file index.html · Lưu Ctrl+S · Trình duyệt tự reload\n  </div>\n  <div style=\"display:flex;gap:12px;align-items:flex-start;background:rgba(6,214,160,.07);border:1px solid rgba(6,214,160,.2);border-radius:10px;padding:12px 16px;font-size:.9rem;color:rgba(255,255,255,.75)\">\n    <div style=\"width:26px;height:26px;border-radius:7px;background:#06d6a0;color:#0a1a0a;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.8rem;flex-shrink:0\">3</div>\n    <div><strong style=\"color:#34d399\">Kiểm tra vòng 1:</strong> Thêm 3 task → Reload trang → 3 task vẫn còn ✓</div>\n  </div>\n  <div style=\"display:flex;gap:12px;align-items:flex-start;background:rgba(6,214,160,.07);border:1px solid rgba(6,214,160,.2);border-radius:10px;padding:12px 16px;font-size:.9rem;color:rgba(255,255,255,.75)\">\n    <div style=\"width:26px;height:26px;border-radius:7px;background:#06d6a0;color:#0a1a0a;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.8rem;flex-shrink:0\">4</div>\n    <div><strong style=\"color:#34d399\">Kiểm tra vòng 2:</strong> Đóng tab hoàn toàn → Mở lại → Task vẫn còn ✓</div>\n  </div>\n</div></div>"},
+
+{"type":"teach","color":"#06d6a0","narration":"Có một vấn đề thường gặp khi mới tích hợp kho lưu: dữ liệu bị lưu hoặc đọc sai định dạng. Kho lưu trình duyệt chỉ lưu được chuỗi văn bản thuần, không lưu được danh sách trực tiếp. Vì vậy danh sách task phải được chuyển sang chuỗi văn bản trước khi ghi, và phải chuyển ngược lại thành danh sách khi đọc ra. Nếu AI quên bước này, dữ liệu đọc ra sẽ sai. Dấu hiệu nhận biết: task xuất hiện nhưng không tick được, hoặc reload ra chữ lạ thay vì task.","html":"<div class=\"bg-color\" style=\"background:#020f07\"></div>\n<div class=\"content\"><div class=\"stag\" style=\"color:#fcd34d;border-color:rgba(255,209,102,.4);background:rgba(255,209,102,.1)\">Vấn đề thường gặp</div>\n<h2 class=\"big\">Dữ liệu lưu đúng — Đọc ra đúng định dạng</h2>\n<div class=\"rule\" style=\"background:#fcd34d\"></div>\n<div class=\"compare\" style=\"margin-top:28px\">\n  <div class=\"compare-box\" style=\"background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.25)\">\n    <div class=\"compare-label\" style=\"color:#f87171\">Dấu hiệu bị lỗi định dạng</div>\n    <div class=\"compare-text\">\n      &ndash; Reload xong task hiện ra chữ lạ: <span style=\"color:#f87171;font-family:monospace\">[object Object]</span><br/>\n      &ndash; Tick task không hoạt động sau reload<br/>\n      &ndash; Danh sách bị nhân đôi mỗi lần reload<br/>\n      &ndash; Xóa task nhưng task vẫn hiện lại\n    </div>\n  </div>\n  <div class=\"compare-box\" style=\"background:rgba(6,214,160,.07);border:1px solid rgba(6,214,160,.25)\">\n    <div class=\"compare-label\" style=\"color:#34d399\">Cách mô tả để AI sửa</div>\n    <div class=\"compare-text\">\n      \"Khi ghi vào kho lưu, chuyển danh sách sang chuỗi văn bản trước.<br/>\n      Khi đọc ra từ kho lưu, chuyển ngược lại thành danh sách.<br/>\n      Nếu đọc ra mà không hợp lệ thì bắt đầu với danh sách rỗng.\"\n    </div>\n  </div>\n</div></div>"},
+
+{"type":"question","color":"#06d6a0","narration":"Tình huống thực tế: app đã tích hợp kho lưu, nhưng khi reload trang, danh sách task load ra trống dù bạn đã thêm task trước đó. Bạn cần báo lỗi này cho AI để sửa. Mô tả nào sau đây sẽ giúp AI xác định đúng nguyên nhân?","question":"Sau khi tích hợp kho lưu, reload trang thì danh sách trống. Mô tả lỗi nào giúp AI sửa đúng nhất?","options":[{"text":"\"Kho lưu không hoạt động, sửa lại\"","correct":false,"feedback":"Quá mơ hồ. AI không biết bạn đã tích hợp thế nào, lỗi xảy ra ở giai đoạn nào, và kết quả mong đợi là gì. Câu này không cho AI đủ thông tin để xác định vấn đề."},{"text":"\"Tôi thêm 3 task, reload trang, mong các task vẫn hiển thị. Thực tế danh sách trống sau reload — dữ liệu không được đọc ra từ kho lưu khi trang mở.\"","correct":true,"feedback":"Xuất sắc! Ba phần chuẩn: (1) Đang làm gì — thêm 3 task, reload. (2) Mong đợi gì — task vẫn còn. (3) Thực tế là gì — trống sau reload, với chẩn đoán sơ bộ đúng hướng: không đọc được từ kho lưu khi mở trang. AI sẽ ngay lập tức kiểm tra phần đọc dữ liệu khi khởi động."},{"text":"\"localStorage.getItem trả về null\"","correct":false,"feedback":"Đây là ngôn ngữ kỹ thuật mà người mới học không cần biết. Hơn nữa, nó chỉ mô tả một triệu chứng kỹ thuật, không mô tả trải nghiệm người dùng. Mô tả theo góc nhìn người dùng luôn hiệu quả hơn và AI sẽ tìm đúng nguyên nhân."},{"text":"\"App reload bị lỗi định dạng dữ liệu\"","correct":false,"feedback":"Câu này giả định nguyên nhân (định dạng dữ liệu) mà không có bằng chứng. Có thể đúng, có thể sai. Tốt hơn là mô tả triệu chứng: bạn làm gì, mong đợi gì, thực tế ra sao — để AI tự chẩn đoán nguyên nhân đúng."}]},
+
+{"type":"reflect","color":"#06d6a0","narration":"Trước khi tiếp tục, hãy tự kiểm tra 3 vòng test quan trọng. Vòng 1: thêm task, reload trang — task còn. Vòng 2: tick vài task, đóng tab hoàn toàn, mở lại — trạng thái tick vẫn đúng. Vòng 3: xóa task, reload — task đã xóa không hiện lại. Nếu cả 3 vòng đều đạt, kho lưu đã hoạt động đúng hoàn toàn.","html":"<div class=\"bg-color\" style=\"background:#020f07\"></div>\n<div class=\"content\"><div class=\"stag\" style=\"background:rgba(6,214,160,.12);color:#34d399;border-color:rgba(6,214,160,.3)\">Kiểm tra 3 vòng</div>\n<h2 class=\"big\">Xác nhận kho lưu hoạt động đúng</h2>\n<div class=\"rule\" style=\"background:#06d6a0\"></div>\n<div style=\"display:flex;flex-direction:column;gap:12px;max-width:640px;width:100%;margin-top:28px\">\n  <div style=\"display:flex;align-items:flex-start;gap:14px;background:rgba(6,214,160,.07);border:1px solid rgba(6,214,160,.2);border-radius:12px;padding:16px 18px\">\n    <span style=\"font-size:1.3rem;flex-shrink:0\">🔄</span>\n    <div style=\"text-align:left\"><div style=\"font-weight:700;color:#34d399\">Vòng 1 — Reload</div><div style=\"font-size:.85rem;color:rgba(255,255,255,.6);margin-top:3px\">Thêm 3 task → Reload trang → 3 task vẫn xuất hiện đúng ✓</div></div>\n  </div>\n  <div style=\"display:flex;align-items:flex-start;gap:14px;background:rgba(6,214,160,.07);border:1px solid rgba(6,214,160,.2);border-radius:12px;padding:16px 18px\">\n    <span style=\"font-size:1.3rem;flex-shrink:0\">📌</span>\n    <div style=\"text-align:left\"><div style=\"font-weight:700;color:#34d399\">Vòng 2 — Trạng thái tick</div><div style=\"font-size:.85rem;color:rgba(255,255,255,.6);margin-top:3px\">Tick 1 task → Đóng tab → Mở lại → Task vẫn tick đúng chỗ ✓</div></div>\n  </div>\n  <div style=\"display:flex;align-items:flex-start;gap:14px;background:rgba(6,214,160,.07);border:1px solid rgba(6,214,160,.2);border-radius:12px;padding:16px 18px\">\n    <span style=\"font-size:1.3rem;flex-shrink:0\">🗑️</span>\n    <div style=\"text-align:left\"><div style=\"font-weight:700;color:#34d399\">Vòng 3 — Xóa vĩnh viễn</div><div style=\"font-size:.85rem;color:rgba(255,255,255,.6);margin-top:3px\">Xóa task → Reload → Task đã xóa không hiện lại ✓</div></div>\n  </div>\n</div></div>"},
+
+{"type":"teach","color":"#06d6a0","narration":"Hãy nhìn lại hành trình 3 buổi. Buổi 1 bạn build tầng Giao diện — HTML CSS, thứ người dùng nhìn thấy. Buổi 2 bạn thêm tầng Xử lý — JavaScript, logic vận hành app. Buổi 3 bạn hoàn thiện tầng Dữ liệu — kho lưu, trí nhớ lâu dài của app. Ba tầng đã lắp xong. App của bạn không còn là poster — nó là ứng dụng thật, hoạt động đầy đủ, nhớ dữ liệu. Đây là cột mốc quan trọng.","html":"<div class=\"bg-color\" style=\"background:linear-gradient(135deg,#020f07,#0a0820)\"></div>\n<div class=\"content\"><div class=\"stag\" style=\"color:#6ee7b7;border-color:rgba(6,214,160,.5);background:rgba(6,214,160,.18)\">Cột mốc</div>\n<h2 class=\"big\">3 tầng đã lắp xong</h2>\n<div class=\"rule\" style=\"background:#06d6a0\"></div>\n<div style=\"display:flex;flex-direction:column;gap:0;width:100%;max-width:580px;margin-top:28px\">\n  <div style=\"display:flex;gap:16px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.06)\">\n    <div style=\"width:16px;height:16px;border-radius:50%;background:#6c63ff;flex-shrink:0;margin-top:3px;box-shadow:0 0 10px #6c63ff\"></div>\n    <div><div style=\"font-weight:700;color:#a5b4fc\">Buổi 1 — Giao diện ✅</div><div style=\"font-size:.83rem;color:var(--muted);margin-top:2px\">HTML + CSS · Thứ người dùng nhìn thấy</div></div>\n  </div>\n  <div style=\"display:flex;gap:16px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.06)\">\n    <div style=\"width:16px;height:16px;border-radius:50%;background:#f77f00;flex-shrink:0;margin-top:3px;box-shadow:0 0 10px #f77f00\"></div>\n    <div><div style=\"font-weight:700;color:#fdba74\">Buổi 2 — Xử lý ✅</div><div style=\"font-size:.83rem;color:var(--muted);margin-top:2px\">JavaScript · Logic thêm, tick, xóa task</div></div>\n  </div>\n  <div style=\"display:flex;gap:16px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.06)\">\n    <div style=\"width:16px;height:16px;border-radius:50%;background:#06d6a0;flex-shrink:0;margin-top:3px;box-shadow:0 0 10px #06d6a0\"></div>\n    <div><div style=\"font-weight:700;color:#34d399\">Buổi 3 — Dữ liệu ✅</div><div style=\"font-size:.83rem;color:var(--muted);margin-top:2px\">Kho lưu trình duyệt · Nhớ dữ liệu vĩnh viễn</div></div>\n  </div>\n  <div style=\"display:flex;gap:16px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.06)\">\n    <div style=\"width:16px;height:16px;border-radius:50%;background:rgba(255,255,255,.1);border:2px solid rgba(255,255,255,.15);flex-shrink:0;margin-top:3px\"></div>\n    <div><div style=\"font-weight:700;color:rgba(255,255,255,.4)\">Buổi 4 — Trải nghiệm</div><div style=\"font-size:.83rem;color:var(--muted);margin-top:2px\">UX tốt · App phản hồi mọi tình huống</div></div>\n  </div>\n  <div style=\"display:flex;gap:16px;padding:14px 0\">\n    <div style=\"width:16px;height:16px;border-radius:50%;background:rgba(255,255,255,.1);border:2px solid rgba(255,255,255,.15);flex-shrink:0;margin-top:3px\"></div>\n    <div><div style=\"font-weight:700;color:rgba(255,255,255,.4)\">Buổi 5 — Ra mắt</div><div style=\"font-size:.83rem;color:var(--muted);margin-top:2px\">Deploy · URL thật · Ai cũng vào được</div></div>\n  </div>\n</div></div>"},
+
+{"type":"question","color":"#a855f7","narration":"App 3 tầng đã hoàn chỉnh về chức năng. Nhưng nếu tự dùng app như một người dùng lần đầu, bạn sẽ thấy một số điểm chưa tốt. Theo bạn, app hiện tại đang thiếu gì để cảm giác thật sự hoàn thiện?","question":"App đã hoạt động đầy đủ. Nhưng để gọi là 'ứng dụng tốt', app còn thiếu gì nhất?","options":[{"text":"Thêm màu sắc đẹp hơn và animation mượt hơn","correct":false,"feedback":"Giao diện đẹp là tốt, nhưng không phải ưu tiên. App tốt trước tiên phải hoạt động đúng trong mọi tình huống — kể cả khi người dùng làm điều bất ngờ. Đây là sự khác biệt giữa app chỉ đẹp và app thật sự đáng dùng."},{"text":"Xử lý các tình huống người dùng làm điều bất ngờ — thêm task trống, xóa nhầm, task cực dài","correct":true,"feedback":"Đúng! App hiện tại chỉ hoạt động tốt khi người dùng làm đúng như dự kiến. Nhưng người dùng thật luôn bấm nhầm, nhập sai, hay làm điều không ngờ tới. Buổi 4 giải quyết đúng điều này — bạn sẽ tự dùng app như người dùng lần đầu và tự phát hiện những chỗ cần cải thiện."},{"text":"Thêm tính năng chia sẻ task qua mạng xã hội","correct":false,"feedback":"Chia sẻ mạng xã hội là tính năng bổ sung, không phải nền tảng. Trước khi thêm tính năng mới, hãy đảm bảo core đang hoạt động tốt trong mọi tình huống thông thường."},{"text":"Viết hướng dẫn sử dụng cho người dùng","correct":false,"feedback":"App tốt không cần hướng dẫn — người dùng phải tự hiểu được ngay. Nếu phải viết hướng dẫn dài, đó là dấu hiệu app còn khó sử dụng. Ưu tiên làm app tự giải thích được chính nó."}]},
+
+{"type":"reflect","color":"#06d6a0","narration":"Checklist cuối buổi 3. Kiểm tra 5 điều. Một: reload trang — toàn bộ task vẫn còn nguyên. Hai: đóng tab, mở lại — trạng thái tick đúng. Ba: xóa task, reload — task đã xóa không hiện lại. Bốn: bạn hiểu 2 thao tác kho lưu là ghi và đọc, và biết chúng xảy ra khi nào. Năm: bạn có thể mô tả mong muốn thêm kho lưu cho AI theo yếu tố thứ 7 — luồng dữ liệu. Đủ 5 thì Buổi 3 thành công hoàn toàn.","html":"<div class=\"bg-color\" style=\"background:#020f07\"></div>\n<div class=\"content\"><div class=\"stag\" style=\"background:rgba(6,214,160,.12);color:#34d399;border-color:rgba(6,214,160,.3)\">Checklist cuối buổi</div>\n<h2 class=\"big\">Bạn đã làm được gì?</h2>\n<div class=\"rule\" style=\"background:#06d6a0\"></div>\n<ul style=\"list-style:none;max-width:620px;width:100%;margin-top:24px\">\n  <li style=\"display:flex;align-items:center;gap:14px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:.95rem;color:rgba(255,255,255,.8)\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#06d6a0\" stroke-width=\"2.5\" stroke-linecap=\"round\"><polyline points=\"20 6 9 17 4 12\"/></svg>Reload trang — task vẫn còn nguyên</li>\n  <li style=\"display:flex;align-items:center;gap:14px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:.95rem;color:rgba(255,255,255,.8)\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#06d6a0\" stroke-width=\"2.5\" stroke-linecap=\"round\"><polyline points=\"20 6 9 17 4 12\"/></svg>Đóng tab, mở lại — trạng thái tick vẫn đúng</li>\n  <li style=\"display:flex;align-items:center;gap:14px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:.95rem;color:rgba(255,255,255,.8)\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#06d6a0\" stroke-width=\"2.5\" stroke-linecap=\"round\"><polyline points=\"20 6 9 17 4 12\"/></svg>Xóa task, reload — task đã xóa không hiện lại</li>\n  <li style=\"display:flex;align-items:center;gap:14px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:.95rem;color:rgba(255,255,255,.8)\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#06d6a0\" stroke-width=\"2.5\" stroke-linecap=\"round\"><polyline points=\"20 6 9 17 4 12\"/></svg>Hiểu khi nào ghi, khi nào đọc từ kho lưu</li>\n  <li style=\"display:flex;align-items:center;gap:14px;padding:11px 0;font-size:.95rem;color:rgba(255,255,255,.8)\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#06d6a0\" stroke-width=\"2.5\" stroke-linecap=\"round\"><polyline points=\"20 6 9 17 4 12\"/></svg>Biết viết yêu cầu AI mô tả luồng dữ liệu (yếu tố thứ 7)</li>\n</ul></div>"},
+
+{"type":"teach","color":"#a855f7","narration":"Preview Buổi 4: app đã hoàn chỉnh về kỹ thuật. Nhưng người dùng thật sẽ thêm task rỗng, xóa nhầm mà không được hỏi lại, nhập tên cực dài làm vỡ giao diện. Buổi 4 bạn sẽ đổi vai — không còn là người build mà là người dùng lần đầu. Bạn sẽ tự phá app và tìm ra những chỗ app đang không thân thiện với người dùng. Câu hỏi để suy nghĩ trước: khi bạn bấm Add mà ô nhập trống, app nên làm gì?","html":"<div class=\"bg-img\" style=\"background-image:url('https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&w=1600&q=80')\"></div>\n<div class=\"content\"><div class=\"stag\" style=\"background:rgba(0,0,0,.5);color:#d8b4fe;border-color:rgba(168,85,247,.4)\">Preview — Buổi 4</div>\n<h2 class=\"big\">Buổi 4: Trải nghiệm người dùng</h2>\n<div class=\"rule\" style=\"background:#a855f7\"></div>\n<p class=\"sub\" style=\"margin-top:18px\">Đổi vai: từ người build sang người dùng lần đầu.<br/>Tự phát hiện chỗ app còn bất lịch sự với người dùng.<br/><strong style=\"color:#d8b4fe\">Câu hỏi: Bấm Add với ô nhập trống — app nên làm gì?</strong></p></div>"}
+];
+
+// ── Build slides ──────────────────────────────────────────
+const deck = document.getElementById('deck');
+SLIDES.forEach((s,i)=>{
+  const el = document.createElement('div');
+  el.className = 'slide';
+  el.innerHTML = s.html;
+  deck.appendChild(el);
+});
+const allSlides = deck.querySelectorAll('.slide');
+
+// ── State ─────────────────────────────────────────────────
+let cur = 0;
+let autoMode = false;
+let speaking = false;
+let audioSrc = null;
+let voiceRate = 0.9;
+let openaiKey = localStorage.getItem('oai_key') || '';
+let openaiVoice = localStorage.getItem('oai_voice') || 'nova';
+let fptKey = localStorage.getItem('fpt_key') || 'XNZzpBQVWhTOCRc7MhOGbezPQznkhNew';
+let fptVoice = localStorage.getItem('fpt_voice') || 'banmai';
+let qAnswered = false;
+let qState = null;
+let qThinkTimer = null;
+let qFallbackTimer = null;
+let speakGen = 0;
+let slideMinTimer = null;
+
+// ── Settings ─────────────────────────────────────────────
+const settingsBtn = document.getElementById('settings-btn');
+const settingsPanel = document.getElementById('settings-panel');
+const sClose = document.getElementById('s-close');
+const sKey = document.getElementById('s-key');
+const sOaiVoice = document.getElementById('s-oai-voice');
+const sFptKey = document.getElementById('s-fpt-key');
+const sFptVoice = document.getElementById('s-fpt-voice');
+const sSysVoice = document.getElementById('s-sys-voice');
+const sRate = document.getElementById('s-rate');
+const sRateVal = document.getElementById('s-rate-val');
+const sSave = document.getElementById('s-save');
+const sTest = document.getElementById('s-test');
+
+sKey.value = openaiKey;
+sOaiVoice.value = openaiVoice;
+sFptKey.value = fptKey;
+sFptVoice.value = fptVoice;
+
+sRate.addEventListener('input', ()=>{ voiceRate = +sRate.value; sRateVal.textContent = voiceRate.toFixed(2)+'×'; });
+settingsBtn.onclick = ()=>{ settingsPanel.classList.toggle('open'); populateVoices(); };
+sClose.onclick = ()=>settingsPanel.classList.remove('open');
+sSave.onclick = ()=>{
+  openaiKey = sKey.value.trim();
+  openaiVoice = sOaiVoice.value;
+  fptKey = sFptKey.value.trim();
+  fptVoice = sFptVoice.value;
+  voiceRate = +sRate.value;
+  localStorage.setItem('oai_key', openaiKey);
+  localStorage.setItem('oai_voice', openaiVoice);
+  localStorage.setItem('fpt_key', fptKey);
+  localStorage.setItem('fpt_voice', fptVoice);
+  settingsPanel.classList.remove('open');
+};
+sTest.onclick = ()=>{ speak('Xin chào! Đây là giọng thuyết minh cho bài giảng Web Builder Foundation.'); };
+
+function populateVoices(){
+  sSysVoice.innerHTML = '';
+  window.speechSynthesis.getVoices().forEach(v=>{
+    const opt = document.createElement('option');
+    opt.value = v.name;
+    opt.textContent = v.name + ' (' + v.lang + ')';
+    sSysVoice.appendChild(opt);
+  });
+}
+if(speechSynthesis.onvoiceschanged !== undefined) speechSynthesis.onvoiceschanged = populateVoices;
+setTimeout(populateVoices, 800);
+
+// ── Voice ─────────────────────────────────────────────────
+const vPlay = document.getElementById('v-play');
+const icoPlay = document.getElementById('ico-play');
+const icoPause = document.getElementById('ico-pause');
+const vScript = document.getElementById('v-script');
+const vlBar = document.getElementById('vl');
+
+function stopVoice(){
+  speakGen++;
+  speechSynthesis.cancel();
+  if(audioSrc){ audioSrc.pause(); audioSrc = null; }
+  speaking = false;
+  vPlay.classList.remove('playing');
+  icoPlay.style.display = '';
+  icoPause.style.display = 'none';
+  vlBar.style.width = '0';
+  qState = null;
+  if(qThinkTimer){ clearInterval(qThinkTimer); qThinkTimer = null; }
+  if(qFallbackTimer){ clearTimeout(qFallbackTimer); qFallbackTimer = null; }
+  if(slideMinTimer){ clearTimeout(slideMinTimer); slideMinTimer = null; }
+  const cdEl = document.getElementById('q-countdown');
+  const cbEl = document.getElementById('q-cbar-wrap');
+  if(cdEl) cdEl.style.display = 'none';
+  if(cbEl) cbEl.style.display = 'none';
+}
+
+async function speakOpenAI(text, gen){
+  try {
+    const resp = await fetch('https://api.openai.com/v1/audio/speech', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+openaiKey},
+      body: JSON.stringify({model:'tts-1',voice:openaiVoice,input:text,speed: Math.max(0.25,Math.min(4,voiceRate))})
+    });
+    if(gen !== speakGen) return false;
+    if(!resp.ok){ console.warn('OpenAI TTS error',resp.status); return false; }
+    const blob = await resp.blob();
+    if(gen !== speakGen) return false;
+    const url = URL.createObjectURL(blob);
+    audioSrc = new Audio(url);
+    const duration = await new Promise(res=>{
+      audioSrc.onloadedmetadata = ()=>res(audioSrc.duration*1000);
+      audioSrc.onerror = ()=>res(text.length*65);
+    });
+    if(gen !== speakGen) return false;
+    let start = null;
+    function tick(ts){
+      if(!speaking||!audioSrc||gen!==speakGen) return;
+      if(!start) start = ts;
+      const pct = Math.min(100,((ts-start)/duration)*100);
+      vlBar.style.width = pct+'%';
+      if(pct<100) requestAnimationFrame(tick);
+    }
+    audioSrc.onplay = ()=>{ speaking=true; requestAnimationFrame(tick); };
+    audioSrc.onended = audioSrc.onerror = ()=>{ if(gen===speakGen) onSpeakEnd(); };
+    await audioSrc.play();
+    return true;
+  } catch(e){ console.warn('OpenAI TTS failed',e); return false; }
+}
+
+async function speakFPT(text, gen){
+  try {
+    const resp = await fetch('https://api.fpt.ai/hmi/tts/v5', {
+      method:'POST',
+      headers:{'api-key': fptKey, 'speed': '', 'voice': fptVoice},
+      body: text
+    });
+    if(gen !== speakGen) return false;
+    if(!resp.ok){ console.warn('FPT.AI TTS error',resp.status); return false; }
+    const data = await resp.json();
+    if(gen !== speakGen) return false;
+    if(!data.async) { console.warn('FPT.AI no audio URL'); return false; }
+    audioSrc = new Audio(data.async);
+    const duration = text.length * 65;
+    let start = null;
+    function tick(ts){
+      if(!speaking||!audioSrc||gen!==speakGen) return;
+      if(!start) start = ts;
+      const pct = Math.min(100,((ts-start)/duration)*100);
+      vlBar.style.width = pct+'%';
+      if(pct<100) requestAnimationFrame(tick);
+    }
+    audioSrc.onplay = ()=>{ speaking=true; requestAnimationFrame(tick); };
+    audioSrc.onended = audioSrc.onerror = ()=>{ if(gen===speakGen) onSpeakEnd(); };
+    await audioSrc.play();
+    return true;
+  } catch(e){ console.warn('FPT.AI TTS failed',e); return false; }
+}
+
+function speakSys(text, gen){
+  const utt = new SpeechSynthesisUtterance(text);
+  const voices = speechSynthesis.getVoices();
+  const selected = sSysVoice.value;
+  const preferred = voices.find(v=>v.name===selected)
+    || voices.find(v=>v.name.includes('HoaiMy') || v.name.includes('Hoai My'))
+    || voices.find(v=>v.name.includes('NamMinh') || v.name.includes('Nam Minh'))
+    || voices.find(v=>v.lang.startsWith('vi'))
+    || voices.find(v=>v.lang==='en-US')
+    || null;
+  if(preferred) utt.voice = preferred;
+  utt.lang = 'vi-VN';
+  utt.rate = voiceRate;
+  utt.pitch = 1;
+  const estMs = text.length * 60 / voiceRate;
+  let start = null;
+  function tick(ts){
+    if(!speaking||gen!==speakGen) return;
+    if(!start) start = ts;
+    vlBar.style.width = Math.min(100,((ts-start)/estMs)*100)+'%';
+    if(speaking) requestAnimationFrame(tick);
+  }
+  utt.onstart = ()=>{ speaking=true; requestAnimationFrame(tick); };
+  utt.onend = utt.onerror = ()=>{ if(gen===speakGen) onSpeakEnd(); };
+  speechSynthesis.speak(utt);
+}
+
+function onSpeakEnd(){
+  speaking = false;
+  audioSrc = null;
+  vPlay.classList.remove('playing');
+  icoPlay.style.display = '';
+  icoPause.style.display = 'none';
+  setTimeout(()=>vlBar.style.width='0',600);
+  if(qState === 'reading_feedback'){
+    if(qFallbackTimer){ clearTimeout(qFallbackTimer); qFallbackTimer = null; }
+    qState = null;
+    qPanel.classList.remove('show');
+    setTimeout(()=>go(cur+1, autoMode), 700);
+    return;
+  }
+  if(!autoMode){ return; }
+  if(qState === 'reading'){
+    startAutoCountdown();
+  } else {
+    onAutoSpeakDone();
+  }
+}
+
+async function speak(text){
+  stopVoice();
+  if(!text) return;
+  const gen = speakGen;
+  vScript.textContent = text;
+  speaking = true;
+  vPlay.classList.add('playing');
+  icoPlay.style.display = 'none';
+  icoPause.style.display = '';
+  if(fptKey){
+    const ok = await speakFPT(text, gen);
+    if(gen !== speakGen) return;
+    if(!ok && openaiKey){ await speakOpenAI(text, gen); return; }
+    if(!ok) speakSys(text, gen);
+  } else if(openaiKey){
+    const ok = await speakOpenAI(text, gen);
+    if(gen !== speakGen) return;
+    if(!ok) speakSys(text, gen);
+  } else {
+    speakSys(text, gen);
+  }
+}
+
+function onAutoSpeakDone(){
+  const s = SLIDES[cur];
+  if(s.type === 'question'){
+    // handled inside showQPanel / qState flow
+  } else {
+    const delay = speaking ? 900 : 2500;
+    slideMinTimer = setTimeout(()=>{ slideMinTimer=null; if(autoMode) go(cur+1, true); }, delay);
+  }
+}
+
+function startAutoCountdown(){
+  qState = 'countdown';
+  let secs = 4;
+  const cdEl = document.getElementById('q-countdown');
+  const cbWrap = document.getElementById('q-cbar-wrap');
+  const cbFill = document.getElementById('q-cbar-fill');
+  if(cdEl){ cdEl.textContent = '⏳ Suy nghĩ... ' + secs + 's'; cdEl.style.display = 'block'; }
+  if(cbWrap){ cbWrap.style.display = 'block'; }
+  if(cbFill){
+    cbFill.style.transition = 'none';
+    cbFill.style.width = '100%';
+    setTimeout(()=>{
+      cbFill.style.transition = 'width ' + secs + 's linear';
+      cbFill.style.width = '0%';
+    }, 60);
+  }
+  qThinkTimer = setInterval(()=>{
+    secs--;
+    if(cdEl) cdEl.textContent = secs > 0 ? ('⏳ Suy nghĩ... ' + secs + 's') : '✨ Xem đáp án...';
+    if(secs <= 0){
+      clearInterval(qThinkTimer); qThinkTimer = null;
+      if(cdEl) cdEl.style.display = 'none';
+      if(cbWrap) cbWrap.style.display = 'none';
+      autoRevealAnswer();
+    }
+  }, 1000);
+}
+
+function autoRevealAnswer(){
+  if(!autoMode) return;
+  const s = SLIDES[cur];
+  if(!s || s.type !== 'question') return;
+  qAnswered = true;
+  const correctIdx = s.options.findIndex(o => o.correct);
+  const btns = qOpts.querySelectorAll('.q-opt');
+  btns.forEach(b => { b.disabled = true; });
+  if(btns[correctIdx]) btns[correctIdx].classList.add('correct');
+  const opt = s.options[correctIdx];
+  qFeedback.innerHTML = '<strong style="color:#34d399">✅ Đáp án đúng:</strong> ' + opt.feedback;
+  qFeedback.classList.add('show');
+  qContinue.className = 'b-btn';
+  qState = 'reading_feedback';
+  speak(opt.feedback);
+  if(qFallbackTimer) clearTimeout(qFallbackTimer);
+  qFallbackTimer = setTimeout(()=>{
+    if(qState === 'reading_feedback'){
+      qState = null;
+      qPanel.classList.remove('show');
+      go(cur+1, true);
+    }
+  }, 8000);
+}
+
+vPlay.onclick = ()=>{ speaking ? stopVoice() : speak(SLIDES[cur].narration); };
+
+// ── AUTO mode ─────────────────────────────────────────────
+const vAuto = document.getElementById('v-auto');
+vAuto.onclick = ()=>{
+  autoMode = !autoMode;
+  vAuto.classList.toggle('on', autoMode);
+  vAuto.title = autoMode ? 'Dừng AUTO' : 'AUTO: tự dạy, tự hỏi, đợi bạn trả lời rồi tiếp';
+  if(autoMode){
+    const s = SLIDES[cur];
+    if(s.type==='question') showQPanel(s);
+    else speak(s.narration);
+  } else {
+    stopVoice();
+    qPanel.classList.remove('show');
+  }
+};
+
+// ── Q Panel ───────────────────────────────────────────────
+const qPanel = document.getElementById('q-panel');
+const qText = document.getElementById('q-text');
+const qOpts = document.getElementById('q-opts');
+const qFeedback = document.getElementById('q-feedback');
+const qContinue = document.getElementById('q-continue');
+
+function showQPanel(s){
+  qAnswered = false;
+  qState = autoMode ? 'reading' : null;
+  if(qThinkTimer){ clearInterval(qThinkTimer); qThinkTimer = null; }
+  const cdEl = document.getElementById('q-countdown');
+  const cbEl = document.getElementById('q-cbar-wrap');
+  if(cdEl) cdEl.style.display = 'none';
+  if(cbEl) cbEl.style.display = 'none';
+  qText.textContent = s.question;
+  qOpts.innerHTML = '';
+  qFeedback.className = '';
+  qFeedback.textContent = '';
+  qContinue.className = 'b-btn';
+  const labels = ['A','B','C','D'];
+  s.options.forEach((opt,i)=>{
+    const btn = document.createElement('button');
+    btn.className = 'q-opt';
+    btn.innerHTML = `<span class="opt-num">${labels[i]}</span><span>${opt.text}</span>`;
+    btn.onclick = ()=>{
+      if(qAnswered) return;
+      if(qThinkTimer){ clearInterval(qThinkTimer); qThinkTimer = null; }
+      const cdEl2 = document.getElementById('q-countdown');
+      const cbEl2 = document.getElementById('q-cbar-wrap');
+      if(cdEl2) cdEl2.style.display = 'none';
+      if(cbEl2) cbEl2.style.display = 'none';
+      qAnswered = true;
+      qOpts.querySelectorAll('.q-opt').forEach(b=>{ b.disabled=true; });
+      btn.classList.add(opt.correct ? 'correct' : 'wrong');
+      if(!opt.correct){
+        qOpts.querySelectorAll('.q-opt')[s.options.findIndex(o=>o.correct)].classList.add('correct');
+      }
+      const icon = opt.correct ? '✅' : '💡';
+      qFeedback.innerHTML = `<strong style="color:${opt.correct?'#34d399':'#fcd34d'}">${icon} ${opt.correct ? 'Chính xác!' : 'Chưa đúng —'}</strong> ${opt.feedback}`;
+      qFeedback.classList.add('show');
+      qContinue.style.background = opt.correct ? '#06d6a0' : '#f77f00';
+      qContinue.style.color = opt.correct ? '#0a1a0a' : '#fff';
+      qContinue.classList.add('show');
+      qState = 'reading_feedback';
+      speak(opt.feedback);
+      if(qFallbackTimer) clearTimeout(qFallbackTimer);
+      qFallbackTimer = setTimeout(()=>{
+        if(qState === 'reading_feedback'){
+          qState = null;
+          qPanel.classList.remove('show');
+          go(cur+1, true);
+        }
+      }, 8000);
+    };
+    qOpts.appendChild(btn);
+  });
+  qPanel.classList.add('show');
+  speak(s.narration || s.question);
+}
+
+qContinue.onclick = ()=>{
+  if(qFallbackTimer){ clearTimeout(qFallbackTimer); qFallbackTimer = null; }
+  qState = null;
+  stopVoice();
+  qPanel.classList.remove('show');
+  setTimeout(()=> autoMode ? go(cur+1, true) : go(cur+1), 200);
+};
+
+// ── Navigation ────────────────────────────────────────────
+const prog = document.getElementById('prog');
+const counter = document.getElementById('counter');
+
+function go(idx, fromAuto){
+  if(idx < 0 || idx >= SLIDES.length) return;
+  if(!fromAuto){
+    stopVoice();
+    qPanel.classList.remove('show');
+    autoMode = false;
+    vAuto.classList.remove('on');
+  }
+  const prevIdx = cur;
+  if(prevIdx !== idx){
+    allSlides[prevIdx].className = 'slide out';
+    setTimeout(()=>{ if(allSlides[prevIdx]) allSlides[prevIdx].className='slide'; }, 400);
+  }
+  allSlides[idx].className = 'slide active';
+  cur = idx;
+  const pct = (cur/(SLIDES.length-1))*100;
+  prog.style.width = pct+'%';
+  prog.style.background = SLIDES[cur].color || '#06d6a0';
+  counter.textContent = (cur+1)+'/'+SLIDES.length;
+  vScript.textContent = SLIDES[cur].narration || '(Không có thuyết minh)';
+
+  const s = SLIDES[cur];
+  if(s.type==='question') setTimeout(()=>showQPanel(s), 350);
+  else if(fromAuto) speak(s.narration);
+}
+
+document.getElementById('nav-next').onclick = ()=>go(cur+1);
+document.getElementById('nav-prev').onclick = ()=>go(cur-1);
+
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT'||e.target.tagName==='TEXTAREA') return;
+  if(e.key==='ArrowRight'||e.key==='ArrowDown'||e.key===' '){e.preventDefault();go(cur+1)}
+  if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();go(cur-1)}
+  if(e.key==='v'||e.key==='V'){ speaking ? stopVoice() : speak(SLIDES[cur].narration); }
+  if(e.key==='a'||e.key==='A'){ vAuto.click(); }
+  if(e.key==='Home') go(0);
+  if(e.key==='End') go(SLIDES.length-1);
+  if(e.key==='Escape'){ qPanel.classList.remove('show'); stopVoice(); autoMode=false; vAuto.classList.remove('on'); }
+});
+
+let tx=0;
+document.addEventListener('touchstart',e=>tx=e.touches[0].clientX,{passive:true});
+document.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>55) go(dx<0?cur+1:cur-1);},{passive:true});
+
+// ── Init ──────────────────────────────────────────────────
+go(0);
+setTimeout(()=>document.getElementById('hint').style.opacity='0',5000);
+</script>
+</body>
+</html>

@@ -1,0 +1,643 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Buổi 2 — Web Builder Foundation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--dark:#09090f;--surface:#13132a;--border:rgba(255,255,255,.09);--muted:#666688}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--dark);font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI','Roboto','Helvetica Neue',Arial,'Noto Sans',sans-serif;color:#e0e0f0}
+#deck{position:fixed;inset:0;bottom:80px}
+.slide{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .4s ease,transform .4s ease;transform:translateX(30px)}
+.slide.active{opacity:1;pointer-events:auto;transform:translateX(0)}
+.slide.out{opacity:0;transform:translateX(-30px);pointer-events:none}
+.bg-img{position:absolute;inset:0;background-size:cover;background-position:center;filter:brightness(.25) saturate(.6)}
+.bg-color{position:absolute;inset:0}
+.content{position:relative;z-index:2;width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:48px 80px;text-align:center}
+.stag{display:inline-block;padding:5px 18px;border-radius:8px;font-size:.72rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:20px;border:1px solid}
+h1.huge{font-size:clamp(2.4rem,5vw,4.4rem);font-weight:900;line-height:1.1;color:#fff}
+h2.big{font-size:clamp(1.6rem,3.2vw,2.8rem);font-weight:900;line-height:1.15;color:#fff;max-width:860px}
+.sub{font-size:clamp(.9rem,1.55vw,1.12rem);color:rgba(255,255,255,.55);margin-top:14px;line-height:1.75;max-width:700px}
+.sub strong{color:rgba(255,255,255,.88)}
+.rule{width:52px;height:4px;border-radius:2px;margin:18px auto}
+.cards{display:flex;gap:16px;margin-top:30px;flex-wrap:wrap;justify-content:center;width:100%;max-width:900px}
+.card{flex:1;min-width:180px;padding:20px;border-radius:14px;text-align:left}
+.card-icon{font-size:1.8rem;margin-bottom:10px}
+.card-title{font-weight:800;font-size:1rem;margin-bottom:6px}
+.card-body{font-size:.83rem;line-height:1.65;color:rgba(255,255,255,.6)}
+.list-rows{display:flex;flex-direction:column;gap:0;width:100%;max-width:600px;margin-top:24px}
+.list-row{display:flex;align-items:flex-start;gap:14px;padding:13px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:.92rem;color:rgba(255,255,255,.8)}
+.list-row:last-child{border-bottom:none}
+.dot{width:13px;height:13px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:16px;width:100%;max-width:880px;margin-top:26px}
+.compare-box{border-radius:14px;padding:22px;text-align:left}
+.compare-label{font-size:.68rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px}
+.compare-text{font-size:.88rem;line-height:1.7;color:rgba(255,255,255,.75)}
+#q-panel{position:fixed;inset:0;bottom:80px;z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 48px;background:rgba(9,9,15,.95);backdrop-filter:blur(20px);opacity:0;pointer-events:none;transition:opacity .35s ease}
+#q-panel.show{opacity:1;pointer-events:auto}
+#q-text{font-size:clamp(1.1rem,2.2vw,1.6rem);font-weight:800;color:#fff;max-width:820px;text-align:center;line-height:1.4;margin-bottom:28px}
+#q-opts{display:flex;flex-direction:column;gap:11px;width:100%;max-width:720px}
+.q-opt{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 20px;text-align:left;cursor:pointer;font-size:.93rem;color:rgba(255,255,255,.8);line-height:1.5;transition:background .15s,border-color .15s,transform .12s;display:flex;align-items:flex-start;gap:12px}
+.q-opt:hover:not(:disabled){background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.2);transform:translateX(3px)}
+.opt-num{min-width:26px;height:26px;border-radius:7px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:700;color:rgba(255,255,255,.5);flex-shrink:0;margin-top:1px}
+.q-opt.correct{background:rgba(6,214,160,.13);border-color:rgba(6,214,160,.45)}
+.q-opt.correct .opt-num{background:#06d6a0;color:#0a1a0a;border-color:#06d6a0}
+.q-opt.wrong{background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.3)}
+.q-opt.wrong .opt-num{background:rgba(239,68,68,.6);color:#fff;border-color:transparent}
+.q-opt:disabled{cursor:default}
+#q-countdown{display:none;margin-top:16px;font-size:.84rem;font-weight:700;color:#a5b4fc;text-align:center}
+.q-cbar-wrap{width:100%;max-width:720px;height:3px;background:rgba(255,255,255,.07);border-radius:2px;margin-top:8px;overflow:hidden;display:none}
+.q-cbar-fill{height:100%;background:#f77f00;width:100%;transition:none}
+#q-feedback{max-width:720px;width:100%;margin-top:16px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 18px;font-size:.88rem;line-height:1.65;color:rgba(255,255,255,.78);display:none;text-align:left}
+#q-feedback.show{display:block}
+#q-continue{margin-top:18px;padding:11px 32px;border-radius:10px;border:none;cursor:pointer;font-size:.9rem;font-weight:700;letter-spacing:.3px;display:none;transition:opacity .2s,transform .2s}
+#q-continue.show{display:inline-flex;align-items:center;gap:8px}
+#q-continue:hover{opacity:.85;transform:translateY(-1px)}
+#bar{position:fixed;bottom:0;left:0;right:0;height:80px;z-index:400;background:rgba(9,9,15,.93);backdrop-filter:blur(14px);border-top:1px solid var(--border);display:flex;align-items:center}
+#prog{position:fixed;top:0;left:0;height:3px;z-index:600;transition:width .35s,background .35s}
+#nav-prev,#nav-next{position:fixed;top:calc(50% - 40px);width:44px;height:44px;border-radius:50%;border:none;cursor:pointer;background:rgba(255,255,255,.07);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;transition:background .18s;z-index:300}
+#nav-prev:hover,#nav-next:hover{background:rgba(255,255,255,.16)}
+#nav-prev{left:16px}#nav-next{right:16px}
+#bar-left{display:flex;align-items:center;gap:10px;padding:0 20px;flex-shrink:0}
+#bar-center{flex:1;display:flex;align-items:center;padding:0 8px;overflow:hidden}
+#bar-right{display:flex;align-items:center;gap:8px;padding:0 18px;flex-shrink:0}
+#v-script{font-size:.79rem;color:rgba(255,255,255,.4);line-height:1.45;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-style:italic}
+.b-btn{width:38px;height:38px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .18s;flex-shrink:0}
+#v-play{background:rgba(247,127,0,.22);border:1px solid rgba(247,127,0,.4)}
+#v-play:hover{background:rgba(247,127,0,.38)}
+#v-play.playing{background:rgba(239,68,68,.22);border-color:rgba(239,68,68,.4)}
+#v-auto{padding:0 12px;width:auto;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);font-size:.72rem;font-weight:700;color:rgba(255,255,255,.42);letter-spacing:.8px}
+#v-auto.on{background:rgba(247,127,0,.25);border-color:rgba(247,127,0,.5);color:#fdba74}
+#settings-btn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1)}
+#settings-btn:hover{background:rgba(255,255,255,.12)}
+#settings-panel{position:fixed;bottom:88px;right:14px;z-index:700;width:340px;background:#13132a;border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:20px;box-shadow:0 8px 40px rgba(0,0,0,.6);display:none}
+#settings-panel.open{display:block}
+.s-label{font-size:.72rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:block;margin-top:14px}
+.s-label:first-child{margin-top:0}
+.s-input{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:9px 12px;color:#fff;font-size:.87rem;outline:none;font-family:inherit}
+.s-input:focus{border-color:rgba(247,127,0,.6)}
+.s-select{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:9px 12px;color:#fff;font-size:.87rem;outline:none;font-family:inherit;cursor:pointer}
+.s-row{display:flex;gap:8px;margin-top:12px}
+.s-save{flex:1;padding:9px;border-radius:8px;border:none;background:#f77f00;color:#fff;font-size:.87rem;font-weight:700;cursor:pointer;transition:opacity .2s}
+.s-save:hover{opacity:.85}
+.s-title{font-weight:800;color:#fff;margin-bottom:2px}
+.s-close{float:right;background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.1rem}
+#counter{font-size:.74rem;color:rgba(255,255,255,.22);font-weight:600;flex-shrink:0;white-space:nowrap}
+#hint{position:fixed;bottom:92px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,.16);font-size:.69rem;letter-spacing:.8px;z-index:300;pointer-events:none;transition:opacity .8s;white-space:nowrap}
+#vl{position:absolute;top:0;left:0;height:2px;background:#f77f00;transition:width .3s linear;z-index:1}
+</style>
+</head>
+<body>
+
+<div id="prog"></div>
+<div id="hint">← → chuyển slide · V = đọc · A = AUTO · Space = tiếp</div>
+<div id="deck"></div>
+
+<div id="q-panel">
+  <div id="q-text"></div>
+  <div id="q-opts"></div>
+  <div id="q-countdown"></div>
+  <div class="q-cbar-wrap" id="q-cbar-wrap"><div class="q-cbar-fill" id="q-cbar-fill"></div></div>
+  <div id="q-feedback"></div>
+  <button id="q-continue">Tiếp tục <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg></button>
+</div>
+
+<button id="nav-prev"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+<button id="nav-next"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg></button>
+
+<div id="bar">
+  <div id="vl"></div>
+  <div id="bar-left">
+    <button class="b-btn" id="v-play" title="Đọc thuyết minh (V)">
+      <svg id="ico-play" width="16" height="16" viewBox="0 0 24 24" fill="rgba(255,255,255,.9)"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      <svg id="ico-pause" width="16" height="16" viewBox="0 0 24 24" fill="rgba(255,255,255,.9)" style="display:none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+    </button>
+    <button class="b-btn" id="v-auto">AUTO</button>
+  </div>
+  <div id="bar-center"><span id="v-script">Nhấn ▶ để nghe · AUTO để AI tự dạy hoàn toàn</span></div>
+  <div id="bar-right">
+    <span id="counter"></span>
+    <button class="b-btn" id="settings-btn" title="Cài đặt giọng">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.48)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    </button>
+  </div>
+</div>
+
+<div id="settings-panel">
+  <div><span class="s-title">Cài đặt giọng nói</span><button class="s-close" id="s-close">✕</button></div>
+  <span class="s-label">FPT.AI Key (miễn phí – giọng Việt)</span>
+  <input class="s-input" id="s-fpt-key" type="password" placeholder="Lấy key tại fpt.ai"/>
+  <span class="s-label">Giọng FPT.AI</span>
+  <select class="s-select" id="s-fpt-voice">
+    <option value="banmai">Ban Mai (nữ, Bắc)</option>
+    <option value="leminh">Lê Minh (nam, Bắc)</option>
+    <option value="thuminh">Thu Minh (nữ, Nam)</option>
+    <option value="giahuy">Gia Huy (nam, Nam)</option>
+    <option value="lannhi">Lan Nhi (nữ, Trung)</option>
+    <option value="linhsan">Linh San (nữ trẻ, Bắc)</option>
+  </select>
+  <div style="border-top:1px solid rgba(255,255,255,.07);margin:14px 0;padding-top:14px"></div>
+  <span class="s-label">OpenAI Key (trả phí)</span>
+  <input class="s-input" id="s-key" type="password" placeholder="sk-..."/>
+  <span class="s-label">Giọng OpenAI</span>
+  <select class="s-select" id="s-oai-voice">
+    <option value="nova">Nova (nữ)</option>
+    <option value="shimmer">Shimmer (nữ nhẹ)</option>
+    <option value="alloy">Alloy</option>
+    <option value="echo">Echo (nam)</option>
+    <option value="onyx">Onyx (nam trầm)</option>
+    <option value="fable">Fable (ấm)</option>
+  </select>
+  <div style="border-top:1px solid rgba(255,255,255,.07);margin:14px 0;padding-top:14px"></div>
+  <span class="s-label">Giọng hệ thống (fallback)</span>
+  <select class="s-select" id="s-sys-voice"></select>
+  <span class="s-label">Tốc độ đọc</span>
+  <input class="s-input" id="s-rate" type="range" min="0.6" max="1.4" step="0.05" value="0.9" style="padding:6px 0;cursor:pointer"/>
+  <div style="font-size:.77rem;color:var(--muted);margin-top:3px;text-align:right" id="s-rate-val">0.9×</div>
+  <div class="s-row">
+    <button class="s-save" id="s-save">Lưu &amp; Đóng</button>
+    <button class="s-save" id="s-test" style="background:rgba(255,255,255,.11)">Test giọng</button>
+  </div>
+</div>
+
+<script>
+const SLIDES = [
+{"type":"teach","color":"#f77f00","narration":"Chào mừng bạn đến với Buổi 2 của Web Builder Foundation. Buổi 1 bạn đã xây được giao diện Ứng dụng Quản Lý Công Việc — header, ô nhập, danh sách task. Đẹp, nhưng chết. Bấm Add không thêm được. Tick không tick được. Xóa không xóa được. Hôm nay chúng ta thêm tầng thứ hai: Logic — JavaScript. Cuối buổi, app sẽ hoạt động đầy đủ: thêm, tick, và xóa task.","html":"<div class=\"bg-img\" style=\"background-image:url('https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?auto=format&fit=crop&w=1600&q=80')\"></div>\n<div class=\"content\"><div class=\"stag\" style=\"color:#fdba74;border-color:rgba(247,127,0,.5);background:rgba(247,127,0,.18)\">Buổi 2 · 2 tiếng</div>\n<h1 class=\"huge\">Cho app sống</h1>\n<div class=\"rule\" style=\"background:#f77f00\"></div>\n<p class=\"sub\">Buổi 1: giao diện đẹp nhưng không làm gì.<br/><strong>Hôm nay: thêm Logic để app thật sự hoạt động.</strong></p></div>"},
+
+{"type":"question","color":"#f77f00","narration":"Trước khi học, hãy tự suy nghĩ. Khi bấm nút Add trong Ứng dụng Quản Lý Công Việc, chuyện gì cần xảy ra theo đúng thứ tự? Hãy chọn câu trả lời mô tả chính xác nhất trình tự logic.","question":"Khi bấm nút Add, chuyện gì cần xảy ra theo đúng thứ tự?","options":[{"text":"Task được lưu thẳng vào database, rồi hiện lên màn hình","correct":false,"feedback":"Gần đúng về ý tưởng, nhưng chúng ta chưa có database! Database là Buổi 3. Ở Buổi 2, dữ liệu sống trong bộ nhớ tạm của trình duyệt — đủ để hoạt động, chưa lâu bền."},{"text":"Đọc text trong ô nhập → thêm vào danh sách trong bộ nhớ → vẽ lại giao diện → xóa ô nhập","correct":true,"feedback":"Chính xác! Đây là 4 bước của mọi thao tác Add: (1) Đọc input. (2) Cập nhật dữ liệu trong bộ nhớ. (3) Vẽ lại giao diện. (4) Reset ô nhập. Đây chính là vòng lặp cốt lõi của mọi app tương tác."},{"text":"Màn hình tự reload lại từ đầu để hiển thị dữ liệu mới","correct":false,"feedback":"Reload trang là cách làm của web cũ. App hiện đại cập nhật giao diện mà không cần reload — đó là lý do JavaScript ra đời. Chỉ phần cần thay đổi được vẽ lại."},{"text":"CSS thêm class mới để task mới xuất hiện trên màn hình","correct":false,"feedback":"CSS quy định giao diện trông như thế nào, không quyết định dữ liệu gì xuất hiện. Để thêm task mới, cần JavaScript tạo ra phần tử HTML mới và đưa vào trang."}]},
+
+{"type":"teach","color":"#f77f00","narration":"Đây là Mô hình tư duy số 2 của khóa học. App không phải là thứ tĩnh — app là vòng lặp liên tục giữa người dùng và dữ liệu. Giao diện chỉ là tấm gương: nó phản chiếu đúng những gì đang có trong bộ nhớ. Dữ liệu thay đổi — gương phải được cập nhật. Không có gì tự xảy ra nếu không có lệnh.","html":"<div class=\"bg-color\" style=\"background:#0a0a18\"></div>\n<div class=\"content\"><div class=\"stag\" style=\"color:#fdba74;border-color:rgba(247,127,0,.5);background:rgba(247,127,0,.18)\">Mô hình tư duy #2</div>\n<h2 class=\"big\">Giao diện là tấm gương phản chiếu dữ liệu</h2>\n<div class=\"rule\" style=\"background:#f77f00\"></div>\n<div style=\"display:flex;align-items:center;gap:32px;margin-top:36px;flex-wrap:wrap;justify-content:center\">\n  <div style=\"background:rgba(247,127,0,.12);border:1px solid rgba(247,127,0,.4);border-radius:16px;padding:28px 32px;text-align:center\">\n    <div style=\"font-size:2.2rem;margin-bottom:10px\">📦</div>\n    <div style=\"font-weight:800;color:#fdba74;font-size:1.05rem\">Dữ liệu</div>\n    <div style=\"font-size:.8rem;color:rgba(255,255,255,.45);margin-top:5px\">Bộ nhớ tạm trong trình duyệt</div>\n  </div>\n  <div style=\"font-size:2.4rem;color:rgba(247,127,0,.5)\">⟶</div>\n  <div style=\"background:rgba(108,99,255,.12);border:1px solid rgba(108,99,255,.4);border-radius:16px;padding:28px 32px;text-align:center\">\n    <div style=\"font-size:2.2rem;margin-bottom:10px\">🪟</div>\n    <div style=\"font-weight:800;color:#a5b4fc;font-size:1.05rem\">Giao diện</div>\n    <div style=\"font-size:.8rem;color:rgba(255,255,255,.45);margin-top:5px\">Tấm gương phản chiếu</div>\n  </div>\n</div>\n<p class=\"sub\" style=\"margin-top:28px\">Dữ liệu thay đổi → Giao diện <strong>phải được lệnh vẽ lại</strong> mới cập nhật</p></div>"},
+
+{"type":"teach","color":"#f77f00","narration":"Trạng thái trông như thế nào? Hãy tưởng tượng có một hộp nhớ vô hình trong trình duyệt. String nằm trong hộp đó là danh sách task — mỗi task là một mục. Khi bạn thêm task, hộp nhớ có thêm 1 mục. Khi bạn xóa, hộp nhớ mất 1 mục. Giao diện chỉ là bản hiển thị của hộp nhớ đó. Hai thứ phải đồng bộ liên tục.","html":"<div class=\"bg-color\" style=\"background:linear-gradient(135deg,#0a0a18,#0a1020)\"></div>\n<div class=\"content\"><h2 class=\"big\">Hộp nhớ và giao diện phải đồng bộ</h2>\n<div class=\"rule\" style=\"background:#f77f00\"></div>\n<div style=\"display:grid;grid-template-columns:1fr auto 1fr;gap:20px;align-items:center;margin-top:32px;width:100%;max-width:820px\">\n  <div style=\"background:rgba(247,127,0,.08);border:1px solid rgba(247,127,0,.3);border-radius:14px;padding:20px\">\n    <div style=\"font-size:.65rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#f77f00;margin-bottom:12px\">Hộp nhớ (bộ nhớ tạm)</div>\n    <div style=\"display:flex;flex-direction:column;gap:6px\">\n      <div style=\"background:rgba(255,255,255,.06);border-radius:7px;padding:8px 12px;font-size:.83rem;color:rgba(255,255,255,.7)\">✓ Học bài toán</div>\n      <div style=\"background:rgba(255,255,255,.06);border-radius:7px;padding:8px 12px;font-size:.83rem;color:rgba(255,255,255,.7)\">□ Đi chợ</div>\n      <div style=\"background:rgba(255,255,255,.06);border-radius:7px;padding:8px 12px;font-size:.83rem;color:rgba(255,255,255,.7)\">□ Gọi điện bạn</div>\n    </div>\n  </div>\n  <div style=\"text-align:center\">\n    <div style=\"font-size:1.8rem;color:rgba(247,127,0,.6)\">⟶</div>\n    <div style=\"font-size:.7rem;color:rgba(255,255,255,.3);margin-top:4px\">vẽ lại</div>\n  </div>\n  <div style=\"background:rgba(108,99,255,.08);border:1px solid rgba(108,99,255,.3);border-radius:14px;padding:20px\">\n    <div style=\"font-size:.65rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#a5b4fc;margin-bottom:12px\">Giao diện (màn hình)</div>\n    <div style=\"display:flex;flex-direction:column;gap:6px\">\n      <div style=\"background:rgba(255,255,255,.06);border-radius:7px;padding:8px 12px;font-size:.83rem;color:rgba(255,255,255,.5);text-decoration:line-through\">Học bài toán</div>\n      <div style=\"background:rgba(255,255,255,.06);border-radius:7px;padding:8px 12px;font-size:.83rem;color:rgba(255,255,255,.7)\">Đi chợ</div>\n      <div style=\"background:rgba(255,255,255,.06);border-radius:7px;padding:8px 12px;font-size:.83rem;color:rgba(255,255,255,.7)\">Gọi điện bạn</div>\n    </div>\n  </div>\n</div></div>"},
+
+{"type":"question","color":"#f77f00","narration":"Câu hỏi tư duy. Giả sử JavaScript đã thêm task mới vào hộp nhớ thành công, nhưng quên gọi lệnh vẽ lại giao diện. Điều gì xảy ra với người dùng?","question":"Task được thêm vào hộp nhớ thành công, nhưng không gọi lệnh vẽ lại giao diện. Người dùng thấy gì?","options":[{"text":"Task xuất hiện ngay trên màn hình vì đã được lưu","correct":false,"feedback":"Không đúng. Giao diện không tự cập nhật. Nó chỉ thay đổi khi có lệnh vẽ lại. Hộp nhớ và màn hình là hai thứ riêng biệt."},{"text":"Task đã có trong hộp nhớ nhưng người dùng không thấy trên màn hình","correct":true,"feedback":"Chính xác! Đây là lỗi rất phổ biến khi mới học: dữ liệu đã cập nhật đúng nhưng quên vẽ lại giao diện. Người dùng thấy màn hình im lặng — nhưng reload trang thì task xuất hiện. Hiểu điều này sẽ giúp bạn debug nhanh hơn rất nhiều."},{"text":"App bị lỗi và dừng hoàn toàn","correct":false,"feedback":"App không dừng. Nó vẫn chạy bình thường — chỉ là giao diện chưa được cập nhật. Đây không phải crash, đây là thiếu lệnh render."},{"text":"Task bị mất khỏi hộp nhớ luôn","correct":false,"feedback":"Hộp nhớ không tự xóa dữ liệu. Task vẫn còn đó — chỉ là giao diện chưa được lệnh hiển thị nó. Reload trang sẽ thấy (trong buổi này, vì chưa lưu lâu dài)."}]},
+
+{"type":"teach","color":"#f77f00","narration":"Vòng lặp của mọi app tương tác gồm 3 bước lặp đi lặp lại liên tục. Bước 1: Hành động — người dùng làm gì đó: bấm, gõ, tick, xóa. Bước 2: Cập nhật trạng thái — JavaScript thay đổi dữ liệu trong hộp nhớ tương ứng. Bước 3: Vẽ lại giao diện — JavaScript lệnh cho trình duyệt hiển thị lại danh sách theo dữ liệu mới. Rồi người dùng lại hành động tiếp. Vòng tròn này là trái tim của mọi app.","html":"<div class=\"bg-color\" style=\"background:linear-gradient(135deg,#0a0a18,#0a1015)\"></div>\n<div class=\"content\"><div class=\"stag\" style=\"color:#fdba74;border-color:rgba(247,127,0,.5);background:rgba(247,127,0,.18)\">Vòng lặp cốt lõi</div>\n<h2 class=\"big\">3 bước của mọi app tương tác</h2>\n<div class=\"rule\" style=\"background:#f77f00\"></div>\n<div style=\"display:flex;align-items:center;gap:16px;margin-top:36px;flex-wrap:wrap;justify-content:center\">\n  <div style=\"background:rgba(247,127,0,.12);border:2px solid rgba(247,127,0,.5);border-radius:14px;padding:22px 24px;text-align:center;min-width:150px\">\n    <div style=\"font-size:1.8rem;margin-bottom:8px\">👆</div>\n    <div style=\"font-weight:800;color:#fdba74\">Hành động</div>\n    <div style=\"font-size:.78rem;color:rgba(255,255,255,.45);margin-top:5px\">Bấm, gõ, tick, xóa</div>\n  </div>\n  <div style=\"font-size:1.6rem;color:rgba(247,127,0,.5)\">→</div>\n  <div style=\"background:rgba(6,214,160,.1);border:2px solid rgba(6,214,160,.4);border-radius:14px;padding:22px 24px;text-align:center;min-width:150px\">\n    <div style=\"font-size:1.8rem;margin-bottom:8px\">📦</div>\n    <div style=\"font-weight:800;color:#34d399\">Cập nhật<br/>trạng thái</div>\n    <div style=\"font-size:.78rem;color:rgba(255,255,255,.45);margin-top:5px\">Thay đổi hộp nhớ</div>\n  </div>\n  <div style=\"font-size:1.6rem;color:rgba(247,127,0,.5)\">→</div>\n  <div style=\"background:rgba(108,99,255,.1);border:2px solid rgba(108,99,255,.4);border-radius:14px;padding:22px 24px;text-align:center;min-width:150px\">\n    <div style=\"font-size:1.8rem;margin-bottom:8px\">🖼️</div>\n    <div style=\"font-weight:800;color:#a5b4fc\">Vẽ lại<br/>giao diện</div>\n    <div style=\"font-size:.78rem;color:rgba(255,255,255,.45);margin-top:5px\">Hiển thị trạng thái mới</div>\n  </div>\n</div>\n<div style=\"margin-top:20px;font-size:.85rem;color:rgba(247,127,0,.6);letter-spacing:.5px\">↺ lặp lại mỗi khi người dùng tương tác</div></div>"},
+
+{"type":"question","color":"#a855f7","narration":"Câu hỏi kiểm tra. Ứng dụng Quản Lý Công Việc của chúng ta có 3 hành động chính người dùng thực hiện. Đâu là đúng 3 hành động đó?","question":"Ứng dụng Quản Lý Công Việc có 3 hành động chính. Đâu là 3 hành động đúng?","options":[{"text":"Đăng nhập · Đăng ký · Đổi mật khẩu","correct":false,"feedback":"Đây là hành động của app xác thực người dùng, không phải quản lý task. Ứng dụng Quản Lý Công Việc đơn giản không cần đăng nhập ở giai đoạn này."},{"text":"Thêm task · Tick hoàn thành · Xóa task","correct":true,"feedback":"Chính xác! Ba hành động này tạo thành bộ CRUD đơn giản: Create (thêm), Update (tick), Delete (xóa). Mỗi hành động kích hoạt 1 vòng lặp 3 bước. Buổi 2 chúng ta build đủ cả 3."},{"text":"Tìm kiếm · Lọc · Sắp xếp","correct":false,"feedback":"Đây là tính năng nâng cao — hay có ở app lớn hơn. Ứng dụng Quản Lý Công Việc cơ bản chỉ cần thêm, tick, và xóa. Đây là phiên bản tối giản đủ để học cấu trúc."},{"text":"Upload ảnh · Chia sẻ · Bình luận","correct":false,"feedback":"Đây là tính năng mạng xã hội. Chúng ta đang xây ứng dụng quản lý công việc cá nhân — chỉ cần 3 thao tác cơ bản: thêm, tick, xóa."}]},
+
+{"type":"teach","color":"#f77f00","narration":"Buổi 1, bạn đã biết 5 yếu tố của yêu cầu tốt cho AI. Buổi 2 chúng ta thêm yếu tố thứ 6: mô tả hành vi. Mô tả hành vi nghĩa là nói cho AI biết điều gì xảy ra khi người dùng làm một việc gì đó. Công thức là: Khi người dùng làm X, trạng thái Y thay đổi như thế nào, và giao diện Z phải hiển thị gì. Không cần nói đến code. Chỉ cần mô tả đúng trải nghiệm người dùng.","html":"<div class=\"bg-color\" style=\"background:linear-gradient(135deg,#0a0a18,#120a20)\"></div>\n<div class=\"content\"><div class=\"stag\" style=\"color:#d8b4fe;border-color:rgba(168,85,247,.4);background:rgba(168,85,247,.12)\">Kỹ năng ra lệnh AI — Buổi 2</div>\n<h2 class=\"big\">Yếu tố thứ 6: Mô tả hành vi</h2>\n<div class=\"rule\" style=\"background:#a855f7\"></div>\n<div style=\"background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.25);border-radius:14px;padding:24px 28px;max-width:760px;width:100%;margin-top:28px;text-align:left\">\n  <div style=\"font-size:.68rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#c084fc;margin-bottom:10px\">Công thức mô tả hành vi</div>\n  <div style=\"font-size:1rem;color:#e9d5ff;line-height:1.8;font-weight:600\">\n    Khi người dùng làm <span style=\"color:#f77f00;font-weight:800\">X</span>,<br/>\n    trạng thái <span style=\"color:#34d399;font-weight:800\">Y</span> thay đổi thế này,<br/>\n    giao diện <span style=\"color:#a5b4fc;font-weight:800\">Z</span> phải hiển thị như vậy.\n  </div>\n</div>\n<p class=\"sub\" style=\"margin-top:20px\">Không cần nói đến code. <strong>Mô tả đúng trải nghiệm người dùng</strong> là đủ.</p></div>"},
+
+{"type":"teach","color":"#f77f00","narration":"So sánh yêu cầu buổi 1 và buổi 2 cho cùng một app. Buổi 1 bạn mô tả giao diện: trông như thế nào, màu gì, layout ra sao. Buổi 2 bạn mô tả hành vi: khi làm gì thì chuyện gì xảy ra. Cùng 1 app, 2 loại yêu cầu bổ sung cho nhau. Cả 2 đều cần thiết — thiếu 1 trong 2 thì sản phẩm không hoàn chỉnh.","html":"<div class=\"bg-color\" style=\"background:#0a0a18\"></div>\n<div class=\"content\"><h2 class=\"big\">Yêu cầu Buổi 1 vs Buổi 2</h2>\n<div class=\"rule\" style=\"background:#f77f00\"></div>\n<div class=\"compare\" style=\"margin-top:28px\">\n  <div class=\"compare-box\" style=\"background:rgba(108,99,255,.07);border:1px solid rgba(108,99,255,.25)\">\n    <div class=\"compare-label\" style=\"color:#a5b4fc\">Buổi 1 — Mô tả giao diện</div>\n    <div class=\"compare-text\">\"Tạo form gồm ô nhập text placeholder 'Thêm việc mới' và nút Add màu #6c63ff, border-radius 8px, Flexbox...\"</div>\n    <div style=\"margin-top:12px;font-size:.78rem;color:rgba(108,99,255,.8);border-top:1px solid rgba(108,99,255,.15);padding-top:10px\">Trông như thế nào · Màu · Layout · Font</div>\n  </div>\n  <div class=\"compare-box\" style=\"background:rgba(247,127,0,.07);border:1px solid rgba(247,127,0,.25)\">\n    <div class=\"compare-label\" style=\"color:#fdba74\">Buổi 2 — Mô tả hành vi</div>\n    <div class=\"compare-text\">\"Khi bấm Add: lấy text trong ô nhập, thêm vào cuối danh sách task, xóa ô nhập, vẽ lại danh sách. Nếu ô nhập trống thì không làm gì.\"</div>\n    <div style=\"margin-top:12px;font-size:.78rem;color:rgba(247,127,0,.7);border-top:1px solid rgba(247,127,0,.15);padding-top:10px\">Khi nào · Làm gì · Điều kiện · Kết quả</div>\n  </div>\n</div></div>"},
+
+{"type":"question","color":"#f77f00","narration":"Bài kiểm tra kỹ năng. Bạn cần AI thêm chức năng Add task vào app. Yêu cầu nào sau đây sẽ cho AI đủ thông tin để làm đúng ngay lần đầu?","question":"Yêu cầu nào sẽ giúp AI thêm chức năng Add task đúng ngay lần đầu?","options":[{"text":"\"Làm cho nút Add hoạt động\"","correct":false,"feedback":"Quá mơ hồ. Hoạt động nghĩa là gì? Hiện thông báo? Thêm vào list? Clear ô nhập? AI cần biết cụ thể kết quả mong muốn. Thiếu mô tả hành vi → AI tự đoán → sai một nửa."},{"text":"\"Thêm JavaScript vào file index.html tôi đã có: khi bấm Add, lấy text trong ô nhập, thêm vào cuối danh sách task, xóa trắng ô nhập, vẽ lại danh sách. Nếu ô nhập trống thì không làm gì.\"","correct":true,"feedback":"Hoàn hảo! Yêu cầu này có đủ: (1) Ngữ cảnh — file đã có. (2) Sự kiện — khi bấm Add. (3) Hành động từng bước — lấy text, thêm vào list, xóa ô nhập, vẽ lại. (4) Điều kiện biên — ô trống thì bỏ qua. AI có đủ thông tin để code đúng."},{"text":"\"Viết JavaScript cho chức năng add task vào todo list\"","correct":false,"feedback":"Gần đúng hơn nhưng vẫn thiếu: không nói đến file đang có (AI không biết cấu trúc HTML), không có điều kiện biên (ô trống), không rõ danh sách đang được render thế nào. AI sẽ viết code generic có thể không khớp."},{"text":"\"Cần code JavaScript để xử lý event click trên button với id='add-btn'\"","correct":false,"feedback":"Quá kỹ thuật và thiếu mô tả hành vi. Bạn đang nói đến cách làm (event handler) thay vì mô tả kết quả mong muốn. Hãy mô tả trải nghiệm người dùng — AI sẽ tự biết cách dùng event listener."}]},
+
+{"type":"practice","color":"#06d6a0","narration":"Đến giờ thực hành. Mở file index.html bạn đã làm từ Buổi 1. Sau đó mở ChatGPT, Claude, hoặc Gemini và gửi yêu cầu theo prompt mẫu này. Đọc lướt qua kết quả AI trả về để nhận ra 3 phần chính trước khi paste vào file. Lưu file, xem trình duyệt tự động cập nhật, và thử thêm vài task để kiểm tra.","html":"<div class=\"bg-color\" style=\"background:linear-gradient(135deg,#0a130a,#0a1a10)\"></div>\n<div class=\"content\"><div class=\"stag\" style=\"background:rgba(6,214,160,.12);color:#34d399;border-color:rgba(6,214,160,.3)\">Thực hành</div>\n<h2 class=\"big\" style=\"color:#34d399\">Thêm Logic vào app</h2>\n<div class=\"rule\" style=\"background:#06d6a0\"></div>\n<div style=\"background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.3);border-radius:12px;padding:20px 24px;max-width:800px;width:100%;text-align:left;font-size:.87rem;line-height:1.8;color:#c4b5fd;margin-top:20px\">\n  <div style=\"font-size:.68rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#818cf8;margin-bottom:8px\">Prompt mẫu — copy và gửi cho AI</div>\n  Tôi có file index.html Ứng dụng Quản Lý Công Việc từ buổi trước (chỉ HTML + CSS). Thêm JavaScript vào file đó với 3 chức năng: (1) Add task: khi bấm nút Add, lấy text từ ô nhập, thêm vào danh sách, xóa ô nhập, vẽ lại danh sách. Nếu ô trống thì không làm gì. (2) Tick task: bấm ô tích thì task chuyển sang trạng thái hoàn thành (gạch ngang text). (3) Xóa task: bấm Delete xóa task đó khỏi danh sách. Dùng mảng tasks[] để lưu dữ liệu. Thay thế 3 task HTML mẫu bằng task render từ JavaScript.\n</div>\n<div style=\"display:flex;align-items:flex-start;gap:10px;background:rgba(255,209,102,.07);border:1px solid rgba(255,209,102,.2);border-radius:10px;padding:12px 16px;font-size:.87rem;color:rgba(255,255,255,.65);max-width:800px;width:100%;margin-top:12px;text-align:left\">\n  <span style=\"color:#f77f00;flex-shrink:0\">⚡</span>\n  <span>Nhận code xong → đọc lướt để nhận ra phần <strong style=\"color:#fff\">hộp nhớ</strong>, <strong style=\"color:#fff\">lắng nghe</strong>, và <strong style=\"color:#fff\">vẽ lại</strong> trước khi paste</span>\n</div></div>"},
+
+{"type":"teach","color":"#f77f00","narration":"Bây giờ khi bạn nhìn vào code AI vừa tạo, có thể nó trông phức tạp. Nhưng mọi JavaScript làm việc với giao diện đều chỉ gồm 4 mảnh ghép. Mảnh 1: Hộp nhớ — nơi lưu danh sách task. Mảnh 2: Lắng nghe hành động — đợi người dùng bấm, gõ, click. Mảnh 3: Cập nhật hộp nhớ — thêm vào, xóa đi, đổi trạng thái. Mảnh 4: Vẽ lại giao diện — hiển thị hộp nhớ lên màn hình. Tìm được 4 mảnh này trong bất kỳ code nào — bạn sẽ hiểu được bất kỳ app nào.","html":"<div class=\"bg-color\" style=\"background:#0a0a18\"></div>\n<div class=\"content\"><div class=\"stag\" style=\"color:#fdba74;border-color:rgba(247,127,0,.5);background:rgba(247,127,0,.18)\">4 mảnh ghép</div>\n<h2 class=\"big\">Mọi JavaScript đều gồm 4 mảnh này</h2>\n<div class=\"rule\" style=\"background:#f77f00\"></div>\n<div class=\"cards\" style=\"margin-top:28px\">\n  <div class=\"card\" style=\"background:rgba(247,127,0,.1);border:1px solid rgba(247,127,0,.25)\">\n    <div class=\"card-icon\">📦</div>\n    <div class=\"card-title\" style=\"color:#fdba74\">Hộp nhớ</div>\n    <div class=\"card-body\">Nơi lưu danh sách task. Mọi thay đổi đều xảy ra ở đây trước.</div>\n  </div>\n  <div class=\"card\" style=\"background:rgba(6,214,160,.08);border:1px solid rgba(6,214,160,.2)\">\n    <div class=\"card-icon\">👂</div>\n    <div class=\"card-title\" style=\"color:#34d399\">Lắng nghe</div>\n    <div class=\"card-body\">Đợi người dùng hành động: bấm nút, gõ phím, tick ô.</div>\n  </div>\n  <div class=\"card\" style=\"background:rgba(255,209,102,.08);border:1px solid rgba(255,209,102,.2)\">\n    <div class=\"card-icon\">✏️</div>\n    <div class=\"card-title\" style=\"color:#fcd34d\">Cập nhật</div>\n    <div class=\"card-body\">Thay đổi dữ liệu trong hộp nhớ theo hành động vừa xảy ra.</div>\n  </div>\n  <div class=\"card\" style=\"background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.25)\">\n    <div class=\"card-icon\">🖼️</div>\n    <div class=\"card-title\" style=\"color:#a5b4fc\">Vẽ lại</div>\n    <div class=\"card-body\">Hiển thị hộp nhớ lên màn hình. Giao diện = bản copy của hộp nhớ.</div>\n  </div>\n</div></div>"},
+
+{"type":"question","color":"#a855f7","narration":"Câu hỏi để kiểm tra bạn đã hiểu 4 mảnh ghép chưa. Nhìn vào app đang chạy của bạn — khi bạn bấm nút Add thành công, giai đoạn nào chịu trách nhiệm hiển thị task mới lên màn hình?","question":"Khi bấm Add thành công, task mới xuất hiện trên màn hình — mảnh ghép nào chịu trách nhiệm việc này?","options":[{"text":"Mảnh Lắng nghe — vì nó nhận sự kiện click của bạn","correct":false,"feedback":"Lắng nghe chỉ phát hiện rằng bạn đã bấm — nó không tự mình làm bất cứ điều gì khác. Sau khi nhận sự kiện, nó gọi các mảnh khác xử lý."},{"text":"Mảnh Vẽ lại — vì nó đọc hộp nhớ và tạo HTML cho từng task","correct":true,"feedback":"Đúng! Mảnh Vẽ lại đọc danh sách trong hộp nhớ và tạo ra HTML tương ứng để trình duyệt hiển thị. Mỗi khi hộp nhớ thay đổi, phải gọi Vẽ lại để màn hình đồng bộ."},{"text":"Mảnh Cập nhật — vì nó thêm task mới vào hộp nhớ","correct":false,"feedback":"Cập nhật chịu trách nhiệm thay đổi dữ liệu trong hộp nhớ, không phải hiển thị. Sau khi Cập nhật xong, phải gọi thêm Vẽ lại thì màn hình mới thay đổi."},{"text":"Mảnh Hộp nhớ — vì task được lưu ở đó","correct":false,"feedback":"Hộp nhớ là nơi lưu dữ liệu, không phải nơi hiển thị. Nó giống ngăn kéo chứa đồ — bạn cần ai đó lấy ra và trưng bày. Mảnh Vẽ lại đóng vai trò đó."}]},
+
+{"type":"teach","color":"#f77f00","narration":"Bây giờ học kỹ năng quan trọng nhất khi dùng AI để build app: mô tả lỗi đúng cách. Khi app không hoạt động như mong muốn, nhiều người chỉ nói với AI 'bị lỗi rồi, sửa giúp'. AI không biết lỗi gì, không biết bạn đang làm gì, không biết bạn mong muốn gì. Kết quả là AI đoán và sửa sai. Công thức đúng gồm 3 phần: Đang làm gì, mong đợi gì, thực tế là gì.","html":"<div class=\"bg-color\" style=\"background:linear-gradient(135deg,#0a0a18,#120a10)\"></div>\n<div class=\"content\"><div class=\"stag\" style=\"color:#fdba74;border-color:rgba(247,127,0,.5);background:rgba(247,127,0,.18)\">Kỹ năng ra lệnh AI — Sửa lỗi</div>\n<h2 class=\"big\">Công thức mô tả lỗi 3 phần</h2>\n<div class=\"rule\" style=\"background:#f77f00\"></div>\n<div style=\"display:flex;flex-direction:column;gap:12px;margin-top:28px;max-width:720px;width:100%\">\n  <div style=\"display:flex;align-items:flex-start;gap:14px;background:rgba(247,127,0,.08);border:1px solid rgba(247,127,0,.2);border-radius:12px;padding:16px 18px\">\n    <div style=\"width:32px;height:32px;border-radius:9px;background:#f77f00;display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:800;color:#fff;flex-shrink:0\">1</div>\n    <div><div style=\"font-weight:700;color:#fdba74;margin-bottom:3px\">Đang làm gì</div><div style=\"font-size:.87rem;color:rgba(255,255,255,.6)\">\"Tôi vừa bấm nút Add sau khi nhập chữ 'Học bài'...\"</div></div>\n  </div>\n  <div style=\"display:flex;align-items:flex-start;gap:14px;background:rgba(6,214,160,.07);border:1px solid rgba(6,214,160,.2);border-radius:12px;padding:16px 18px\">\n    <div style=\"width:32px;height:32px;border-radius:9px;background:#06d6a0;display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:800;color:#0a1a0a;flex-shrink:0\">2</div>\n    <div><div style=\"font-weight:700;color:#34d399;margin-bottom:3px\">Mong đợi gì</div><div style=\"font-size:.87rem;color:rgba(255,255,255,.6)\">\"...tôi mong task 'Học bài' xuất hiện trong danh sách và ô nhập trống lại.\"</div></div>\n  </div>\n  <div style=\"display:flex;align-items:flex-start;gap:14px;background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.2);border-radius:12px;padding:16px 18px\">\n    <div style=\"width:32px;height:32px;border-radius:9px;background:#ef4444;display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:800;color:#fff;flex-shrink:0\">3</div>\n    <div><div style=\"font-weight:700;color:#f87171;margin-bottom:3px\">Thực tế là gì</div><div style=\"font-size:.87rem;color:rgba(255,255,255,.6)\">\"...nhưng thực tế ô nhập trống lại rồi mà danh sách không thêm task mới.\"</div></div>\n  </div>\n</div></div>"},
+
+{"type":"question","color":"#f77f00","narration":"Thực hành nhận dạng. Bạn đang build app và gặp lỗi: bấm Delete nhưng task không biến mất. Mô tả lỗi nào sau đây sẽ giúp AI sửa đúng nhất?","question":"Bấm Delete nhưng task không biến mất. Mô tả lỗi nào giúp AI sửa chính xác nhất?","options":[{"text":"\"Bị lỗi rồi, sửa hộ tôi\"","correct":false,"feedback":"AI không có ngữ cảnh gì. Lỗi gì? Ở đâu? Làm thế nào để tái hiện? Câu này bằng như không nói. AI sẽ đoán lung tung và sửa sai nhiều hơn đúng."},{"text":"\"Tôi bấm nút Delete trên task đầu tiên, mong task đó biến mất khỏi danh sách, nhưng thực tế task vẫn còn trên màn hình dù tôi đã bấm nhiều lần.\"","correct":true,"feedback":"Xuất sắc! Ba phần đủ: (1) Đang làm gì — bấm Delete task đầu tiên. (2) Mong đợi gì — task biến mất. (3) Thực tế là gì — vẫn còn trên màn hình. AI có thể ngay lập tức xác định vấn đề: có thể mảnh Vẽ lại không được gọi sau khi xóa, hoặc id task không khớp."},{"text":"\"Hàm xóa task có lỗi\"","correct":false,"feedback":"Này giả định AI biết đây là vấn đề code. Nhưng AI cần biết hành vi người dùng: bạn làm gì, mong đợi gì, thấy gì. Mô tả triệu chứng, không chẩn đoán nguyên nhân — AI sẽ chuẩn đoán giỏi hơn bạn."},{"text":"\"JavaScript không chạy đúng khi click\"","correct":false,"feedback":"Quá chung chung. JavaScript không chạy đúng ở đâu? Click cái gì? Kết quả mong muốn là gì? AI cần đủ chi tiết để khoanh vùng vấn đề. Mô tả theo góc nhìn người dùng luôn tốt hơn."}]},
+
+{"type":"reflect","color":"#06d6a0","narration":"Checklist cuối buổi. Kiểm tra 5 điều. Một: bấm Add — task mới xuất hiện đúng vị trí trong danh sách. Hai: ô nhập tự trống sau khi Add. Ba: bấm ô tích — task chuyển sang gạch ngang. Bốn: bấm Delete — task biến mất ngay lập tức. Năm: bạn có thể tìm ra 4 mảnh ghép trong code AI đã tạo: hộp nhớ, lắng nghe, cập nhật, vẽ lại. Tất cả đạt? Buổi 2 thành công.","html":"<div class=\"bg-color\" style=\"background:#0a0a18\"></div>\n<div class=\"content\"><div class=\"stag\" style=\"background:rgba(6,214,160,.12);color:#34d399;border-color:rgba(6,214,160,.3)\">Checklist cuối buổi</div>\n<h2 class=\"big\">Bạn đã làm được gì?</h2>\n<div class=\"rule\" style=\"background:#06d6a0\"></div>\n<ul style=\"list-style:none;max-width:580px;width:100%;margin-top:24px\">\n  <li style=\"display:flex;align-items:center;gap:14px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:.95rem;color:rgba(255,255,255,.8)\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#06d6a0\" stroke-width=\"2.5\" stroke-linecap=\"round\"><polyline points=\"20 6 9 17 4 12\"/></svg>Add task — task mới xuất hiện đúng và ô nhập tự trống</li>\n  <li style=\"display:flex;align-items:center;gap:14px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:.95rem;color:rgba(255,255,255,.8)\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#06d6a0\" stroke-width=\"2.5\" stroke-linecap=\"round\"><polyline points=\"20 6 9 17 4 12\"/></svg>Tick task — text gạch ngang, trạng thái hoàn thành hiển thị đúng</li>\n  <li style=\"display:flex;align-items:center;gap:14px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:.95rem;color:rgba(255,255,255,.8)\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#06d6a0\" stroke-width=\"2.5\" stroke-linecap=\"round\"><polyline points=\"20 6 9 17 4 12\"/></svg>Delete task — task biến mất ngay lập tức, không reload</li>\n  <li style=\"display:flex;align-items:center;gap:14px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:.95rem;color:rgba(255,255,255,.8)\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#06d6a0\" stroke-width=\"2.5\" stroke-linecap=\"round\"><polyline points=\"20 6 9 17 4 12\"/></svg>Hiểu 4 mảnh ghép: Hộp nhớ · Lắng nghe · Cập nhật · Vẽ lại</li>\n  <li style=\"display:flex;align-items:center;gap:14px;padding:11px 0;font-size:.95rem;color:rgba(255,255,255,.8)\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#06d6a0\" stroke-width=\"2.5\" stroke-linecap=\"round\"><polyline points=\"20 6 9 17 4 12\"/></svg>Biết công thức mô tả lỗi 3 phần để AI sửa đúng</li>\n</ul></div>"},
+
+{"type":"teach","color":"#f77f00","narration":"App của bạn giờ đã sống thật sự — thêm, tick, xóa đều hoạt động. Nhưng thử làm điều này: reload trang trình duyệt. Tất cả task biến mất. Logic lưu dữ liệu trong RAM — bộ nhớ tạm thời. Khi tab đóng hoặc trang reload, RAM bị xóa sạch. Dữ liệu bay theo. Đây là vấn đề của Buổi 3.","html":"<div class=\"bg-color\" style=\"background:#0a0a18\"></div>\n<div class=\"content\"><div class=\"stag\" style=\"color:#f87171;border-color:rgba(239,68,68,.4);background:rgba(239,68,68,.1)\">Vấn đề còn lại</div>\n<h2 class=\"big\">Reload trang — mất hết task</h2>\n<div class=\"rule\" style=\"background:#ef4444\"></div>\n<div style=\"display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:28px;max-width:780px;width:100%\">\n  <div style=\"background:rgba(247,127,0,.08);border:1px solid rgba(247,127,0,.25);border-radius:14px;padding:22px;text-align:left\">\n    <div style=\"font-weight:800;color:#fdba74;margin-bottom:8px\">Bộ nhớ RAM</div>\n    <div style=\"font-size:.87rem;color:rgba(255,255,255,.65);line-height:1.7\">Nơi dữ liệu đang sống.<br/>Nhanh, tiện, nhưng...<br/><strong style=\"color:#f87171\">Tắt tab = mất sạch.</strong></div>\n  </div>\n  <div style=\"background:rgba(6,214,160,.07);border:1px solid rgba(6,214,160,.2);border-radius:14px;padding:22px;text-align:left\">\n    <div style=\"font-weight:800;color:#34d399;margin-bottom:8px\">Cần có: Kho lưu</div>\n    <div style=\"font-size:.87rem;color:rgba(255,255,255,.65);line-height:1.7\">Nơi dữ liệu tồn tại lâu dài.<br/>Tắt máy vẫn còn.<br/><strong style=\"color:#34d399\">Đây là Buổi 3.</strong></div>\n  </div>\n</div>\n<p class=\"sub\" style=\"margin-top:22px\">Hành trình lắp đặt: UI ✅ + Logic ✅ + <strong>Data (Buổi 3)</strong></p></div>"},
+
+{"type":"teach","color":"#06d6a0","narration":"Preview Buổi 3: chúng ta sẽ học về kho lưu của trình duyệt — một ngăn kéo nhỏ ngay trong trình duyệt, không cần server, không cần database phức tạp. Dữ liệu tắt máy vẫn còn. Câu hỏi để suy nghĩ trước: nếu không có server, dữ liệu lưu ở đâu? Hẹn bạn ở Buổi 3.","html":"<div class=\"bg-img\" style=\"background-image:url('https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=1600&q=80')\"></div>\n<div class=\"content\"><div class=\"stag\" style=\"background:rgba(0,0,0,.5);color:#34d399;border-color:rgba(6,214,160,.4)\">Preview — Buổi 3</div>\n<h2 class=\"big\">Buổi 3: Kho lưu của trình duyệt</h2>\n<div class=\"rule\" style=\"background:#06d6a0\"></div>\n<p class=\"sub\" style=\"margin-top:18px\">Data sẽ tồn tại sau khi reload, đóng tab, tắt máy.<br/>Không cần server. Không cần database phức tạp.<br/><strong style=\"color:#34d399\">Câu hỏi: Không có server — dữ liệu lưu ở đâu?</strong></p></div>"}
+];
+
+// ── Build slides ──────────────────────────────────────────
+const deck = document.getElementById('deck');
+SLIDES.forEach((s,i)=>{
+  const el = document.createElement('div');
+  el.className = 'slide';
+  el.innerHTML = s.html;
+  deck.appendChild(el);
+});
+const allSlides = deck.querySelectorAll('.slide');
+
+// ── State ─────────────────────────────────────────────────
+let cur = 0;
+let autoMode = false;
+let speaking = false;
+let audioSrc = null;
+let voiceRate = 0.9;
+let openaiKey = localStorage.getItem('oai_key') || '';
+let openaiVoice = localStorage.getItem('oai_voice') || 'nova';
+let fptKey = localStorage.getItem('fpt_key') || 'XNZzpBQVWhTOCRc7MhOGbezPQznkhNew';
+let fptVoice = localStorage.getItem('fpt_voice') || 'banmai';
+let qAnswered = false;
+let qState = null;
+let qThinkTimer = null;
+let qFallbackTimer = null;
+let speakGen = 0;
+let slideMinTimer = null;
+
+// ── Settings ─────────────────────────────────────────────
+const settingsBtn = document.getElementById('settings-btn');
+const settingsPanel = document.getElementById('settings-panel');
+const sClose = document.getElementById('s-close');
+const sKey = document.getElementById('s-key');
+const sOaiVoice = document.getElementById('s-oai-voice');
+const sFptKey = document.getElementById('s-fpt-key');
+const sFptVoice = document.getElementById('s-fpt-voice');
+const sSysVoice = document.getElementById('s-sys-voice');
+const sRate = document.getElementById('s-rate');
+const sRateVal = document.getElementById('s-rate-val');
+const sSave = document.getElementById('s-save');
+const sTest = document.getElementById('s-test');
+
+sKey.value = openaiKey;
+sOaiVoice.value = openaiVoice;
+sFptKey.value = fptKey;
+sFptVoice.value = fptVoice;
+
+sRate.addEventListener('input', ()=>{ voiceRate = +sRate.value; sRateVal.textContent = voiceRate.toFixed(2)+'×'; });
+settingsBtn.onclick = ()=>{ settingsPanel.classList.toggle('open'); populateVoices(); };
+sClose.onclick = ()=>settingsPanel.classList.remove('open');
+sSave.onclick = ()=>{
+  openaiKey = sKey.value.trim();
+  openaiVoice = sOaiVoice.value;
+  fptKey = sFptKey.value.trim();
+  fptVoice = sFptVoice.value;
+  voiceRate = +sRate.value;
+  localStorage.setItem('oai_key', openaiKey);
+  localStorage.setItem('oai_voice', openaiVoice);
+  localStorage.setItem('fpt_key', fptKey);
+  localStorage.setItem('fpt_voice', fptVoice);
+  settingsPanel.classList.remove('open');
+};
+sTest.onclick = ()=>{ speak('Xin chào! Đây là giọng thuyết minh cho bài giảng Web Builder Foundation.'); };
+
+function populateVoices(){
+  sSysVoice.innerHTML = '';
+  window.speechSynthesis.getVoices().forEach(v=>{
+    const opt = document.createElement('option');
+    opt.value = v.name;
+    opt.textContent = v.name + ' (' + v.lang + ')';
+    sSysVoice.appendChild(opt);
+  });
+}
+if(speechSynthesis.onvoiceschanged !== undefined) speechSynthesis.onvoiceschanged = populateVoices;
+setTimeout(populateVoices, 800);
+
+// ── Voice ─────────────────────────────────────────────────
+const vPlay = document.getElementById('v-play');
+const icoPlay = document.getElementById('ico-play');
+const icoPause = document.getElementById('ico-pause');
+const vScript = document.getElementById('v-script');
+const vlBar = document.getElementById('vl');
+
+function stopVoice(){
+  speakGen++;
+  speechSynthesis.cancel();
+  if(audioSrc){ audioSrc.pause(); audioSrc = null; }
+  speaking = false;
+  vPlay.classList.remove('playing');
+  icoPlay.style.display = '';
+  icoPause.style.display = 'none';
+  vlBar.style.width = '0';
+  qState = null;
+  if(qThinkTimer){ clearInterval(qThinkTimer); qThinkTimer = null; }
+  if(qFallbackTimer){ clearTimeout(qFallbackTimer); qFallbackTimer = null; }
+  if(slideMinTimer){ clearTimeout(slideMinTimer); slideMinTimer = null; }
+  const cdEl = document.getElementById('q-countdown');
+  const cbEl = document.getElementById('q-cbar-wrap');
+  if(cdEl) cdEl.style.display = 'none';
+  if(cbEl) cbEl.style.display = 'none';
+}
+
+async function speakOpenAI(text, gen){
+  try {
+    const resp = await fetch('https://api.openai.com/v1/audio/speech', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+openaiKey},
+      body: JSON.stringify({model:'tts-1',voice:openaiVoice,input:text,speed: Math.max(0.25,Math.min(4,voiceRate))})
+    });
+    if(gen !== speakGen) return false;
+    if(!resp.ok){ console.warn('OpenAI TTS error',resp.status); return false; }
+    const blob = await resp.blob();
+    if(gen !== speakGen) return false;
+    const url = URL.createObjectURL(blob);
+    audioSrc = new Audio(url);
+    const duration = await new Promise(res=>{
+      audioSrc.onloadedmetadata = ()=>res(audioSrc.duration*1000);
+      audioSrc.onerror = ()=>res(text.length*65);
+    });
+    if(gen !== speakGen) return false;
+    let start = null;
+    function tick(ts){
+      if(!speaking||!audioSrc||gen!==speakGen) return;
+      if(!start) start = ts;
+      const pct = Math.min(100,((ts-start)/duration)*100);
+      vlBar.style.width = pct+'%';
+      if(pct<100) requestAnimationFrame(tick);
+    }
+    audioSrc.onplay = ()=>{ speaking=true; requestAnimationFrame(tick); };
+    audioSrc.onended = audioSrc.onerror = ()=>{ if(gen===speakGen) onSpeakEnd(); };
+    await audioSrc.play();
+    return true;
+  } catch(e){ console.warn('OpenAI TTS failed',e); return false; }
+}
+
+async function speakFPT(text, gen){
+  try {
+    const resp = await fetch('https://api.fpt.ai/hmi/tts/v5', {
+      method:'POST',
+      headers:{'api-key': fptKey, 'speed': '', 'voice': fptVoice},
+      body: text
+    });
+    if(gen !== speakGen) return false;
+    if(!resp.ok){ console.warn('FPT.AI TTS error',resp.status); return false; }
+    const data = await resp.json();
+    if(gen !== speakGen) return false;
+    if(!data.async) { console.warn('FPT.AI no audio URL'); return false; }
+    audioSrc = new Audio(data.async);
+    const duration = text.length * 65;
+    let start = null;
+    function tick(ts){
+      if(!speaking||!audioSrc||gen!==speakGen) return;
+      if(!start) start = ts;
+      const pct = Math.min(100,((ts-start)/duration)*100);
+      vlBar.style.width = pct+'%';
+      if(pct<100) requestAnimationFrame(tick);
+    }
+    audioSrc.onplay = ()=>{ speaking=true; requestAnimationFrame(tick); };
+    audioSrc.onended = audioSrc.onerror = ()=>{ if(gen===speakGen) onSpeakEnd(); };
+    await audioSrc.play();
+    return true;
+  } catch(e){ console.warn('FPT.AI TTS failed',e); return false; }
+}
+
+function speakSys(text, gen){
+  const utt = new SpeechSynthesisUtterance(text);
+  const voices = speechSynthesis.getVoices();
+  const selected = sSysVoice.value;
+  const preferred = voices.find(v=>v.name===selected)
+    || voices.find(v=>v.name.includes('HoaiMy') || v.name.includes('Hoai My'))
+    || voices.find(v=>v.name.includes('NamMinh') || v.name.includes('Nam Minh'))
+    || voices.find(v=>v.lang.startsWith('vi'))
+    || voices.find(v=>v.lang==='en-US')
+    || null;
+  if(preferred) utt.voice = preferred;
+  utt.lang = 'vi-VN';
+  utt.rate = voiceRate;
+  utt.pitch = 1;
+  const estMs = text.length * 60 / voiceRate;
+  let start = null;
+  function tick(ts){
+    if(!speaking||gen!==speakGen) return;
+    if(!start) start = ts;
+    vlBar.style.width = Math.min(100,((ts-start)/estMs)*100)+'%';
+    if(speaking) requestAnimationFrame(tick);
+  }
+  utt.onstart = ()=>{ speaking=true; requestAnimationFrame(tick); };
+  utt.onend = utt.onerror = ()=>{ if(gen===speakGen) onSpeakEnd(); };
+  speechSynthesis.speak(utt);
+}
+
+function onSpeakEnd(){
+  speaking = false;
+  audioSrc = null;
+  vPlay.classList.remove('playing');
+  icoPlay.style.display = '';
+  icoPause.style.display = 'none';
+  setTimeout(()=>vlBar.style.width='0',600);
+  if(qState === 'reading_feedback'){
+    if(qFallbackTimer){ clearTimeout(qFallbackTimer); qFallbackTimer = null; }
+    qState = null;
+    qPanel.classList.remove('show');
+    setTimeout(()=>go(cur+1, autoMode), 700);
+    return;
+  }
+  if(!autoMode){ return; }
+  if(qState === 'reading'){
+    startAutoCountdown();
+  } else {
+    onAutoSpeakDone();
+  }
+}
+
+async function speak(text){
+  stopVoice();
+  if(!text) return;
+  const gen = speakGen;
+  vScript.textContent = text;
+  speaking = true;
+  vPlay.classList.add('playing');
+  icoPlay.style.display = 'none';
+  icoPause.style.display = '';
+  if(fptKey){
+    const ok = await speakFPT(text, gen);
+    if(gen !== speakGen) return;
+    if(!ok && openaiKey){ await speakOpenAI(text, gen); return; }
+    if(!ok) speakSys(text, gen);
+  } else if(openaiKey){
+    const ok = await speakOpenAI(text, gen);
+    if(gen !== speakGen) return;
+    if(!ok) speakSys(text, gen);
+  } else {
+    speakSys(text, gen);
+  }
+}
+
+function onAutoSpeakDone(){
+  const s = SLIDES[cur];
+  if(s.type === 'question'){
+    // handled inside showQPanel / qState flow
+  } else {
+    const delay = speaking ? 900 : 2500;
+    slideMinTimer = setTimeout(()=>{ slideMinTimer=null; if(autoMode) go(cur+1, true); }, delay);
+  }
+}
+
+function startAutoCountdown(){
+  qState = 'countdown';
+  let secs = 4;
+  const cdEl = document.getElementById('q-countdown');
+  const cbWrap = document.getElementById('q-cbar-wrap');
+  const cbFill = document.getElementById('q-cbar-fill');
+  if(cdEl){ cdEl.textContent = '⏳ Suy nghĩ... ' + secs + 's'; cdEl.style.display = 'block'; }
+  if(cbWrap){ cbWrap.style.display = 'block'; }
+  if(cbFill){
+    cbFill.style.transition = 'none';
+    cbFill.style.width = '100%';
+    setTimeout(()=>{
+      cbFill.style.transition = 'width ' + secs + 's linear';
+      cbFill.style.width = '0%';
+    }, 60);
+  }
+  qThinkTimer = setInterval(()=>{
+    secs--;
+    if(cdEl) cdEl.textContent = secs > 0 ? ('⏳ Suy nghĩ... ' + secs + 's') : '✨ Xem đáp án...';
+    if(secs <= 0){
+      clearInterval(qThinkTimer); qThinkTimer = null;
+      if(cdEl) cdEl.style.display = 'none';
+      if(cbWrap) cbWrap.style.display = 'none';
+      autoRevealAnswer();
+    }
+  }, 1000);
+}
+
+function autoRevealAnswer(){
+  if(!autoMode) return;
+  const s = SLIDES[cur];
+  if(!s || s.type !== 'question') return;
+  qAnswered = true;
+  const correctIdx = s.options.findIndex(o => o.correct);
+  const btns = qOpts.querySelectorAll('.q-opt');
+  btns.forEach(b => { b.disabled = true; });
+  if(btns[correctIdx]) btns[correctIdx].classList.add('correct');
+  const opt = s.options[correctIdx];
+  qFeedback.innerHTML = '<strong style="color:#34d399">✅ Đáp án đúng:</strong> ' + opt.feedback;
+  qFeedback.classList.add('show');
+  qContinue.className = 'b-btn';
+  qState = 'reading_feedback';
+  speak(opt.feedback);
+  if(qFallbackTimer) clearTimeout(qFallbackTimer);
+  qFallbackTimer = setTimeout(()=>{
+    if(qState === 'reading_feedback'){
+      qState = null;
+      qPanel.classList.remove('show');
+      go(cur+1, true);
+    }
+  }, 8000);
+}
+
+vPlay.onclick = ()=>{ speaking ? stopVoice() : speak(SLIDES[cur].narration); };
+
+// ── AUTO mode ─────────────────────────────────────────────
+const vAuto = document.getElementById('v-auto');
+vAuto.onclick = ()=>{
+  autoMode = !autoMode;
+  vAuto.classList.toggle('on', autoMode);
+  vAuto.title = autoMode ? 'Dừng AUTO' : 'AUTO: tự dạy, tự hỏi, đợi bạn trả lời rồi tiếp';
+  if(autoMode){
+    const s = SLIDES[cur];
+    if(s.type==='question') showQPanel(s);
+    else speak(s.narration);
+  } else {
+    stopVoice();
+    qPanel.classList.remove('show');
+  }
+};
+
+// ── Q Panel ───────────────────────────────────────────────
+const qPanel = document.getElementById('q-panel');
+const qText = document.getElementById('q-text');
+const qOpts = document.getElementById('q-opts');
+const qFeedback = document.getElementById('q-feedback');
+const qContinue = document.getElementById('q-continue');
+
+function showQPanel(s){
+  qAnswered = false;
+  qState = autoMode ? 'reading' : null;
+  if(qThinkTimer){ clearInterval(qThinkTimer); qThinkTimer = null; }
+  const cdEl = document.getElementById('q-countdown');
+  const cbEl = document.getElementById('q-cbar-wrap');
+  if(cdEl) cdEl.style.display = 'none';
+  if(cbEl) cbEl.style.display = 'none';
+  qText.textContent = s.question;
+  qOpts.innerHTML = '';
+  qFeedback.className = '';
+  qFeedback.textContent = '';
+  qContinue.className = 'b-btn';
+  const labels = ['A','B','C','D'];
+  s.options.forEach((opt,i)=>{
+    const btn = document.createElement('button');
+    btn.className = 'q-opt';
+    btn.innerHTML = `<span class="opt-num">${labels[i]}</span><span>${opt.text}</span>`;
+    btn.onclick = ()=>{
+      if(qAnswered) return;
+      if(qThinkTimer){ clearInterval(qThinkTimer); qThinkTimer = null; }
+      const cdEl2 = document.getElementById('q-countdown');
+      const cbEl2 = document.getElementById('q-cbar-wrap');
+      if(cdEl2) cdEl2.style.display = 'none';
+      if(cbEl2) cbEl2.style.display = 'none';
+      qAnswered = true;
+      qOpts.querySelectorAll('.q-opt').forEach(b=>{ b.disabled=true; });
+      btn.classList.add(opt.correct ? 'correct' : 'wrong');
+      if(!opt.correct){
+        qOpts.querySelectorAll('.q-opt')[s.options.findIndex(o=>o.correct)].classList.add('correct');
+      }
+      const icon = opt.correct ? '✅' : '💡';
+      qFeedback.innerHTML = `<strong style="color:${opt.correct?'#34d399':'#fcd34d'}">${icon} ${opt.correct ? 'Chính xác!' : 'Chưa đúng —'}</strong> ${opt.feedback}`;
+      qFeedback.classList.add('show');
+      qContinue.style.background = opt.correct ? '#06d6a0' : '#f77f00';
+      qContinue.style.color = opt.correct ? '#0a1a0a' : '#fff';
+      qContinue.classList.add('show');
+      qState = 'reading_feedback';
+      speak(opt.feedback);
+      if(qFallbackTimer) clearTimeout(qFallbackTimer);
+      qFallbackTimer = setTimeout(()=>{
+        if(qState === 'reading_feedback'){
+          qState = null;
+          qPanel.classList.remove('show');
+          go(cur+1, true);
+        }
+      }, 8000);
+    };
+    qOpts.appendChild(btn);
+  });
+  qPanel.classList.add('show');
+  speak(s.narration || s.question);
+}
+
+qContinue.onclick = ()=>{
+  if(qFallbackTimer){ clearTimeout(qFallbackTimer); qFallbackTimer = null; }
+  qState = null;
+  stopVoice();
+  qPanel.classList.remove('show');
+  setTimeout(()=> autoMode ? go(cur+1, true) : go(cur+1), 200);
+};
+
+// ── Navigation ────────────────────────────────────────────
+const prog = document.getElementById('prog');
+const counter = document.getElementById('counter');
+
+function go(idx, fromAuto){
+  if(idx < 0 || idx >= SLIDES.length) return;
+  if(!fromAuto){
+    stopVoice();
+    qPanel.classList.remove('show');
+    autoMode = false;
+    vAuto.classList.remove('on');
+  }
+  const prevIdx = cur;
+  if(prevIdx !== idx){
+    allSlides[prevIdx].className = 'slide out';
+    setTimeout(()=>{ if(allSlides[prevIdx]) allSlides[prevIdx].className='slide'; }, 400);
+  }
+  allSlides[idx].className = 'slide active';
+  cur = idx;
+  const pct = (cur/(SLIDES.length-1))*100;
+  prog.style.width = pct+'%';
+  prog.style.background = SLIDES[cur].color || '#f77f00';
+  counter.textContent = (cur+1)+'/'+SLIDES.length;
+  vScript.textContent = SLIDES[cur].narration || '(Không có thuyết minh)';
+
+  const s = SLIDES[cur];
+  if(s.type==='question') setTimeout(()=>showQPanel(s), 350);
+  else if(fromAuto) speak(s.narration);
+}
+
+document.getElementById('nav-next').onclick = ()=>go(cur+1);
+document.getElementById('nav-prev').onclick = ()=>go(cur-1);
+
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT'||e.target.tagName==='TEXTAREA') return;
+  if(e.key==='ArrowRight'||e.key==='ArrowDown'||e.key===' '){e.preventDefault();go(cur+1)}
+  if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();go(cur-1)}
+  if(e.key==='v'||e.key==='V'){ speaking ? stopVoice() : speak(SLIDES[cur].narration); }
+  if(e.key==='a'||e.key==='A'){ vAuto.click(); }
+  if(e.key==='Home') go(0);
+  if(e.key==='End') go(SLIDES.length-1);
+  if(e.key==='Escape'){ qPanel.classList.remove('show'); stopVoice(); autoMode=false; vAuto.classList.remove('on'); }
+});
+
+let tx=0;
+document.addEventListener('touchstart',e=>tx=e.touches[0].clientX,{passive:true});
+document.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>55) go(dx<0?cur+1:cur-1);},{passive:true});
+
+// ── Init ──────────────────────────────────────────────────
+go(0);
+setTimeout(()=>document.getElementById('hint').style.opacity='0',5000);
+</script>
+</body>
+</html>

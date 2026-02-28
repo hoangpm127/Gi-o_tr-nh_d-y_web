@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Buổi 4 — Web Builder Foundation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--dark:#090912;--surface:#0f1020;--border:rgba(255,255,255,.09);--muted:#666688;--accent:#3b82f6;--accent2:#60a5fa;--accent-dim:rgba(59,130,246,.18);--accent-mid:rgba(59,130,246,.35)}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--dark);font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI','Roboto','Helvetica Neue',Arial,'Noto Sans',sans-serif;color:#e0e0f0}
+#deck{position:fixed;inset:0;bottom:80px}
+.slide{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .4s ease,transform .4s ease;transform:translateX(30px)}
+.slide.active{opacity:1;pointer-events:auto;transform:translateX(0)}
+.slide.out{opacity:0;transform:translateX(-30px);pointer-events:none}
+.bg-img{position:absolute;inset:0;background-size:cover;background-position:center;filter:brightness(.22) saturate(.5)}
+.bg-color{position:absolute;inset:0}
+.content{position:relative;z-index:2;width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:48px 80px;text-align:center}
+.stag{display:inline-block;padding:5px 18px;border-radius:8px;font-size:.72rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:20px;border:1px solid}
+h1.huge{font-size:clamp(2.4rem,5vw,4.4rem);font-weight:900;line-height:1.1;color:#fff}
+h2.big{font-size:clamp(1.6rem,3.2vw,2.8rem);font-weight:900;line-height:1.15;color:#fff;max-width:860px}
+.sub{font-size:clamp(.9rem,1.55vw,1.12rem);color:rgba(255,255,255,.55);margin-top:14px;line-height:1.75;max-width:700px}
+.sub strong{color:rgba(255,255,255,.88)}
+.rule{width:52px;height:4px;border-radius:2px;margin:18px auto}
+/* Question panel */
+#q-panel{position:fixed;inset:0;bottom:80px;z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 48px;background:rgba(9,9,18,.95);backdrop-filter:blur(20px);opacity:0;pointer-events:none;transition:opacity .35s ease}
+#q-panel.show{opacity:1;pointer-events:auto}
+#q-text{font-size:clamp(1.1rem,2.2vw,1.6rem);font-weight:800;color:#fff;max-width:820px;text-align:center;line-height:1.4;margin-bottom:28px}
+#q-opts{display:flex;flex-direction:column;gap:11px;width:100%;max-width:720px}
+.q-opt{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 20px;text-align:left;cursor:pointer;font-size:.93rem;color:rgba(255,255,255,.8);line-height:1.5;transition:background .15s,border-color .15s,transform .12s;display:flex;align-items:flex-start;gap:12px}
+.q-opt:hover:not(:disabled){background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.2);transform:translateX(3px)}
+.opt-num{min-width:26px;height:26px;border-radius:7px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:700;color:rgba(255,255,255,.5);flex-shrink:0;margin-top:1px}
+.q-opt.correct{background:rgba(59,130,246,.13);border-color:rgba(59,130,246,.45)}
+.q-opt.correct .opt-num{background:#3b82f6;color:#fff;border-color:#3b82f6}
+.q-opt.wrong{background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.3)}
+.q-opt.wrong .opt-num{background:rgba(239,68,68,.6);color:#fff;border-color:transparent}
+.q-opt:disabled{cursor:default}
+#q-countdown{display:none;margin-top:16px;font-size:.84rem;font-weight:700;color:#93c5fd;text-align:center}
+.q-cbar-wrap{width:100%;max-width:720px;height:3px;background:rgba(255,255,255,.07);border-radius:2px;margin-top:8px;overflow:hidden;display:none}
+.q-cbar-fill{height:100%;background:#3b82f6;width:100%;transition:none}
+#q-feedback{max-width:720px;width:100%;margin-top:16px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 18px;font-size:.88rem;line-height:1.65;color:rgba(255,255,255,.78);display:none;text-align:left}
+#q-feedback.show{display:block}
+#q-continue{margin-top:18px;padding:11px 32px;border-radius:10px;border:none;cursor:pointer;font-size:.9rem;font-weight:700;letter-spacing:.3px;display:none;transition:opacity .2s,transform .2s}
+#q-continue.show{display:inline-flex;align-items:center;gap:8px}
+#q-continue:hover{opacity:.85;transform:translateY(-1px)}
+/* Bar */
+#bar{position:fixed;bottom:0;left:0;right:0;height:80px;z-index:400;background:rgba(9,9,18,.93);backdrop-filter:blur(14px);border-top:1px solid var(--border);display:flex;align-items:center}
+#prog{position:fixed;top:0;left:0;height:3px;z-index:600;transition:width .35s,background .35s}
+#nav-prev,#nav-next{position:fixed;top:calc(50% - 40px);width:44px;height:44px;border-radius:50%;border:none;cursor:pointer;background:rgba(255,255,255,.07);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;transition:background .18s;z-index:300}
+#nav-prev:hover,#nav-next:hover{background:rgba(255,255,255,.16)}
+#nav-prev{left:16px}#nav-next{right:16px}
+#bar-left{display:flex;align-items:center;gap:10px;padding:0 20px;flex-shrink:0}
+#bar-center{flex:1;display:flex;align-items:center;padding:0 8px;overflow:hidden}
+#bar-right{display:flex;align-items:center;gap:8px;padding:0 18px;flex-shrink:0}
+#v-script{font-size:.79rem;color:rgba(255,255,255,.4);line-height:1.45;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-style:italic}
+.b-btn{width:38px;height:38px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .18s;flex-shrink:0}
+#v-play{background:rgba(59,130,246,.22);border:1px solid rgba(59,130,246,.4)}
+#v-play:hover{background:rgba(59,130,246,.38)}
+#v-play.playing{background:rgba(239,68,68,.22);border-color:rgba(239,68,68,.4)}
+#v-auto{padding:0 12px;width:auto;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);font-size:.72rem;font-weight:700;color:rgba(255,255,255,.42);letter-spacing:.8px}
+#v-auto.on{background:rgba(59,130,246,.25);border-color:rgba(59,130,246,.5);color:#93c5fd}
+#settings-btn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1)}
+#settings-btn:hover{background:rgba(255,255,255,.12)}
+/* Settings panel — simplified */
+#settings-panel{position:fixed;bottom:88px;right:14px;z-index:700;width:280px;background:#0f1020;border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:20px;box-shadow:0 8px 40px rgba(0,0,0,.6);display:none}
+#settings-panel.open{display:block}
+.s-label{font-size:.72rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:block;margin-top:14px}
+.s-label:first-child{margin-top:0}
+.s-title{font-weight:800;color:#fff;margin-bottom:14px;font-size:.95rem}
+.s-close{float:right;background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.1rem}
+.s-row{display:flex;gap:8px;margin-top:14px}
+.s-btn{flex:1;padding:9px;border-radius:8px;border:none;font-size:.87rem;font-weight:700;cursor:pointer;transition:opacity .2s}
+.s-btn-primary{background:#3b82f6;color:#fff}
+.s-btn-primary:hover{opacity:.85}
+.s-btn-test{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.15)}
+.s-btn-test:hover{background:rgba(255,255,255,.16)}
+.s-voice-badge{display:flex;align-items:center;gap:10px;background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.3);border-radius:8px;padding:10px 12px;margin-bottom:14px}
+.s-voice-dot{width:8px;height:8px;border-radius:50%;background:#3b82f6;box-shadow:0 0 6px #3b82f6;flex-shrink:0}
+.s-voice-name{font-size:.85rem;font-weight:700;color:#93c5fd}
+.s-voice-desc{font-size:.74rem;color:var(--muted)}
+#counter{font-size:.74rem;color:rgba(255,255,255,.22);font-weight:600;flex-shrink:0;white-space:nowrap}
+#hint{position:fixed;bottom:92px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,.16);font-size:.69rem;letter-spacing:.8px;z-index:300;pointer-events:none;transition:opacity .8s;white-space:nowrap}
+#vl{position:absolute;top:0;left:0;height:2px;background:#3b82f6;transition:width .3s linear;z-index:1}
+</style>
+</head>
+<body>
+
+<div id="prog"></div>
+<div id="hint">← → chuyển slide · V = đọc · A = AUTO · Space = tiếp</div>
+<div id="deck"></div>
+
+<div id="q-panel">
+  <div id="q-text"></div>
+  <div id="q-opts"></div>
+  <div id="q-countdown"></div>
+  <div class="q-cbar-wrap" id="q-cbar-wrap"><div class="q-cbar-fill" id="q-cbar-fill"></div></div>
+  <div id="q-feedback"></div>
+  <button id="q-continue">Tiếp tục <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg></button>
+</div>
+
+<button id="nav-prev"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+<button id="nav-next"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg></button>
+
+<div id="bar">
+  <div id="vl"></div>
+  <div id="bar-left">
+    <button class="b-btn" id="v-play" title="Đọc thuyết minh (V)">
+      <svg id="ico-play" width="16" height="16" viewBox="0 0 24 24" fill="rgba(255,255,255,.9)"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      <svg id="ico-pause" width="16" height="16" viewBox="0 0 24 24" fill="rgba(255,255,255,.9)" style="display:none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+    </button>
+    <button class="b-btn" id="v-auto">AUTO</button>
+  </div>
+  <div id="bar-center"><span id="v-script">Nhấn ▶ để nghe · AUTO để AI tự dạy hoàn toàn</span></div>
+  <div id="bar-right">
+    <span id="counter"></span>
+    <button class="b-btn" id="settings-btn" title="Cài đặt tốc độ giọng">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.48)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    </button>
+  </div>
+</div>
+
+<div id="settings-panel">
+  <div><span class="s-title">Cài đặt giọng</span><button class="s-close" id="s-close">✕</button></div>
+  <div class="s-voice-badge">
+    <div class="s-voice-dot"></div>
+    <div>
+      <div class="s-voice-name">Ban Mai — FPT.AI</div>
+      <div class="s-voice-desc">Giọng nữ, Hà Nội · Tự động</div>
+    </div>
+  </div>
+  <span class="s-label">Tốc độ đọc</span>
+  <input id="s-rate" type="range" min="0.6" max="1.6" step="0.05" value="0.9" style="width:100%;cursor:pointer;accent-color:#3b82f6"/>
+  <div style="display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);margin-top:4px">
+    <span>Chậm</span><span id="s-rate-val" style="color:#93c5fd;font-weight:700">0.90×</span><span>Nhanh</span>
+  </div>
+  <div class="s-row">
+    <button class="s-btn s-btn-test" id="s-test">▶ Test giọng</button>
+    <button class="s-btn s-btn-primary" id="s-save">Lưu</button>
+  </div>
+</div>
+
+<script>
+const SLIDES = [
+{"type":"teach","color":"#3b82f6","narration":"Buổi 4 — chào mừng bạn trở lại. App hiện tại của bạn đã có 3 tầng hoàn chỉnh: giao diện, logic, và kho lưu. Từ góc nhìn người build, app đang chạy đúng. Nhưng hôm nay thực hành một kỹ năng mới: đổi mắt. Bạn sẽ dùng app như người lần đầu tiên mở link, không biết gì về cách nó hoạt động. Và bạn sẽ ngạc nhiên vì có nhiều chỗ là người build bạn chưa từng nghĩ đến.","html":"<div class=\"bg-img\" style=\"background-image:url('https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&w=1600&q=80')\"></div>\n<div class=\"content\"><div class=\"stag\" style=\"color:#93c5fd;border-color:rgba(59,130,246,.5);background:rgba(59,130,246,.18)\">Buổi 4 · 2 tiếng</div>\n<h1 class=\"huge\">Trải nghiệm người dùng</h1>\n<div class=\"rule\" style=\"background:#3b82f6\"></div>\n<p class=\"sub\">App chạy đúng theo mắt người build.<br/><strong>Hôm nay bạn thấy app qua mắt người dùng.</strong></p></div>"},
+
+{"type":"teach","color":"#3b82f6","narration":"Mô hình tư duy số 4: Đổi vai. Khi bạn build một thứ gì đó, bạn biết quá rõ cách nó hoạt động. Bạn biết phải nhập vào ô nào, bấm nút nào, theo thứ tự nào. Nhưng người dùng thật không biết điều đó. Họ sẽ bấm theo bản năng, nhập sai kiểu, thử những thứ bạn không lường trước. App tốt phải hoạt động đúng dù người dùng làm điều bạn không mong đợi. Hôm nay bạn chủ động làm những điều đó để tìm ra điểm yếu.","html":"<div class=\"bg-color\" style=\"background:linear-gradient(135deg,#050a18,#091428)\"></div>\n<div class=\"content\"><div class=\"stag\" style=\"color:#93c5fd;border-color:rgba(59,130,246,.45);background:rgba(59,130,246,.15)\">Mô hình tư duy #4</div>\n<h2 class=\"big\">Đổi vai — từ người build sang người dùng</h2>\n<div class=\"rule\" style=\"background:#3b82f6\"></div>\n<div style=\"display:grid;grid-template-columns:1fr 1fr;gap:20px;width:100%;max-width:820px;margin-top:28px\">\n  <div style=\"background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.25);border-radius:16px;padding:24px;text-align:center\">\n    <div style=\"font-size:2rem;margin-bottom:10px\">🔧</div>\n    <div style=\"font-weight:800;color:#c084fc;margin-bottom:8px\">Mắt người build</div>\n    <div style=\"font-size:.84rem;color:rgba(255,255,255,.55);line-height:1.75\">Biết cách dùng<br/>Biết luồng đúng<br/>Không thấy điểm yếu</div>\n  </div>\n  <div style=\"background:rgba(59,130,246,.1);border:2px solid rgba(59,130,246,.4);border-radius:16px;padding:24px;text-align:center\">\n    <div style=\"font-size:2rem;margin-bottom:10px\">👤</div>\n    <div style=\"font-weight:800;color:#93c5fd;margin-bottom:8px\">Mắt người dùng</div>\n    <div style=\"font-size:.84rem;color:rgba(255,255,255,.55);line-height:1.75\">Làm theo bản năng<br/>Thử điều bất ngờ<br/>Phát hiện điểm yếu ✓</div>\n  </div>\n</div>\n<p class=\"sub\" style=\"margin-top:22px\">Hôm nay bạn chủ động <strong>phá app</strong> để tìm ra điểm cần sửa</p></div>"},
+
+{"type":"practice","color":"#3b82f6","narration":"Vào thực hành ngay. Mở app Ứng dụng Quản Lý Công Việc trên trình duyệt. Bây giờ không nhập gì vào ô input. Để trống hoàn toàn. Rồi bấm nút Add. Quan sát: app làm gì? Có hiện task không? Hiện task gì? Ghi lại điều bạn thấy — đừng phán xét, chỉ quan sát thôi.","html":"<div class=\"bg-color\" style=\"background:linear-gradient(135deg,#050a18,#091428)\"></div>\n<div class=\"content\"><div class=\"stag\" style=\"background:rgba(59,130,246,.12);color:#60a5fa;border-color:rgba(59,130,246,.3)\">Thực hành — Vòng 1</div>\n<h2 class=\"big\" style=\"color:#60a5fa\">Bấm Add với ô nhập để trống</h2>\n<div class=\"rule\" style=\"background:#3b82f6\"></div>\n<div style=\"background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:28px 32px;max-width:680px;width:100%;margin-top:24px;text-align:left\">\n  <div style=\"font-size:.82rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:14px\">Hướng dẫn quan sát</div>\n  <div style=\"display:flex;flex-direction:column;gap:10px\">\n    <div style=\"display:flex;gap:12px;align-items:flex-start;font-size:.9rem;color:rgba(255,255,255,.75)\">\n      <span style=\"color:#60a5fa;font-weight:700;flex-shrink:0\">1.</span> Để trống ô nhập — không gõ gì\n    </div>\n    <div style=\"display:flex;gap:12px;align-items:flex-start;font-size:.9rem;color:rgba(255,255,255,.75)\">\n      <span style=\"color:#60a5fa;font-weight:700;flex-shrink:0\">2.</span> Bấm nút Add (hoặc nhấn Enter)\n    </div>\n    <div style=\"display:flex;gap:12px;align-items:flex-start;font-size:.9rem;color:rgba(255,255,255,.75)\">\n      <span style=\"color:#60a5fa;font-weight:700;flex-shrink:0\">3.</span> Quan sát danh sách — app làm gì?\n    </div>\n    <div style=\"margin-top:10px;padding:12px 16px;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:8px;font-size:.85rem;color:#93c5fd\">\n      💡 Hầu hết app mới build sẽ thêm 1 dòng trống vào danh sách\n    </div>\n  </div>\n</div></div>"},
+
+{"type":"question","color":"#3b82f6","narration":"App vừa thêm một task rỗng vào danh sách khi bạn bấm Add mà không nhập gì. Câu hỏi là: đây là lỗi hay tính năng? Và quan trọng hơn — người dùng cảm thấy thế nào khi điều này xảy ra?","question":"App thêm 1 task rỗng khi nhấn Add mà chưa nhập gì. Điều này nói lên vấn đề gì?","options":[{"text":"Đây là tính năng bình thường — người dùng muốn thêm task rỗng thì được","correct":false,"feedback":"Task rỗng không có giá trị thực tế với người dùng. Nếu ai đó vô tình bấm Add không có chủ đích, kết quả là danh sách có dòng trống lạ. App tốt nên ngăn điều này — hoặc ít nhất hỏi lại người dùng."},{"text":"App không bảo vệ người dùng khỏi thao tác vô nghĩa — cần chặn hoặc cảnh báo","correct":true,"feedback":"Đúng. Đây là vấn đề UX loại đầu tiên: app không có rào chắn bảo vệ. Giải pháp đơn giản nhất là không thêm task nếu ô nhập trống, và có thể rung nhẹ ô input để người dùng biết cần nhập trước. Người dùng không bao giờ chủ ý thêm task không có nội dung."},{"text":"Cần sửa JavaScript — có bug trong hàm thêm task","correct":false,"feedback":"Đây không phải bug kỹ thuật — code đang chạy đúng theo logic được viết: nhấn Add thì thêm. Vấn đề là logic thiếu điều kiện kiểm tra: chỉ thêm khi ô nhập có nội dung thật sự. Đây là vấn đề thiết kế, không phải lỗi code."},{"text":"Người dùng phải tự chú ý nhập trước khi bấm — không cần app xử lý","correct":false,"feedback":"App tốt không đặt gánh nặng lên người dùng. Nguyên tắc UX: app luôn phải hướng dẫn và bảo vệ người dùng khỏi thao tác sai, không phải trông chờ vào sự chú ý của họ."}]},
+
+{"type":"teach","color":"#3b82f6","narration":"Vấn đề UX loại 1 là: App không bảo vệ người dùng khỏi thao tác vô nghĩa. Điều này bao gồm thêm task rỗng, xóa nhầm mà không cần xác nhận, hay bấm nút hai lần tạo ra kết quả trùng. Nguyên tắc là: app phải có rào chắn mềm. Không phải ép buộc mà là nhắc nhở và ngăn chặn thao tác vô nghĩa một cách nhẹ nhàng. Người dùng vẫn chủ động nhưng app không để họ tự gây ra sự cố cho chính mình.","html":"<div class=\"bg-color\" style=\"background:#050a18\"></div>\n<div class=\"content\"><div class=\"stag\" style=\"color:#fbbf24;border-color:rgba(251,191,36,.4);background:rgba(251,191,36,.1)\">Vấn đề UX — Loại 1</div>\n<h2 class=\"big\">App không bảo vệ người dùng</h2>\n<div class=\"rule\" style=\"background:#fbbf24\"></div>\n<div style=\"display:flex;flex-direction:column;gap:12px;max-width:760px;width:100%;margin-top:26px\">\n  <div style=\"display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:start;background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.2);border-radius:11px;padding:15px 18px\">\n    <span style=\"font-size:1.3rem\">😬</span>\n    <div style=\"text-align:left\"><div style=\"font-weight:700;color:#f87171;font-size:.9rem\">Thêm task rỗng</div><div style=\"font-size:.82rem;color:rgba(255,255,255,.5);margin-top:3px\">Nhấn Add khi ô trống → dòng trắng xuất hiện trong danh sách</div></div>\n  </div>\n  <div style=\"display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:start;background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.2);border-radius:11px;padding:15px 18px\">\n    <span style=\"font-size:1.3rem\">🗑️</span>\n    <div style=\"text-align:left\"><div style=\"font-weight:700;color:#f87171;font-size:.9rem\">Xóa nhầm không hỏi lại</div><div style=\"font-size:.82rem;color:rgba(255,255,255,.5);margin-top:3px\">Bấm nút xóa là mất ngay — không có cơ hội hủy bỏ</div></div>\n  </div>\n  <div style=\"display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:start;background:rgba(59,130,246,.07);border:1px solid rgba(59,130,246,.2);border-radius:11px;padding:15px 18px\">\n    <span style=\"font-size:1.3rem\">🛡️</span>\n    <div style=\"text-align:left\"><div style=\"font-weight:700;color:#60a5fa;font-size:.9rem\">Giải pháp — Rào chắn mềm</div><div style=\"font-size:.82rem;color:rgba(255,255,255,.5);margin-top:3px\">Không cho Add khi trống · Hỏi xác nhận trước khi xóa · Báo khi input thiếu</div></div>\n  </div>\n</div></div>"},
+
+{"type":"practice","color":"#3b82f6","narration":"Vòng test 2. Bây giờ vào app, xóa tất cả task trong danh sách cho đến khi danh sách hoàn toàn trống. Rồi quan sát vùng danh sách. App đang hiển thị gì? Chỗ danh sách có để trống hoàn toàn không? Hay có một thông báo nào đó? Hãy nhìn như người dùng lần đầu: cảm giác thế nào khi mở app mà nhìn vào chỗ danh sách chỉ thấy khoảng trống im lặng?","html":"<div class=\"bg-color\" style=\"background:linear-gradient(135deg,#050a18,#091428)\"></div>\n<div class=\"content\"><div class=\"stag\" style=\"background:rgba(59,130,246,.12);color:#60a5fa;border-color:rgba(59,130,246,.3)\">Thực hành — Vòng 2</div>\n<h2 class=\"big\" style=\"color:#60a5fa\">Xóa hết task — danh sách trống</h2>\n<div class=\"rule\" style=\"background:#3b82f6\"></div>\n<div style=\"background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:28px 32px;max-width:680px;width:100%;margin-top:24px;text-align:left\">\n  <div style=\"font-size:.82rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:14px\">Hướng dẫn quan sát</div>\n  <div style=\"display:flex;flex-direction:column;gap:10px\">\n    <div style=\"display:flex;gap:12px;align-items:flex-start;font-size:.9rem;color:rgba(255,255,255,.75)\"><span style=\"color:#60a5fa;font-weight:700;flex-shrink:0\">1.</span> Xóa tất cả task trong danh sách</div>\n    <div style=\"display:flex;gap:12px;align-items:flex-start;font-size:.9rem;color:rgba(255,255,255,.75)\"><span style=\"color:#60a5fa;font-weight:700;flex-shrink:0\">2.</span> Nhìn vào vùng danh sách — hiện gì?</div>\n    <div style=\"display:flex;gap:12px;align-items:flex-start;font-size:.9rem;color:rgba(255,255,255,.75)\"><span style=\"color:#60a5fa;font-weight:700;flex-shrink:0\">3.</span> Nếu bạn là người dùng lần đầu — bạn nghĩ gì khi thấy khoảng trống im lặng đó?</div>\n    <div style=\"margin-top:10px;padding:12px 16px;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:8px;font-size:.85rem;color:#93c5fd\">\n      💡 App chưa có thông báo trạng thái trống → người dùng không biết app đang hoạt động bình thường hay bị lỗi\n    </div>\n  </div>\n</div></div>"},
+
+{"type":"question","color":"#3b82f6","narration":"Khi danh sách task hoàn toàn trống, app nên làm gì để trải nghiệm tốt nhất cho người dùng?","question":"Khi danh sách task trống, app nên hiển thị gì cho người dùng?","options":[{"text":"Không cần hiển thị gì — trống là trống, bình thường thôi","correct":false,"feedback":"Khoảng trống im lặng khiến người dùng không chắc app có hoạt động đúng không, nhất là lần đầu dùng. Một thông báo nhỏ không làm phức tạp giao diện nhưng loại bỏ được sự nghi ngờ đó."},{"text":"Hiển thị thông báo thân thiện như \"Chưa có task nào — hãy thêm task đầu tiên!\"","correct":true,"feedback":"Xuất sắc! Đây là trạng thái \"empty state\" — một trong những chi tiết UX quan trọng nhất. Thông báo thân thiện làm 3 việc: xác nhận app đang hoạt động, giải thích tại sao trống, và gợi ý bước tiếp theo. Nhiều app lớn đầu tư thiết kế riêng cho màn hình trống."},{"text":"Hiển thị hướng dẫn sử dụng app đầy đủ","correct":false,"feedback":"Hướng dẫn dài khi danh sách trống là quá tải. Người dùng lúc này chỉ cần 1 gợi ý ngắn: hãy thêm task đầu tiên. Hướng dẫn đầy đủ nên để trong phần trợ giúp riêng nếu cần."},{"text":"Tự động mở ô nhập để người dùng nhập ngay","correct":false,"feedback":"Tự động focus vào ô nhập có thể hữu ích nhưng không giải thích tại sao danh sách trống. Người dùng lần đầu vẫn có thể bối rối. Kết hợp thông báo trống + auto-focus là tốt nhất, nhưng nếu chọn 1 thì thông báo có giá trị hơn."}]},
+
+{"type":"teach","color":"#3b82f6","narration":"Vấn đề UX loại 2 là: App câm. App câm nghĩa là app không nói gì khi có điều gì đó xảy ra. Sau khi thêm task thành công, app câm. Sau khi xóa hết, app câm. Khi danh sách trống, app câm. Người dùng không nhận được phản hồi nào về trạng thái. Điều này tạo ra sự không chắc chắn: app đang hoạt động hay bị hỏng? Dữ liệu đã được lưu chưa? Giải pháp là thêm phản hồi trạng thái tối thiểu: thông báo khi trống, xác nhận khi thao tác thành công.","html":"<div class=\"bg-color\" style=\"background:#050a18\"></div>\n<div class=\"content\"><div class=\"stag\" style=\"color:#fbbf24;border-color:rgba(251,191,36,.4);background:rgba(251,191,36,.1)\">Vấn đề UX — Loại 2</div>\n<h2 class=\"big\">App \"câm\" — không phản hồi trạng thái</h2>\n<div class=\"rule\" style=\"background:#fbbf24\"></div>\n<div style=\"display:grid;grid-template-columns:1fr 1fr;gap:16px;width:100%;max-width:820px;margin-top:26px\">\n  <div style=\"background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.2);border-radius:14px;padding:20px;text-align:left\">\n    <div style=\"font-size:.68rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#f87171;margin-bottom:10px\">App câm nói gì?</div>\n    <div style=\"font-size:.85rem;color:rgba(255,255,255,.55);line-height:1.9\">— Thêm task xong: im lặng<br/>— Xóa task: im lặng<br/>— Danh sách trống: khoảng trắng<br/>— Lưu kho lưu xong: im lặng</div>\n  </div>\n  <div style=\"background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.25);border-radius:14px;padding:20px;text-align:left\">\n    <div style=\"font-size:.68rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#60a5fa;margin-bottom:10px\">App tốt phản hồi gì?</div>\n    <div style=\"font-size:.85rem;color:rgba(255,255,255,.55);line-height:1.9\">— Trống: \"Chưa có task nào ✏️\"<br/>— Thêm xong: ô input tự xóa trắng<br/>— Xóa: hỏi \"Bạn chắc chắn không?\"<br/>— Lưu: không cần thông báo (tự động)</div>\n  </div>\n</div></div>"},
+
+{"type":"practice","color":"#3b82f6","narration":"Vòng test 3. Lần này thêm một task có tên thật dài. Hãy thêm task với nội dung khoảng 50 chữ trở lên. Ví dụ: tên dự án rất dài, hoặc chuỗi chữ liên tục. Sau khi thêm, quan sát: task đó hiển thị thế nào trong danh sách? Các nút Tick và Xóa còn nhìn thấy và dùng được không? Có chỗ nào bị tràn ra ngoài khung không?","html":"<div class=\"bg-color\" style=\"background:linear-gradient(135deg,#050a18,#091428)\"></div>\n<div class=\"content\"><div class=\"stag\" style=\"background:rgba(59,130,246,.12);color:#60a5fa;border-color:rgba(59,130,246,.3)\">Thực hành — Vòng 3</div>\n<h2 class=\"big\" style=\"color:#60a5fa\">Nhập task với tên cực dài</h2>\n<div class=\"rule\" style=\"background:#3b82f6\"></div>\n<div style=\"background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:28px 32px;max-width:680px;width:100%;margin-top:24px;text-align:left\">\n  <div style=\"font-size:.82rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:14px\">Hướng dẫn quan sát</div>\n  <div style=\"display:flex;flex-direction:column;gap:10px\">\n    <div style=\"display:flex;gap:12px;align-items:flex-start;font-size:.9rem;color:rgba(255,255,255,.75)\"><span style=\"color:#60a5fa;font-weight:700;flex-shrink:0\">1.</span> Nhập task có nội dung 50+ ký tự</div>\n    <div style=\"display:flex;gap:12px;align-items:flex-start;font-size:.9rem;color:rgba(255,255,255,.75)\"><span style=\"color:#60a5fa;font-weight:700;flex-shrink:0\">2.</span> Bấm Add — task xuất hiện trong danh sách</div>\n    <div style=\"display:flex;gap:12px;align-items:flex-start;font-size:.9rem;color:rgba(255,255,255,.75)\"><span style=\"color:#60a5fa;font-weight:700;flex-shrink:0\">3.</span> Quan sát: có bị vỡ layout không? Nút Xóa còn nhìn thấy không?</div>\n    <div style=\"padding:10px 14px;background:rgba(255,255,255,.04);border-radius:7px;font-size:.84rem;font-family:monospace;color:#fbbf24;margin-top:4px\">\n      Ví dụ: \"Họp review dự án thiết kế website thương mại điện tử cho khách hàng tháng 12 năm nay\"\n    </div>\n  </div>\n</div></div>"},
+
+{"type":"teach","color":"#3b82f6","narration":"Vấn đề UX loại 3 là: giao diện vỡ khi dữ liệu ngoài dự kiến. Khi build app, bạn thường thử với dữ liệu ngắn, dễ kiểm soát. Nhưng người dùng thật có thể nhập tên rất dài, thêm rất nhiều task, hay dùng ký tự đặc biệt. Nếu app không được thiết kế để xử lý điều đó, layout sẽ vỡ và trải nghiệm trở nên tệ. Giải pháp là giới hạn độ dài input hoặc dùng CSS cho phép nội dung dài xuống dòng tự nhiên mà không phá vỡ layout.","html":"<div class=\"bg-color\" style=\"background:#050a18\"></div>\n<div class=\"content\"><div class=\"stag\" style=\"color:#fbbf24;border-color:rgba(251,191,36,.4);background:rgba(251,191,36,.1)\">Vấn đề UX — Loại 3</div>\n<h2 class=\"big\">Giao diện vỡ khi dữ liệu ngoài dự kiến</h2>\n<div class=\"rule\" style=\"background:#fbbf24\"></div>\n<div style=\"display:flex;flex-direction:column;gap:11px;max-width:760px;width:100%;margin-top:26px\">\n  <div style=\"background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.2);border-radius:11px;padding:14px 18px;display:flex;gap:14px;align-items:flex-start\">\n    <span style=\"font-size:1.2rem;flex-shrink:0\">📝</span>\n    <div style=\"text-align:left\"><div style=\"font-weight:700;color:#f87171;font-size:.88rem\">Tên task quá dài</div><div style=\"font-size:.82rem;color:rgba(255,255,255,.5);margin-top:3px\">Tràn ra ngoài khung, đẩy nút tick/xóa ra ngoài màn hình</div></div>\n  </div>\n  <div style=\"background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.2);border-radius:11px;padding:14px 18px;display:flex;gap:14px;align-items:flex-start\">\n    <span style=\"font-size:1.2rem;flex-shrink:0\">📋</span>\n    <div style=\"text-align:left\"><div style=\"font-weight:700;color:#f87171;font-size:.88rem\">Quá nhiều task</div><div style=\"font-size:.82rem;color:rgba(255,255,255,.5);margin-top:3px\">List cuộn không kiểm soát, tràn xuống footer</div></div>\n  </div>\n  <div style=\"background:rgba(59,130,246,.07);border:1px solid rgba(59,130,246,.2);border-radius:11px;padding:14px 18px;display:flex;gap:14px;align-items:flex-start\">\n    <span style=\"font-size:1.2rem;flex-shrink:0\">🛠️</span>\n    <div style=\"text-align:left\"><div style=\"font-weight:700;color:#60a5fa;font-size:.88rem\">Giải pháp yêu cầu AI</div><div style=\"font-size:.82rem;color:rgba(255,255,255,.5);margin-top:3px\">Giới hạn input tối đa 80 ký tự · Nội dung dài xuống dòng tự nhiên · List có chiều cao tối đa và cuộn được</div></div>\n  </div>\n</div></div>"},
+
+{"type":"practice","color":"#3b82f6","narration":"Vòng test 4 — cuối cùng và quan trọng. Thu nhỏ cửa sổ trình duyệt xuống kích thước điện thoại di động: khoảng 375 đến 430 pixel chiều rộng. Hoặc mở F12 trong Chrome, bật Device Toolbar và chọn iPhone. Quan sát: giao diện có co dãn theo không? Các nút có đủ to để ngón tay bấm không? Chữ có đủ lớn để đọc không?","html":"<div class=\"bg-color\" style=\"background:linear-gradient(135deg,#050a18,#091428)\"></div>\n<div class=\"content\"><div class=\"stag\" style=\"background:rgba(59,130,246,.12);color:#60a5fa;border-color:rgba(59,130,246,.3)\">Thực hành — Vòng 4</div>\n<h2 class=\"big\" style=\"color:#60a5fa\">Dùng app trên điện thoại</h2>\n<div class=\"rule\" style=\"background:#3b82f6\"></div>\n<div style=\"background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:28px 32px;max-width:680px;width:100%;margin-top:24px;text-align:left\">\n  <div style=\"font-size:.82rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:14px\">2 cách test mobile</div>\n  <div style=\"display:flex;flex-direction:column;gap:10px\">\n    <div style=\"display:flex;gap:12px;align-items:flex-start;font-size:.9rem;color:rgba(255,255,255,.75)\">\n      <span style=\"background:#3b82f6;color:#fff;font-size:.72rem;font-weight:700;padding:2px 7px;border-radius:4px;flex-shrink:0;margin-top:2px\">A</span>\n      Thu nhỏ cửa sổ browser xuống ~400px chiều rộng\n    </div>\n    <div style=\"display:flex;gap:12px;align-items:flex-start;font-size:.9rem;color:rgba(255,255,255,.75)\">\n      <span style=\"background:#3b82f6;color:#fff;font-size:.72rem;font-weight:700;padding:2px 7px;border-radius:4px;flex-shrink:0;margin-top:2px\">B</span>\n      F12 → Toggle Device Toolbar → chọn iPhone 14\n    </div>\n    <div style=\"margin-top:8px;font-size:.85rem;color:rgba(255,255,255,.5);font-weight:600;padding-top:10px;border-top:1px solid rgba(255,255,255,.06)\">Kiểm tra:</div>\n    <div style=\"display:flex;gap:8px;align-items:center;font-size:.85rem;color:rgba(255,255,255,.65)\">□ Nội dung có vừa màn hình không?</div>\n    <div style=\"display:flex;gap:8px;align-items:center;font-size:.85rem;color:rgba(255,255,255,.65)\">□ Nút có đủ to để ngón tay bấm không? (tối thiểu 44px)</div>\n    <div style=\"display:flex;gap:8px;align-items:center;font-size:.85rem;color:rgba(255,255,255,.65)\">□ Chữ có đủ lớn để đọc không? (tối thiểu 16px)</div>\n  </div>\n</div></div>"},
+
+{"type":"teach","color":"#3b82f6","narration":"Vấn đề UX loại 4 là: giao diện không co dãn theo màn hình. Điện thoại chiếm hơn 60% lượt truy cập web hiện nay. App chỉ trông đẹp trên laptop nhưng hỏng trên điện thoại là app chưa hoàn thiện. Khi yêu cầu AI, bạn chỉ cần thêm một câu: đảm bảo app dùng được tốt trên điện thoại, nút đủ to để ngón tay bấm, chữ đủ lớn để đọc. AI sẽ xử lý phần CSS responsive tương ứng.","html":"<div class=\"bg-color\" style=\"background:#050a18\"></div>\n<div class=\"content\"><div class=\"stag\" style=\"color:#fbbf24;border-color:rgba(251,191,36,.4);background:rgba(251,191,36,.1)\">Vấn đề UX — Loại 4</div>\n<h2 class=\"big\">Giao diện không co dãn theo màn hình</h2>\n<div class=\"rule\" style=\"background:#fbbf24\"></div>\n<div style=\"display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:820px;width:100%;margin-top:26px\">\n  <div style=\"background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.2);border-radius:14px;padding:20px;text-align:left\">\n    <div style=\"font-size:.68rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#f87171;margin-bottom:10px\">Dấu hiệu vấn đề</div>\n    <div style=\"font-size:.84rem;color:rgba(255,255,255,.55);line-height:1.9\">&ndash; Layout bị vỡ khi thu nhỏ<br/>&ndash; Nút quá nhỏ trên mobile<br/>&ndash; Chữ tràn ra ngoài viền<br/>&ndash; Phải cuộn ngang để xem</div>\n  </div>\n  <div style=\"background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.25);border-radius:14px;padding:20px;text-align:left\">\n    <div style=\"font-size:.68rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#60a5fa;margin-bottom:10px\">Yêu cầu AI thêm vào</div>\n    <div style=\"font-size:.84rem;color:rgba(255,255,255,.55);line-height:1.9\">&ndash; \"Dùng tốt trên điện thoại\"<br/>&ndash; \"Nút tối thiểu 44px để bấm\"<br/>&ndash; \"Chữ đủ lớn trên mobile\"<br/>&ndash; \"Không cuộn ngang\"</div>\n  </div>\n</div></div>"},
+
+{"type":"teach","color":"#3b82f6","narration":"Bạn đã tự phát hiện 4 loại vấn đề UX. Bây giờ là kỹ năng quan trọng: mô tả vấn đề đó cho AI để sửa đúng. Cấu trúc chuẩn gồm 3 phần và thêm 1 phần chỉ định: Khi tôi làm gì — bối cảnh thao tác. App phản hồi như thế nào hiện tại — mô tả vấn đề. Tôi muốn app phản hồi thế nào thay vì vậy — mô tả kết quả mong muốn. Giữ nguyên mọi chức năng đã có — ràng buộc quan trọng. Đây là cấu trúc mô tả 3 phần cộng 1 đã học, áp dụng cho UX.","html":"<div class=\"bg-color\" style=\"background:#050a18\"></div>\n<div class=\"content\"><div class=\"stag\" style=\"color:#c084fc;border-color:rgba(168,85,247,.4);background:rgba(168,85,247,.12)\">Kỹ năng ra lệnh AI — Buổi 4</div>\n<h2 class=\"big\">Mô tả vấn đề UX đúng cách</h2>\n<div class=\"rule\" style=\"background:#a855f7\"></div>\n<div style=\"background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.25);border-radius:12px;padding:22px 26px;max-width:820px;width:100%;max-width:820px;margin-top:22px;text-align:left;font-size:.87rem;line-height:1.9;color:#d8b4fe\">\n  <div style=\"font-size:.65rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#a78bfa;margin-bottom:12px\">Cấu trúc 3+1 cho vấn đề UX</div>\n  <span style=\"color:#c084fc;font-weight:700\">Khi tôi</span> nhấn Add mà để ô nhập trống,<br/>\n  <span style=\"color:#f87171;font-weight:700\">app hiện tại</span> vẫn thêm một dòng trống vào danh sách.<br/>\n  <span style=\"color:#34d399;font-weight:700\">Tôi muốn app</span> không thêm task khi ô nhập trống — thay vào đó rung nhẹ ô input để báo người dùng cần nhập nội dung trước.<br/>\n  <span style=\"color:#fbbf24;font-weight:700\">Giữ nguyên</span> mọi chức năng thêm, tick, xóa đã có.\n</div></div>"},
+
+{"type":"question","color":"#3b82f6","narration":"Thực hành mô tả lỗi. Bạn đang dùng app và bấm nút Xóa — task biến mất ngay lập tức, không có hộp thoại hỏi lại. Bạn cần mô tả vấn đề này cho AI để sửa. Mô tả nào sau đây sẽ cho kết quả tốt nhất?","question":"Bạn cần AI thêm xác nhận trước khi xóa task. Mô tả nào đúng cách nhất?","options":[{"text":"\"Thêm confirm trước khi xóa\"","correct":false,"feedback":"Quá ngắn. AI sẽ mặc định dùng popup alert của trình duyệt trông rất cũ và không thân thiện. Bạn cũng chưa nói rõ nội dung xác nhận nên thể hiện gì."},{"text":"\"Khi tôi bấm nút Xóa, app hiện tại xóa task ngay lập tức. Tôi muốn app hiện thông báo nhỏ hỏi Bạn chắc chắn muốn xóa không? với nút Xóa và Hủy — nếu nhấn Hủy thì task không bị xóa. Giữ nguyên mọi chức năng khác.\"","correct":true,"feedback":"Hoàn hảo! Mô tả đủ 3+1 phần: (1) Khi tôi bấm Xóa. (2) App đang làm gì — xóa ngay. (3) Muốn gì thay vào đó — thông báo nhỏ với 2 nút cụ thể. (4) Ràng buộc giữ nguyên chức năng khác. AI có đủ thông tin để viết code đúng ngay lần đầu."},{"text":"\"Lỗi UX: không có confirm delete — fix ngay\"","correct":false,"feedback":"Ngôn ngữ ra lệnh không giúp AI hiểu bạn muốn gì cụ thể. Hơn nữa, không có ràng buộc giữ nguyên chức năng khác, AI có thể thay đổi thêm những thứ bạn không muốn."},{"text":"\"Thêm window.confirm để hỏi trước khi xóa\"","correct":false,"feedback":"Chỉ định cú pháp kỹ thuật cụ thể (window.confirm) không cần thiết và thực ra window.confirm là popup trình duyệt trông rất cũ. Tốt hơn là mô tả trải nghiệm bạn muốn, để AI chọn cách implement hiện đại phù hợp."}]},
+
+{"type":"practice","color":"#3b82f6","narration":"Đến giờ thực hành tổng hợp. Nhìn lại 4 vòng test bạn vừa làm và chọn 2 vấn đề bạn thấy rõ nhất trong app. Áp dụng cấu trúc mô tả 3 cộng 1 để viết yêu cầu cho AI. Gửi lần lượt — một vấn đề một yêu cầu. Sau mỗi lần AI sửa, test lại đúng tình huống đó trước khi test tiếp vấn đề tiếp theo.","html":"<div class=\"bg-color\" style=\"background:linear-gradient(135deg,#050a18,#091428)\"></div>\n<div class=\"content\"><div class=\"stag\" style=\"background:rgba(59,130,246,.12);color:#60a5fa;border-color:rgba(59,130,246,.3)\">Thực hành — Tổng hợp</div>\n<h2 class=\"big\" style=\"color:#60a5fa\">Chọn 2 vấn đề · Mô tả · Gửi AI · Test lại</h2>\n<div class=\"rule\" style=\"background:#3b82f6\"></div>\n<div style=\"display:flex;flex-direction:column;gap:10px;max-width:760px;width:100%;margin-top:24px\">\n  <div style=\"display:flex;gap:12px;align-items:flex-start;background:rgba(255,255,255,.04);border-radius:10px;padding:13px 16px;font-size:.9rem;color:rgba(255,255,255,.75)\">\n    <div style=\"width:26px;height:26px;border-radius:7px;background:#3b82f6;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.8rem;flex-shrink:0\">1</div>\n    Nhìn lại 4 vòng test — chọn 2 vấn đề bạn nhìn rõ nhất\n  </div>\n  <div style=\"display:flex;gap:12px;align-items:flex-start;background:rgba(255,255,255,.04);border-radius:10px;padding:13px 16px;font-size:.9rem;color:rgba(255,255,255,.75)\">\n    <div style=\"width:26px;height:26px;border-radius:7px;background:#3b82f6;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.8rem;flex-shrink:0\">2</div>\n    Viết yêu cầu theo cấu trúc: \"Khi tôi... app hiện tại... tôi muốn... giữ nguyên...\"\n  </div>\n  <div style=\"display:flex;gap:12px;align-items:flex-start;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:10px;padding:13px 16px;font-size:.9rem;color:rgba(255,255,255,.75)\">\n    <div style=\"width:26px;height:26px;border-radius:7px;background:#3b82f6;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.8rem;flex-shrink:0\">3</div>\n    <div><strong style=\"color:#60a5fa\">Gửi 1 vấn đề</strong> → nhận code → test lại đúng tình huống đó → mới sang vấn đề 2</div>\n  </div>\n</div></div>"},
+
+{"type":"teach","color":"#3b82f6","narration":"Nguyên tắc quan trọng khi làm việc với AI để sửa nhiều vấn đề: sau mỗi lần AI sửa, hãy test lại đúng tình huống đó trước. Không test tổng ngay. Tại sao? Vì nếu chuyển sang vấn đề 2 mà vấn đề 1 còn lỗi, bạn sẽ không biết lỗi đó từ lần sửa nào. Và nếu có lỗi mới phát sinh, bạn biết chính xác lần sửa nào gây ra. Làm từng bước, xác nhận từng bước — đây là kỷ luật của người build chắc chắn.","html":"<div class=\"bg-color\" style=\"background:#050a18\"></div>\n<div class=\"content\"><div class=\"stag\" style=\"color:#93c5fd;border-color:rgba(59,130,246,.4);background:rgba(59,130,246,.12)\">Nguyên tắc</div>\n<h2 class=\"big\">Test lại từng vấn đề trước khi sang tiếp</h2>\n<div class=\"rule\" style=\"background:#3b82f6\"></div>\n<div style=\"display:flex;flex-direction:column;gap:0;max-width:680px;width:100%;margin-top:28px\">\n  <div style=\"display:flex;gap:16px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.06)\">\n    <div style=\"width:32px;height:32px;border-radius:50%;background:#3b82f6;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:.8rem;flex-shrink:0\">1</div>\n    <div style=\"text-align:left;padding-top:4px\">\n      <div style=\"font-weight:700;color:#93c5fd\">Mô tả vấn đề 1 → Gửi AI</div>\n      <div style=\"font-size:.82rem;color:var(--muted);margin-top:3px\">Nhận code, paste vào app</div>\n    </div>\n  </div>\n  <div style=\"display:flex;gap:16px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.06)\">\n    <div style=\"width:32px;height:32px;border-radius:50%;background:#3b82f6;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:.8rem;flex-shrink:0\">2</div>\n    <div style=\"text-align:left;padding-top:4px\">\n      <div style=\"font-weight:700;color:#93c5fd\">Test lại đúng tình huống vừa sửa ✓</div>\n      <div style=\"font-size:.82rem;color:var(--muted);margin-top:3px\">Chỉ test vấn đề 1 — chưa test tổng</div>\n    </div>\n  </div>\n  <div style=\"display:flex;gap:16px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.06)\">\n    <div style=\"width:32px;height:32px;border-radius:50%;background:#22c55e;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:.8rem;flex-shrink:0\">✓</div>\n    <div style=\"text-align:left;padding-top:4px\">\n      <div style=\"font-weight:700;color:#86efac\">Vấn đề 1 đã xác nhận OK → sang vấn đề 2</div>\n      <div style=\"font-size:.82rem;color:var(--muted);margin-top:3px\">Biết chính xác lần sửa nào fix gì</div>\n    </div>\n  </div>\n  <div style=\"display:flex;gap:16px;padding:14px 0\">\n    <div style=\"width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-weight:800;color:rgba(255,255,255,.3);font-size:.8rem;flex-shrink:0\">↻</div>\n    <div style=\"text-align:left;padding-top:4px\">\n      <div style=\"font-weight:700;color:rgba(255,255,255,.35)\">Lặp lại cho từng vấn đề tiếp theo</div>\n    </div>\n  </div>\n</div></div>"},
+
+{"type":"reflect","color":"#3b82f6","narration":"Checklist cuối Buổi 4. Bốn điều cần xác nhận. Một: app không cho thêm task rỗng hoặc có cảnh báo. Hai: danh sách trống có thông báo thân thiện thay vì khoảng trắng im lặng. Ba: task tên dài không làm vỡ giao diện. Bốn: app dùng được trên điện thoại — nút đủ to, chữ đủ lớn. Đủ 4 là app đã vượt qua ngưỡng chỉ chạy trên mấy bạn sang ngưỡng thật sự dùng được.","html":"<div class=\"bg-color\" style=\"background:#050a18\"></div>\n<div class=\"content\"><div class=\"stag\" style=\"background:rgba(59,130,246,.12);color:#93c5fd;border-color:rgba(59,130,246,.3)\">Checklist cuối buổi</div>\n<h2 class=\"big\">Bạn đã cải thiện được gì?</h2>\n<div class=\"rule\" style=\"background:#3b82f6\"></div>\n<ul style=\"list-style:none;max-width:640px;width:100%;margin-top:24px\">\n  <li style=\"display:flex;align-items:center;gap:14px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:.95rem;color:rgba(255,255,255,.8)\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#3b82f6\" stroke-width=\"2.5\" stroke-linecap=\"round\"><polyline points=\"20 6 9 17 4 12\"/></svg>App không cho thêm task rỗng ✓</li>\n  <li style=\"display:flex;align-items:center;gap:14px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:.95rem;color:rgba(255,255,255,.8)\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#3b82f6\" stroke-width=\"2.5\" stroke-linecap=\"round\"><polyline points=\"20 6 9 17 4 12\"/></svg>Danh sách trống có thông báo thân thiện ✓</li>\n  <li style=\"display:flex;align-items:center;gap:14px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:.95rem;color:rgba(255,255,255,.8)\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#3b82f6\" stroke-width=\"2.5\" stroke-linecap=\"round\"><polyline points=\"20 6 9 17 4 12\"/></svg>Task tên dài không vỡ giao diện ✓</li>\n  <li style=\"display:flex;align-items:center;gap:14px;padding:11px 0;font-size:.95rem;color:rgba(255,255,255,.8)\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#3b82f6\" stroke-width=\"2.5\" stroke-linecap=\"round\"><polyline points=\"20 6 9 17 4 12\"/></svg>App dùng được trên điện thoại ✓</li>\n</ul></div>"},
+
+{"type":"teach","color":"#22d3ee","narration":"Preview Buổi 5 — buổi cuối cùng và cũng là đích đến của cả khóa. App của bạn hiện tại hoàn chỉnh và chạy tốt — nhưng chỉ trên máy bạn. Muốn gửi link cho bạn bè, cho sếp, hay đặt vào CV thì cần một URL thật trên internet. Buổi 5 bạn sẽ deploy app lên Netlify — miễn phí, kéo thả, có URL trong 30 giây. Câu hỏi chuẩn bị: tại sao người khác không vào được localhost:5500 trên máy bạn?","html":"<div class=\"bg-img\" style=\"background-image:url('https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1600&q=80')\"></div>\n<div class=\"content\"><div class=\"stag\" style=\"background:rgba(0,0,0,.5);color:#67e8f9;border-color:rgba(34,211,238,.4)\">Preview — Buổi 5</div>\n<h2 class=\"big\">Buổi 5: Đưa lên mạng — Ra đời</h2>\n<div class=\"rule\" style=\"background:#22d3ee\"></div>\n<p class=\"sub\" style=\"margin-top:18px\">App đang sống trên máy bạn.<br/>Buổi 5 đưa app lên internet — có URL thật trong 30 giây.<br/><strong style=\"color:#67e8f9\">Câu hỏi: Tại sao gửi localhost:5500 cho người khác thì họ không vào được?</strong></p></div>"}
+];
+
+// ── Build deck ────────────────────────────────────────────
+const deck = document.getElementById('deck');
+SLIDES.forEach(s=>{
+  const el = document.createElement('div');
+  el.className = 'slide';
+  el.innerHTML = s.html;
+  deck.appendChild(el);
+});
+const allSlides = deck.querySelectorAll('.slide');
+
+// ── State ─────────────────────────────────────────────────
+let cur = 0;
+let autoMode = false;
+let speaking = false;
+let audioSrc = null;
+let voiceRate = parseFloat(localStorage.getItem('b4_rate') || '0.9');
+let qAnswered = false;
+let qState = null;
+let qThinkTimer = null;
+let qFallbackTimer = null;
+let speakGen = 0;
+let slideMinTimer = null;
+
+const FPT_KEY = 'XNZzpBQVWhTOCRc7MhOGbezPQznkhNew';
+const FPT_VOICE = 'banmai';
+
+// ── Settings ──────────────────────────────────────────────
+const settingsBtn = document.getElementById('settings-btn');
+const settingsPanel = document.getElementById('settings-panel');
+const sClose = document.getElementById('s-close');
+const sRate = document.getElementById('s-rate');
+const sRateVal = document.getElementById('s-rate-val');
+const sSave = document.getElementById('s-save');
+const sTest = document.getElementById('s-test');
+
+sRate.value = voiceRate;
+sRateVal.textContent = voiceRate.toFixed(2)+'×';
+
+sRate.addEventListener('input', ()=>{
+  voiceRate = +sRate.value;
+  sRateVal.textContent = voiceRate.toFixed(2)+'×';
+});
+settingsBtn.onclick = ()=>settingsPanel.classList.toggle('open');
+sClose.onclick = ()=>settingsPanel.classList.remove('open');
+sSave.onclick = ()=>{
+  voiceRate = +sRate.value;
+  localStorage.setItem('b4_rate', voiceRate);
+  settingsPanel.classList.remove('open');
+};
+sTest.onclick = ()=>speak('Xin chào! Đây là giọng Ban Mai, tốc độ ' + voiceRate.toFixed(1) + ' lần.');
+
+// ── Voice ─────────────────────────────────────────────────
+const vPlay = document.getElementById('v-play');
+const icoPlay = document.getElementById('ico-play');
+const icoPause = document.getElementById('ico-pause');
+const vScript = document.getElementById('v-script');
+const vlBar = document.getElementById('vl');
+
+function stopVoice(){
+  speakGen++;
+  if(audioSrc){ audioSrc.pause(); audioSrc = null; }
+  speaking = false;
+  vPlay.classList.remove('playing');
+  icoPlay.style.display = '';
+  icoPause.style.display = 'none';
+  vlBar.style.width = '0';
+  qState = null;
+  if(qThinkTimer){ clearInterval(qThinkTimer); qThinkTimer = null; }
+  if(qFallbackTimer){ clearTimeout(qFallbackTimer); qFallbackTimer = null; }
+  if(slideMinTimer){ clearTimeout(slideMinTimer); slideMinTimer = null; }
+  const cdEl = document.getElementById('q-countdown');
+  const cbEl = document.getElementById('q-cbar-wrap');
+  if(cdEl) cdEl.style.display = 'none';
+  if(cbEl) cbEl.style.display = 'none';
+}
+
+async function speakFPT(text, gen){
+  try{
+    const resp = await fetch('https://api.fpt.ai/hmi/tts/v5',{
+      method:'POST',
+      headers:{'api-key':FPT_KEY,'speed':'','voice':FPT_VOICE},
+      body:text
+    });
+    if(gen !== speakGen) return false;
+    if(!resp.ok){ console.warn('FPT TTS error',resp.status); return false; }
+    const data = await resp.json();
+    if(gen !== speakGen) return false;
+    if(!data.async){ console.warn('FPT no audio URL'); return false; }
+    audioSrc = new Audio(data.async);
+    const estMs = (text.length * 65) / Math.max(0.5, voiceRate);
+    let start = null;
+    function tick(ts){
+      if(!speaking||!audioSrc||gen!==speakGen) return;
+      if(!start) start = ts;
+      vlBar.style.width = Math.min(100,((ts-start)/estMs)*100)+'%';
+      if(speaking) requestAnimationFrame(tick);
+    }
+    audioSrc.onplay = ()=>{ speaking=true; requestAnimationFrame(tick); };
+    audioSrc.onended = audioSrc.onerror = ()=>{ if(gen===speakGen) onSpeakEnd(); };
+    await audioSrc.play();
+    return true;
+  }catch(e){ console.warn('FPT TTS failed',e); return false; }
+}
+
+function speakSysFallback(text, gen){
+  // fallback if FPT fails - silent fallback, just mark done
+  console.warn('All TTS failed, skipping narration');
+  speaking = false;
+  vPlay.classList.remove('playing');
+  icoPlay.style.display = '';
+  icoPause.style.display = 'none';
+  if(gen===speakGen) onSpeakEnd();
+}
+
+function onSpeakEnd(){
+  speaking = false;
+  audioSrc = null;
+  vPlay.classList.remove('playing');
+  icoPlay.style.display = '';
+  icoPause.style.display = 'none';
+  setTimeout(()=>vlBar.style.width='0', 600);
+  if(qState === 'reading_feedback'){
+    if(qFallbackTimer){ clearTimeout(qFallbackTimer); qFallbackTimer = null; }
+    qState = null;
+    qPanel.classList.remove('show');
+    setTimeout(()=>go(cur+1, autoMode), 700);
+    return;
+  }
+  if(!autoMode) return;
+  if(qState === 'reading') startAutoCountdown();
+  else onAutoSpeakDone();
+}
+
+async function speak(text){
+  stopVoice();
+  if(!text) return;
+  const gen = speakGen;
+  vScript.textContent = text;
+  speaking = true;
+  vPlay.classList.add('playing');
+  icoPlay.style.display = 'none';
+  icoPause.style.display = '';
+  const ok = await speakFPT(text, gen);
+  if(gen !== speakGen) return;
+  if(!ok) speakSysFallback(text, gen);
+}
+
+function onAutoSpeakDone(){
+  slideMinTimer = setTimeout(()=>{ slideMinTimer=null; if(autoMode) go(cur+1, true); }, speaking?900:2500);
+}
+
+function startAutoCountdown(){
+  qState = 'countdown';
+  let secs = 4;
+  const cdEl = document.getElementById('q-countdown');
+  const cbWrap = document.getElementById('q-cbar-wrap');
+  const cbFill = document.getElementById('q-cbar-fill');
+  if(cdEl){ cdEl.textContent='⏳ Suy nghĩ... '+secs+'s'; cdEl.style.display='block'; }
+  if(cbWrap) cbWrap.style.display='block';
+  if(cbFill){ cbFill.style.transition='none'; cbFill.style.width='100%'; setTimeout(()=>{ cbFill.style.transition='width '+secs+'s linear'; cbFill.style.width='0%'; },60); }
+  qThinkTimer = setInterval(()=>{
+    secs--;
+    if(cdEl) cdEl.textContent = secs>0?('⏳ Suy nghĩ... '+secs+'s'):'✨ Xem đáp án...';
+    if(secs<=0){ clearInterval(qThinkTimer); qThinkTimer=null; if(cdEl) cdEl.style.display='none'; if(cbWrap) cbWrap.style.display='none'; autoRevealAnswer(); }
+  },1000);
+}
+
+function autoRevealAnswer(){
+  if(!autoMode) return;
+  const s = SLIDES[cur];
+  if(!s||s.type!=='question') return;
+  qAnswered = true;
+  const correctIdx = s.options.findIndex(o=>o.correct);
+  qOpts.querySelectorAll('.q-opt').forEach(b=>{ b.disabled=true; });
+  const btns = qOpts.querySelectorAll('.q-opt');
+  if(btns[correctIdx]) btns[correctIdx].classList.add('correct');
+  const opt = s.options[correctIdx];
+  qFeedback.innerHTML = '<strong style="color:#60a5fa">✅ Đáp án đúng:</strong> '+opt.feedback;
+  qFeedback.classList.add('show');
+  qContinue.className = 'b-btn';
+  qState = 'reading_feedback';
+  speak(opt.feedback);
+  if(qFallbackTimer) clearTimeout(qFallbackTimer);
+  qFallbackTimer = setTimeout(()=>{ if(qState==='reading_feedback'){ qState=null; qPanel.classList.remove('show'); go(cur+1,true); } },8000);
+}
+
+vPlay.onclick = ()=>{ speaking ? stopVoice() : speak(SLIDES[cur].narration); };
+
+// ── AUTO ──────────────────────────────────────────────────
+const vAuto = document.getElementById('v-auto');
+vAuto.onclick = ()=>{
+  autoMode = !autoMode;
+  vAuto.classList.toggle('on', autoMode);
+  if(autoMode){
+    const s = SLIDES[cur];
+    if(s.type==='question') showQPanel(s);
+    else speak(s.narration);
+  } else {
+    stopVoice();
+    qPanel.classList.remove('show');
+  }
+};
+
+// ── Q Panel ───────────────────────────────────────────────
+const qPanel = document.getElementById('q-panel');
+const qText = document.getElementById('q-text');
+const qOpts = document.getElementById('q-opts');
+const qFeedback = document.getElementById('q-feedback');
+const qContinue = document.getElementById('q-continue');
+
+function showQPanel(s){
+  qAnswered = false;
+  qState = autoMode ? 'reading' : null;
+  if(qThinkTimer){ clearInterval(qThinkTimer); qThinkTimer=null; }
+  const cdEl=document.getElementById('q-countdown'); const cbEl=document.getElementById('q-cbar-wrap');
+  if(cdEl) cdEl.style.display='none'; if(cbEl) cbEl.style.display='none';
+  qText.textContent = s.question;
+  qOpts.innerHTML = '';
+  qFeedback.className = '';
+  qFeedback.textContent = '';
+  qContinue.className = 'b-btn';
+  const labels = ['A','B','C','D'];
+  s.options.forEach((opt,i)=>{
+    const btn = document.createElement('button');
+    btn.className = 'q-opt';
+    btn.innerHTML = `<span class="opt-num">${labels[i]}</span><span>${opt.text}</span>`;
+    btn.onclick = ()=>{
+      if(qAnswered) return;
+      if(qThinkTimer){ clearInterval(qThinkTimer); qThinkTimer=null; }
+      const cd=document.getElementById('q-countdown'); const cb=document.getElementById('q-cbar-wrap');
+      if(cd) cd.style.display='none'; if(cb) cb.style.display='none';
+      qAnswered = true;
+      qOpts.querySelectorAll('.q-opt').forEach(b=>{ b.disabled=true; });
+      btn.classList.add(opt.correct ? 'correct' : 'wrong');
+      if(!opt.correct) qOpts.querySelectorAll('.q-opt')[s.options.findIndex(o=>o.correct)].classList.add('correct');
+      const icon = opt.correct ? '✅' : '💡';
+      qFeedback.innerHTML = `<strong style="color:${opt.correct?'#60a5fa':'#fbbf24'}">${icon} ${opt.correct?'Chính xác!':'Chưa đúng —'}</strong> ${opt.feedback}`;
+      qFeedback.classList.add('show');
+      qContinue.style.background = opt.correct ? '#3b82f6' : '#f77f00';
+      qContinue.style.color = '#fff';
+      qContinue.classList.add('show');
+      qState = 'reading_feedback';
+      speak(opt.feedback);
+      if(qFallbackTimer) clearTimeout(qFallbackTimer);
+      qFallbackTimer = setTimeout(()=>{ if(qState==='reading_feedback'){ qState=null; qPanel.classList.remove('show'); go(cur+1,true); } },8000);
+    };
+    qOpts.appendChild(btn);
+  });
+  qPanel.classList.add('show');
+  speak(s.narration || s.question);
+}
+
+qContinue.onclick = ()=>{
+  if(qFallbackTimer){ clearTimeout(qFallbackTimer); qFallbackTimer=null; }
+  qState = null;
+  stopVoice();
+  qPanel.classList.remove('show');
+  setTimeout(()=> autoMode ? go(cur+1,true) : go(cur+1), 200);
+};
+
+// ── Navigation ────────────────────────────────────────────
+const prog = document.getElementById('prog');
+const counter = document.getElementById('counter');
+
+function go(idx, fromAuto){
+  if(idx<0||idx>=SLIDES.length) return;
+  if(!fromAuto){
+    stopVoice();
+    qPanel.classList.remove('show');
+    autoMode = false;
+    vAuto.classList.remove('on');
+  }
+  const prev = cur;
+  if(prev !== idx){
+    allSlides[prev].className = 'slide out';
+    setTimeout(()=>{ if(allSlides[prev]) allSlides[prev].className='slide'; },400);
+  }
+  allSlides[idx].className = 'slide active';
+  cur = idx;
+  prog.style.width = (cur/(SLIDES.length-1)*100)+'%';
+  prog.style.background = SLIDES[cur].color || '#3b82f6';
+  counter.textContent = (cur+1)+'/'+SLIDES.length;
+  vScript.textContent = SLIDES[cur].narration || '(Không có thuyết minh)';
+  const s=SLIDES[cur];
+  if(s.type==='question') setTimeout(()=>showQPanel(s),350);
+  else if(fromAuto) speak(s.narration);
+}
+
+document.getElementById('nav-next').onclick = ()=>go(cur+1);
+document.getElementById('nav-prev').onclick = ()=>go(cur-1);
+
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT'||e.target.tagName==='TEXTAREA') return;
+  if(e.key==='ArrowRight'||e.key==='ArrowDown'||e.key===' '){ e.preventDefault(); go(cur+1); }
+  if(e.key==='ArrowLeft'||e.key==='ArrowUp'){ e.preventDefault(); go(cur-1); }
+  if(e.key==='v'||e.key==='V'){ speaking ? stopVoice() : speak(SLIDES[cur].narration); }
+  if(e.key==='a'||e.key==='A'){ vAuto.click(); }
+  if(e.key==='Home') go(0);
+  if(e.key==='End') go(SLIDES.length-1);
+  if(e.key==='Escape'){ qPanel.classList.remove('show'); stopVoice(); autoMode=false; vAuto.classList.remove('on'); }
+});
+
+let tx=0;
+document.addEventListener('touchstart',e=>tx=e.touches[0].clientX,{passive:true});
+document.addEventListener('touchend',e=>{ const dx=e.changedTouches[0].clientX-tx; if(Math.abs(dx)>55) go(dx<0?cur+1:cur-1); },{passive:true});
+
+// ── Init ──────────────────────────────────────────────────
+go(0);
+setTimeout(()=>document.getElementById('hint').style.opacity='0',5000);
+</script>
+</body>
+</html>
