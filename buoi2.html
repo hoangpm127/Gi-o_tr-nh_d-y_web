@@ -88,6 +88,26 @@ h2.big{font-size:clamp(1.6rem,3.2vw,2.8rem);font-weight:900;line-height:1.15;col
 #counter{font-size:.74rem;color:rgba(255,255,255,.22);font-weight:600;flex-shrink:0;white-space:nowrap}
 #hint{position:fixed;bottom:92px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,.16);font-size:.69rem;letter-spacing:.8px;z-index:300;pointer-events:none;transition:opacity .8s;white-space:nowrap}
 #vl{position:absolute;top:0;left:0;height:2px;background:#f77f00;transition:width .3s linear;z-index:1}
+/* ── Mobile responsive ─────────────────────────────────── */
+@media(max-width:600px){
+  .content{padding:20px 16px 28px}
+  .compare{grid-template-columns:1fr!important}
+  .content>div[style*="grid-template-columns"]{grid-template-columns:1fr!important}
+  #q-panel{padding:18px 14px;bottom:64px}
+  #q-text{font-size:clamp(.95rem,4.5vw,1.3rem)}
+  .q-opt{font-size:.85rem;padding:11px 14px}
+  #settings-panel{width:calc(100vw - 20px);right:10px;left:10px;bottom:72px}
+  #bar{height:64px}
+  #deck{bottom:64px}
+  #bar-center{display:none}
+  #hint{display:none}
+  #nav-prev,#nav-next{display:none}
+  .cards{gap:10px}
+  .card{min-width:140px;padding:14px}
+  h1.huge{font-size:clamp(1.9rem,8vw,3rem)}
+  h2.big{font-size:clamp(1.3rem,6vw,2rem)}
+  .sub{font-size:clamp(.85rem,3.5vw,1rem)}
+}
 </style>
 </head>
 <body>
@@ -240,48 +260,48 @@ const vScript = document.getElementById('v-script');
 const vlBar = document.getElementById('vl');
 
 const TTS_PRELOAD = {
-  'Chào mừng bạn đến với Buổi 2 của Web Builder Foundation. Buổi 1 bạn đã xây được giao diện Ứng dụng Quản Lý Công Việc — header, ô nhập, danh sách task. Đẹp, nhưng chết. Bấm Add không thêm được. Tick không tick được. Xóa không xóa được. Hôm nay chúng ta thêm tầng thứ hai: Logic — JavaScript. Cuối buổi, app sẽ hoạt động đầy đủ: thêm, tick, và xóa task.': 'audio/buoi2/tts_000.mp3',
-  'Trước khi học, hãy tự suy nghĩ. Khi bấm nút Add trong Ứng dụng Quản Lý Công Việc, chuyện gì cần xảy ra theo đúng thứ tự? Hãy chọn câu trả lời mô tả chính xác nhất trình tự logic.': 'audio/buoi2/tts_001.mp3',
-  'Gần đúng về ý tưởng, nhưng chúng ta chưa có database! Database là Buổi 3. Ở Buổi 2, dữ liệu sống trong bộ nhớ tạm của trình duyệt — đủ để hoạt động, chưa lâu bền.': 'audio/buoi2/tts_002.mp3',
-  'Chính xác! Đây là 4 bước của mọi thao tác Add: (1) Đọc input. (2) Cập nhật dữ liệu trong bộ nhớ. (3) Vẽ lại giao diện. (4) Reset ô nhập. Đây chính là vòng lặp cốt lõi của mọi app tương tác.': 'audio/buoi2/tts_003.mp3',
-  'Reload trang là cách làm của web cũ. App hiện đại cập nhật giao diện mà không cần reload — đó là lý do JavaScript ra đời. Chỉ phần cần thay đổi được vẽ lại.': 'audio/buoi2/tts_004.mp3',
-  'CSS quy định giao diện trông như thế nào, không quyết định dữ liệu gì xuất hiện. Để thêm task mới, cần JavaScript tạo ra phần tử HTML mới và đưa vào trang.': 'audio/buoi2/tts_005.mp3',
-  'Đây là Mô hình tư duy số 2 của khóa học. App không phải là thứ tĩnh — app là vòng lặp liên tục giữa người dùng và dữ liệu. Giao diện chỉ là tấm gương: nó phản chiếu đúng những gì đang có trong bộ nhớ. Dữ liệu thay đổi — gương phải được cập nhật. Không có gì tự xảy ra nếu không có lệnh.': 'audio/buoi2/tts_006.mp3',
-  'Trạng thái trông như thế nào? Hãy tưởng tượng có một hộp nhớ vô hình trong trình duyệt. String nằm trong hộp đó là danh sách task — mỗi task là một mục. Khi bạn thêm task, hộp nhớ có thêm 1 mục. Khi bạn xóa, hộp nhớ mất 1 mục. Giao diện chỉ là bản hiển thị của hộp nhớ đó. Hai thứ phải đồng bộ liên tục.': 'audio/buoi2/tts_007.mp3',
-  'Câu hỏi tư duy. Giả sử JavaScript đã thêm task mới vào hộp nhớ thành công, nhưng quên gọi lệnh vẽ lại giao diện. Điều gì xảy ra với người dùng?': 'audio/buoi2/tts_008.mp3',
-  'Không đúng. Giao diện không tự cập nhật. Nó chỉ thay đổi khi có lệnh vẽ lại. Hộp nhớ và màn hình là hai thứ riêng biệt.': 'audio/buoi2/tts_009.mp3',
-  'Chính xác! Đây là lỗi rất phổ biến khi mới học: dữ liệu đã cập nhật đúng nhưng quên vẽ lại giao diện. Người dùng thấy màn hình im lặng — nhưng reload trang thì task xuất hiện. Hiểu điều này sẽ giúp bạn debug nhanh hơn rất nhiều.': 'audio/buoi2/tts_010.mp3',
-  'App không dừng. Nó vẫn chạy bình thường — chỉ là giao diện chưa được cập nhật. Đây không phải crash, đây là thiếu lệnh render.': 'audio/buoi2/tts_011.mp3',
-  'Hộp nhớ không tự xóa dữ liệu. Task vẫn còn đó — chỉ là giao diện chưa được lệnh hiển thị nó. Reload trang sẽ thấy (trong buổi này, vì chưa lưu lâu dài).': 'audio/buoi2/tts_012.mp3',
-  'Vòng lặp của mọi app tương tác gồm 3 bước lặp đi lặp lại liên tục. Bước 1: Hành động — người dùng làm gì đó: bấm, gõ, tick, xóa. Bước 2: Cập nhật trạng thái — JavaScript thay đổi dữ liệu trong hộp nhớ tương ứng. Bước 3: Vẽ lại giao diện — JavaScript lệnh cho trình duyệt hiển thị lại danh sách theo dữ liệu mới. Rồi người dùng lại hành động tiếp. Vòng tròn này là trái tim của mọi app.': 'audio/buoi2/tts_013.mp3',
-  'Câu hỏi kiểm tra. Ứng dụng Quản Lý Công Việc của chúng ta có 3 hành động chính người dùng thực hiện. Đâu là đúng 3 hành động đó?': 'audio/buoi2/tts_014.mp3',
-  'Đây là hành động của app xác thực người dùng, không phải quản lý task. Ứng dụng Quản Lý Công Việc đơn giản không cần đăng nhập ở giai đoạn này.': 'audio/buoi2/tts_015.mp3',
-  'Chính xác! Ba hành động này tạo thành bộ CRUD đơn giản: Create (thêm), Update (tick), Delete (xóa). Mỗi hành động kích hoạt 1 vòng lặp 3 bước. Buổi 2 chúng ta build đủ cả 3.': 'audio/buoi2/tts_016.mp3',
-  'Đây là tính năng nâng cao — hay có ở app lớn hơn. Ứng dụng Quản Lý Công Việc cơ bản chỉ cần thêm, tick, và xóa. Đây là phiên bản tối giản đủ để học cấu trúc.': 'audio/buoi2/tts_017.mp3',
-  'Đây là tính năng mạng xã hội. Chúng ta đang xây ứng dụng quản lý công việc cá nhân — chỉ cần 3 thao tác cơ bản: thêm, tick, xóa.': 'audio/buoi2/tts_018.mp3',
-  'Buổi 1, bạn đã biết 5 yếu tố của yêu cầu tốt cho AI. Buổi 2 chúng ta thêm yếu tố thứ 6: mô tả hành vi. Mô tả hành vi nghĩa là nói cho AI biết điều gì xảy ra khi người dùng làm một việc gì đó. Công thức là: Khi người dùng làm X, trạng thái Y thay đổi như thế nào, và giao diện Z phải hiển thị gì. Không cần nói đến code. Chỉ cần mô tả đúng trải nghiệm người dùng.': 'audio/buoi2/tts_019.mp3',
-  'So sánh yêu cầu buổi 1 và buổi 2 cho cùng một app. Buổi 1 bạn mô tả giao diện: trông như thế nào, màu gì, layout ra sao. Buổi 2 bạn mô tả hành vi: khi làm gì thì chuyện gì xảy ra. Cùng 1 app, 2 loại yêu cầu bổ sung cho nhau. Cả 2 đều cần thiết — thiếu 1 trong 2 thì sản phẩm không hoàn chỉnh.': 'audio/buoi2/tts_020.mp3',
-  'Bài kiểm tra kỹ năng. Bạn cần AI thêm chức năng Add task vào app. Yêu cầu nào sau đây sẽ cho AI đủ thông tin để làm đúng ngay lần đầu?': 'audio/buoi2/tts_021.mp3',
-  'Quá mơ hồ. Hoạt động nghĩa là gì? Hiện thông báo? Thêm vào list? Clear ô nhập? AI cần biết cụ thể kết quả mong muốn. Thiếu mô tả hành vi → AI tự đoán → sai một nửa.': 'audio/buoi2/tts_022.mp3',
-  'Hoàn hảo! Yêu cầu này có đủ: (1) Ngữ cảnh — file đã có. (2) Sự kiện — khi bấm Add. (3) Hành động từng bước — lấy text, thêm vào list, xóa ô nhập, vẽ lại. (4) Điều kiện biên — ô trống thì bỏ qua. AI có đủ thông tin để code đúng.': 'audio/buoi2/tts_023.mp3',
-  'Gần đúng hơn nhưng vẫn thiếu: không nói đến file đang có (AI không biết cấu trúc HTML), không có điều kiện biên (ô trống), không rõ danh sách đang được render thế nào. AI sẽ viết code generic có thể không khớp.': 'audio/buoi2/tts_024.mp3',
-  'Quá kỹ thuật và thiếu mô tả hành vi. Bạn đang nói đến cách làm (event handler) thay vì mô tả kết quả mong muốn. Hãy mô tả trải nghiệm người dùng — AI sẽ tự biết cách dùng event listener.': 'audio/buoi2/tts_025.mp3',
-  'Đến giờ thực hành. Mở file index.html bạn đã làm từ Buổi 1. Sau đó mở ChatGPT, Claude, hoặc Gemini và gửi yêu cầu theo prompt mẫu này. Đọc lướt qua kết quả AI trả về để nhận ra 3 phần chính trước khi paste vào file. Lưu file, xem trình duyệt tự động cập nhật, và thử thêm vài task để kiểm tra.': 'audio/buoi2/tts_026.mp3',
-  'Bây giờ khi bạn nhìn vào code AI vừa tạo, có thể nó trông phức tạp. Nhưng mọi JavaScript làm việc với giao diện đều chỉ gồm 4 mảnh ghép. Mảnh 1: Hộp nhớ — nơi lưu danh sách task. Mảnh 2: Lắng nghe hành động — đợi người dùng bấm, gõ, click. Mảnh 3: Cập nhật hộp nhớ — thêm vào, xóa đi, đổi trạng thái. Mảnh 4: Vẽ lại giao diện — hiển thị hộp nhớ lên màn hình. Tìm được 4 mảnh này trong bất kỳ code nào — bạn sẽ hiểu được bất kỳ app nào.': 'audio/buoi2/tts_027.mp3',
-  'Câu hỏi để kiểm tra bạn đã hiểu 4 mảnh ghép chưa. Nhìn vào app đang chạy của bạn — khi bạn bấm nút Add thành công, giai đoạn nào chịu trách nhiệm hiển thị task mới lên màn hình?': 'audio/buoi2/tts_028.mp3',
-  'Lắng nghe chỉ phát hiện rằng bạn đã bấm — nó không tự mình làm bất cứ điều gì khác. Sau khi nhận sự kiện, nó gọi các mảnh khác xử lý.': 'audio/buoi2/tts_029.mp3',
-  'Đúng! Mảnh Vẽ lại đọc danh sách trong hộp nhớ và tạo ra HTML tương ứng để trình duyệt hiển thị. Mỗi khi hộp nhớ thay đổi, phải gọi Vẽ lại để màn hình đồng bộ.': 'audio/buoi2/tts_030.mp3',
-  'Cập nhật chịu trách nhiệm thay đổi dữ liệu trong hộp nhớ, không phải hiển thị. Sau khi Cập nhật xong, phải gọi thêm Vẽ lại thì màn hình mới thay đổi.': 'audio/buoi2/tts_031.mp3',
-  'Hộp nhớ là nơi lưu dữ liệu, không phải nơi hiển thị. Nó giống ngăn kéo chứa đồ — bạn cần ai đó lấy ra và trưng bày. Mảnh Vẽ lại đóng vai trò đó.': 'audio/buoi2/tts_032.mp3',
-  'Bây giờ học kỹ năng quan trọng nhất khi dùng AI để build app: mô tả lỗi đúng cách. Khi app không hoạt động như mong muốn, nhiều người chỉ nói với AI \'bị lỗi rồi, sửa giúp\'. AI không biết lỗi gì, không biết bạn đang làm gì, không biết bạn mong muốn gì. Kết quả là AI đoán và sửa sai. Công thức đúng gồm 3 phần: Đang làm gì, mong đợi gì, thực tế là gì.': 'audio/buoi2/tts_033.mp3',
-  'Thực hành nhận dạng. Bạn đang build app và gặp lỗi: bấm Delete nhưng task không biến mất. Mô tả lỗi nào sau đây sẽ giúp AI sửa đúng nhất?': 'audio/buoi2/tts_034.mp3',
-  'AI không có ngữ cảnh gì. Lỗi gì? Ở đâu? Làm thế nào để tái hiện? Câu này bằng như không nói. AI sẽ đoán lung tung và sửa sai nhiều hơn đúng.': 'audio/buoi2/tts_035.mp3',
-  'Xuất sắc! Ba phần đủ: (1) Đang làm gì — bấm Delete task đầu tiên. (2) Mong đợi gì — task biến mất. (3) Thực tế là gì — vẫn còn trên màn hình. AI có thể ngay lập tức xác định vấn đề: có thể mảnh Vẽ lại không được gọi sau khi xóa, hoặc id task không khớp.': 'audio/buoi2/tts_036.mp3',
-  'Này giả định AI biết đây là vấn đề code. Nhưng AI cần biết hành vi người dùng: bạn làm gì, mong đợi gì, thấy gì. Mô tả triệu chứng, không chẩn đoán nguyên nhân — AI sẽ chuẩn đoán giỏi hơn bạn.': 'audio/buoi2/tts_037.mp3',
-  'Quá chung chung. JavaScript không chạy đúng ở đâu? Click cái gì? Kết quả mong muốn là gì? AI cần đủ chi tiết để khoanh vùng vấn đề. Mô tả theo góc nhìn người dùng luôn tốt hơn.': 'audio/buoi2/tts_038.mp3',
-  'Checklist cuối buổi. Kiểm tra 5 điều. Một: bấm Add — task mới xuất hiện đúng vị trí trong danh sách. Hai: ô nhập tự trống sau khi Add. Ba: bấm ô tích — task chuyển sang gạch ngang. Bốn: bấm Delete — task biến mất ngay lập tức. Năm: bạn có thể tìm ra 4 mảnh ghép trong code AI đã tạo: hộp nhớ, lắng nghe, cập nhật, vẽ lại. Tất cả đạt? Buổi 2 thành công.': 'audio/buoi2/tts_039.mp3',
-  'App của bạn giờ đã sống thật sự — thêm, tick, xóa đều hoạt động. Nhưng thử làm điều này: reload trang trình duyệt. Tất cả task biến mất. Logic lưu dữ liệu trong RAM — bộ nhớ tạm thời. Khi tab đóng hoặc trang reload, RAM bị xóa sạch. Dữ liệu bay theo. Đây là vấn đề của Buổi 3.': 'audio/buoi2/tts_040.mp3',
-  'Preview Buổi 3: chúng ta sẽ học về kho lưu của trình duyệt — một ngăn kéo nhỏ ngay trong trình duyệt, không cần server, không cần database phức tạp. Dữ liệu tắt máy vẫn còn. Câu hỏi để suy nghĩ trước: nếu không có server, dữ liệu lưu ở đâu? Hẹn bạn ở Buổi 3.': 'audio/buoi2/tts_041.mp3',
+  'Chào mừng bạn đến với Buổi 2 của Web Builder Foundation. Buổi 1 bạn đã xây được giao diện Ứng dụng Quản Lý Công Việc — header, ô nhập, danh sách task. Đẹp, nhưng chết. Bấm Add không thêm được. Tick không tick được. Xóa không xóa được. Hôm nay chúng ta thêm tầng thứ hai: Logic — JavaScript. Cuối buổi, app sẽ hoạt động đầy đủ: thêm, tick, và xóa task.': 'audio/buoi2/tts_000.wav',
+  'Trước khi học, hãy tự suy nghĩ. Khi bấm nút Add trong Ứng dụng Quản Lý Công Việc, chuyện gì cần xảy ra theo đúng thứ tự? Hãy chọn câu trả lời mô tả chính xác nhất trình tự logic.': 'audio/buoi2/tts_001.wav',
+  'Gần đúng về ý tưởng, nhưng chúng ta chưa có database! Database là Buổi 3. Ở Buổi 2, dữ liệu sống trong bộ nhớ tạm của trình duyệt — đủ để hoạt động, chưa lâu bền.': 'audio/buoi2/tts_002.wav',
+  'Chính xác! Đây là 4 bước của mọi thao tác Add: (1) Đọc input. (2) Cập nhật dữ liệu trong bộ nhớ. (3) Vẽ lại giao diện. (4) Reset ô nhập. Đây chính là vòng lặp cốt lõi của mọi app tương tác.': 'audio/buoi2/tts_003.wav',
+  'Reload trang là cách làm của web cũ. App hiện đại cập nhật giao diện mà không cần reload — đó là lý do JavaScript ra đời. Chỉ phần cần thay đổi được vẽ lại.': 'audio/buoi2/tts_004.wav',
+  'CSS quy định giao diện trông như thế nào, không quyết định dữ liệu gì xuất hiện. Để thêm task mới, cần JavaScript tạo ra phần tử HTML mới và đưa vào trang.': 'audio/buoi2/tts_005.wav',
+  'Đây là Mô hình tư duy số 2 của khóa học. App không phải là thứ tĩnh — app là vòng lặp liên tục giữa người dùng và dữ liệu. Giao diện chỉ là tấm gương: nó phản chiếu đúng những gì đang có trong bộ nhớ. Dữ liệu thay đổi — gương phải được cập nhật. Không có gì tự xảy ra nếu không có lệnh.': 'audio/buoi2/tts_006.wav',
+  'Trạng thái trông như thế nào? Hãy tưởng tượng có một hộp nhớ vô hình trong trình duyệt. String nằm trong hộp đó là danh sách task — mỗi task là một mục. Khi bạn thêm task, hộp nhớ có thêm 1 mục. Khi bạn xóa, hộp nhớ mất 1 mục. Giao diện chỉ là bản hiển thị của hộp nhớ đó. Hai thứ phải đồng bộ liên tục.': 'audio/buoi2/tts_007.wav',
+  'Câu hỏi tư duy. Giả sử JavaScript đã thêm task mới vào hộp nhớ thành công, nhưng quên gọi lệnh vẽ lại giao diện. Điều gì xảy ra với người dùng?': 'audio/buoi2/tts_008.wav',
+  'Không đúng. Giao diện không tự cập nhật. Nó chỉ thay đổi khi có lệnh vẽ lại. Hộp nhớ và màn hình là hai thứ riêng biệt.': 'audio/buoi2/tts_009.wav',
+  'Chính xác! Đây là lỗi rất phổ biến khi mới học: dữ liệu đã cập nhật đúng nhưng quên vẽ lại giao diện. Người dùng thấy màn hình im lặng — nhưng reload trang thì task xuất hiện. Hiểu điều này sẽ giúp bạn debug nhanh hơn rất nhiều.': 'audio/buoi2/tts_010.wav',
+  'App không dừng. Nó vẫn chạy bình thường — chỉ là giao diện chưa được cập nhật. Đây không phải crash, đây là thiếu lệnh render.': 'audio/buoi2/tts_011.wav',
+  'Hộp nhớ không tự xóa dữ liệu. Task vẫn còn đó — chỉ là giao diện chưa được lệnh hiển thị nó. Reload trang sẽ thấy (trong buổi này, vì chưa lưu lâu dài).': 'audio/buoi2/tts_012.wav',
+  'Vòng lặp của mọi app tương tác gồm 3 bước lặp đi lặp lại liên tục. Bước 1: Hành động — người dùng làm gì đó: bấm, gõ, tick, xóa. Bước 2: Cập nhật trạng thái — JavaScript thay đổi dữ liệu trong hộp nhớ tương ứng. Bước 3: Vẽ lại giao diện — JavaScript lệnh cho trình duyệt hiển thị lại danh sách theo dữ liệu mới. Rồi người dùng lại hành động tiếp. Vòng tròn này là trái tim của mọi app.': 'audio/buoi2/tts_013.wav',
+  'Câu hỏi kiểm tra. Ứng dụng Quản Lý Công Việc của chúng ta có 3 hành động chính người dùng thực hiện. Đâu là đúng 3 hành động đó?': 'audio/buoi2/tts_014.wav',
+  'Đây là hành động của app xác thực người dùng, không phải quản lý task. Ứng dụng Quản Lý Công Việc đơn giản không cần đăng nhập ở giai đoạn này.': 'audio/buoi2/tts_015.wav',
+  'Chính xác! Ba hành động này tạo thành bộ CRUD đơn giản: Create (thêm), Update (tick), Delete (xóa). Mỗi hành động kích hoạt 1 vòng lặp 3 bước. Buổi 2 chúng ta build đủ cả 3.': 'audio/buoi2/tts_016.wav',
+  'Đây là tính năng nâng cao — hay có ở app lớn hơn. Ứng dụng Quản Lý Công Việc cơ bản chỉ cần thêm, tick, và xóa. Đây là phiên bản tối giản đủ để học cấu trúc.': 'audio/buoi2/tts_017.wav',
+  'Đây là tính năng mạng xã hội. Chúng ta đang xây ứng dụng quản lý công việc cá nhân — chỉ cần 3 thao tác cơ bản: thêm, tick, xóa.': 'audio/buoi2/tts_018.wav',
+  'Buổi 1, bạn đã biết 5 yếu tố của yêu cầu tốt cho AI. Buổi 2 chúng ta thêm yếu tố thứ 6: mô tả hành vi. Mô tả hành vi nghĩa là nói cho AI biết điều gì xảy ra khi người dùng làm một việc gì đó. Công thức là: Khi người dùng làm X, trạng thái Y thay đổi như thế nào, và giao diện Z phải hiển thị gì. Không cần nói đến code. Chỉ cần mô tả đúng trải nghiệm người dùng.': 'audio/buoi2/tts_019.wav',
+  'So sánh yêu cầu buổi 1 và buổi 2 cho cùng một app. Buổi 1 bạn mô tả giao diện: trông như thế nào, màu gì, layout ra sao. Buổi 2 bạn mô tả hành vi: khi làm gì thì chuyện gì xảy ra. Cùng 1 app, 2 loại yêu cầu bổ sung cho nhau. Cả 2 đều cần thiết — thiếu 1 trong 2 thì sản phẩm không hoàn chỉnh.': 'audio/buoi2/tts_020.wav',
+  'Bài kiểm tra kỹ năng. Bạn cần AI thêm chức năng Add task vào app. Yêu cầu nào sau đây sẽ cho AI đủ thông tin để làm đúng ngay lần đầu?': 'audio/buoi2/tts_021.wav',
+  'Quá mơ hồ. Hoạt động nghĩa là gì? Hiện thông báo? Thêm vào list? Clear ô nhập? AI cần biết cụ thể kết quả mong muốn. Thiếu mô tả hành vi → AI tự đoán → sai một nửa.': 'audio/buoi2/tts_022.wav',
+  'Hoàn hảo! Yêu cầu này có đủ: (1) Ngữ cảnh — file đã có. (2) Sự kiện — khi bấm Add. (3) Hành động từng bước — lấy text, thêm vào list, xóa ô nhập, vẽ lại. (4) Điều kiện biên — ô trống thì bỏ qua. AI có đủ thông tin để code đúng.': 'audio/buoi2/tts_023.wav',
+  'Gần đúng hơn nhưng vẫn thiếu: không nói đến file đang có (AI không biết cấu trúc HTML), không có điều kiện biên (ô trống), không rõ danh sách đang được render thế nào. AI sẽ viết code generic có thể không khớp.': 'audio/buoi2/tts_024.wav',
+  'Quá kỹ thuật và thiếu mô tả hành vi. Bạn đang nói đến cách làm (event handler) thay vì mô tả kết quả mong muốn. Hãy mô tả trải nghiệm người dùng — AI sẽ tự biết cách dùng event listener.': 'audio/buoi2/tts_025.wav',
+  'Đến giờ thực hành. Mở file index.html bạn đã làm từ Buổi 1. Sau đó mở ChatGPT, Claude, hoặc Gemini và gửi yêu cầu theo prompt mẫu này. Đọc lướt qua kết quả AI trả về để nhận ra 3 phần chính trước khi paste vào file. Lưu file, xem trình duyệt tự động cập nhật, và thử thêm vài task để kiểm tra.': 'audio/buoi2/tts_026.wav',
+  'Bây giờ khi bạn nhìn vào code AI vừa tạo, có thể nó trông phức tạp. Nhưng mọi JavaScript làm việc với giao diện đều chỉ gồm 4 mảnh ghép. Mảnh 1: Hộp nhớ — nơi lưu danh sách task. Mảnh 2: Lắng nghe hành động — đợi người dùng bấm, gõ, click. Mảnh 3: Cập nhật hộp nhớ — thêm vào, xóa đi, đổi trạng thái. Mảnh 4: Vẽ lại giao diện — hiển thị hộp nhớ lên màn hình. Tìm được 4 mảnh này trong bất kỳ code nào — bạn sẽ hiểu được bất kỳ app nào.': 'audio/buoi2/tts_027.wav',
+  'Câu hỏi để kiểm tra bạn đã hiểu 4 mảnh ghép chưa. Nhìn vào app đang chạy của bạn — khi bạn bấm nút Add thành công, giai đoạn nào chịu trách nhiệm hiển thị task mới lên màn hình?': 'audio/buoi2/tts_028.wav',
+  'Lắng nghe chỉ phát hiện rằng bạn đã bấm — nó không tự mình làm bất cứ điều gì khác. Sau khi nhận sự kiện, nó gọi các mảnh khác xử lý.': 'audio/buoi2/tts_029.wav',
+  'Đúng! Mảnh Vẽ lại đọc danh sách trong hộp nhớ và tạo ra HTML tương ứng để trình duyệt hiển thị. Mỗi khi hộp nhớ thay đổi, phải gọi Vẽ lại để màn hình đồng bộ.': 'audio/buoi2/tts_030.wav',
+  'Cập nhật chịu trách nhiệm thay đổi dữ liệu trong hộp nhớ, không phải hiển thị. Sau khi Cập nhật xong, phải gọi thêm Vẽ lại thì màn hình mới thay đổi.': 'audio/buoi2/tts_031.wav',
+  'Hộp nhớ là nơi lưu dữ liệu, không phải nơi hiển thị. Nó giống ngăn kéo chứa đồ — bạn cần ai đó lấy ra và trưng bày. Mảnh Vẽ lại đóng vai trò đó.': 'audio/buoi2/tts_032.wav',
+  'Bây giờ học kỹ năng quan trọng nhất khi dùng AI để build app: mô tả lỗi đúng cách. Khi app không hoạt động như mong muốn, nhiều người chỉ nói với AI \'bị lỗi rồi, sửa giúp\'. AI không biết lỗi gì, không biết bạn đang làm gì, không biết bạn mong muốn gì. Kết quả là AI đoán và sửa sai. Công thức đúng gồm 3 phần: Đang làm gì, mong đợi gì, thực tế là gì.': 'audio/buoi2/tts_033.wav',
+  'Thực hành nhận dạng. Bạn đang build app và gặp lỗi: bấm Delete nhưng task không biến mất. Mô tả lỗi nào sau đây sẽ giúp AI sửa đúng nhất?': 'audio/buoi2/tts_034.wav',
+  'AI không có ngữ cảnh gì. Lỗi gì? Ở đâu? Làm thế nào để tái hiện? Câu này bằng như không nói. AI sẽ đoán lung tung và sửa sai nhiều hơn đúng.': 'audio/buoi2/tts_035.wav',
+  'Xuất sắc! Ba phần đủ: (1) Đang làm gì — bấm Delete task đầu tiên. (2) Mong đợi gì — task biến mất. (3) Thực tế là gì — vẫn còn trên màn hình. AI có thể ngay lập tức xác định vấn đề: có thể mảnh Vẽ lại không được gọi sau khi xóa, hoặc id task không khớp.': 'audio/buoi2/tts_036.wav',
+  'Này giả định AI biết đây là vấn đề code. Nhưng AI cần biết hành vi người dùng: bạn làm gì, mong đợi gì, thấy gì. Mô tả triệu chứng, không chẩn đoán nguyên nhân — AI sẽ chuẩn đoán giỏi hơn bạn.': 'audio/buoi2/tts_037.wav',
+  'Quá chung chung. JavaScript không chạy đúng ở đâu? Click cái gì? Kết quả mong muốn là gì? AI cần đủ chi tiết để khoanh vùng vấn đề. Mô tả theo góc nhìn người dùng luôn tốt hơn.': 'audio/buoi2/tts_038.wav',
+  'Checklist cuối buổi. Kiểm tra 5 điều. Một: bấm Add — task mới xuất hiện đúng vị trí trong danh sách. Hai: ô nhập tự trống sau khi Add. Ba: bấm ô tích — task chuyển sang gạch ngang. Bốn: bấm Delete — task biến mất ngay lập tức. Năm: bạn có thể tìm ra 4 mảnh ghép trong code AI đã tạo: hộp nhớ, lắng nghe, cập nhật, vẽ lại. Tất cả đạt? Buổi 2 thành công.': 'audio/buoi2/tts_039.wav',
+  'App của bạn giờ đã sống thật sự — thêm, tick, xóa đều hoạt động. Nhưng thử làm điều này: reload trang trình duyệt. Tất cả task biến mất. Logic lưu dữ liệu trong RAM — bộ nhớ tạm thời. Khi tab đóng hoặc trang reload, RAM bị xóa sạch. Dữ liệu bay theo. Đây là vấn đề của Buổi 3.': 'audio/buoi2/tts_040.wav',
+  'Preview Buổi 3: chúng ta sẽ học về kho lưu của trình duyệt — một ngăn kéo nhỏ ngay trong trình duyệt, không cần server, không cần database phức tạp. Dữ liệu tắt máy vẫn còn. Câu hỏi để suy nghĩ trước: nếu không có server, dữ liệu lưu ở đâu? Hẹn bạn ở Buổi 3.': 'audio/buoi2/tts_041.wav',
 };
 
 const ttsCache = new Map();

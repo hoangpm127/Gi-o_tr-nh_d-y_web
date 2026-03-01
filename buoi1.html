@@ -104,6 +104,26 @@ h2.big{font-size:clamp(1.6rem,3.2vw,2.8rem);font-weight:900;line-height:1.15;col
 #counter{font-size:.74rem;color:rgba(255,255,255,.22);font-weight:600;flex-shrink:0;white-space:nowrap}
 #hint{position:fixed;bottom:92px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,.16);font-size:.69rem;letter-spacing:.8px;z-index:300;pointer-events:none;transition:opacity .8s;white-space:nowrap}
 #vl{position:absolute;top:0;left:0;height:2px;background:#6c63ff;transition:width .3s linear;z-index:1}
+/* ── Mobile responsive ─────────────────────────────────── */
+@media(max-width:600px){
+  .content{padding:20px 16px 28px}
+  .compare{grid-template-columns:1fr!important}
+  .content>div[style*="grid-template-columns"]{grid-template-columns:1fr!important}
+  #q-panel{padding:18px 14px;bottom:64px}
+  #q-text{font-size:clamp(.95rem,4.5vw,1.3rem)}
+  .q-opt{font-size:.85rem;padding:11px 14px}
+  #settings-panel{width:calc(100vw - 20px);right:10px;left:10px;bottom:72px}
+  #bar{height:64px}
+  #deck{bottom:64px}
+  #bar-center{display:none}
+  #hint{display:none}
+  #nav-prev,#nav-next{display:none}
+  .cards{gap:10px}
+  .card{min-width:140px;padding:14px}
+  h1.huge{font-size:clamp(1.9rem,8vw,3rem)}
+  h2.big{font-size:clamp(1.3rem,6vw,2rem)}
+  .sub{font-size:clamp(.85rem,3.5vw,1rem)}
+}
 </style>
 </head>
 <body>
@@ -220,55 +240,55 @@ const vScript = document.getElementById('v-script');
 const vlBar = document.getElementById('vl');
 
 const TTS_PRELOAD = {
-  'Chào mừng bạn đến với Buổi 1 của Web Builder Foundation. Hôm nay chúng ta sẽ trả lời 1 câu hỏi thôi: Web thực ra là gì? Và cuối buổi, bạn sẽ có giao diện Ứng dụng Quản Lý Công Việc đầu tiên của mình — được tạo bằng AI.': 'audio/buoi1/tts_000.mp3',
-  'Trước khi tôi nói bất cứ điều gì, tôi muốn nghe câu trả lời của bạn. Theo bạn, khi bạn mở Facebook lên, thứ gì đang chạy phía sau? Web được tạo từ những gì? Chọn câu trả lời gần đúng nhất với suy nghĩ của bạn.': 'audio/buoi1/tts_001.mp3',
-  'Đúng một phần! HTML và CSS tạo ra giao diện. Nhưng nếu chỉ có giao diện, bạn không thể thêm task, ô nhập, hay lưu dữ liệu. Còn thiếu Logic và Data.': 'audio/buoi1/tts_002.mp3',
-  'Code là Logic — bạn đúng khi nghĩ đến đây! Nhưng Logic mà không có UI thì người dùng không thấy gì, và không có Data thì không lưu được gì.': 'audio/buoi1/tts_003.mp3',
-  'Hoàn toàn bình thường! Đó là lý do bạn ở đây. Câu trả lời thật ra rất gọn: Web = UI + Logic + Data. Tôi sẽ ô tích ngay bây giờ.': 'audio/buoi1/tts_004.mp3',
-  'Chính xác! Bạn đã có trực giác rất đúng. Web = UI (giao diện) + Logic (xử lý) + Data (dữ liệu). Đây là Mental Model số 1 của khóa học.': 'audio/buoi1/tts_005.mp3',
-  'Mọi website — từ đơn giản nhất đến Facebook hay Shopee — đều được tạo từ đúng 3 thứ. Thứ nhất là UI — giao diện, thứ người dùng thấy và chạm vào. Thứ hai là Logic — code xử lý nghiệp vụ, chạy phía sau. Thứ ba là Data — dữ liệu được lưu trữ. Thiếu 1 trong 3 thì không thành hệ thống thật sự. Đây là thứ quan trọng nhất hôm nay.': 'audio/buoi1/tts_006.mp3',
-  'Lấy ví dụ Shopee. UI là trang sản phẩm, giỏ hàng, trang thanh toán — thứ bạn nhìn thấy. Logic là kiểm tra tồn kho, tính giá giảm, xử lý đơn hàng — chạy phía sau. Data là toàn bộ thông tin: sản phẩm, tài khoản, lịch sử đơn hàng — được lưu vào database. Bây giờ tôi sẽ hỏi bạn một câu để kiểm tra bạn đã hiểu chưa.': 'audio/buoi1/tts_007.mp3',
-  'Câu hỏi kiểm tra: Nếu Shopee có UI đẹp và Data đầy đủ, nhưng không có Logic — điều gì sẽ xảy ra?': 'audio/buoi1/tts_008.mp3',
-  'Không đúng. Logic là phần xử lý tất cả hành động: kiểm tra tồn kho, tính giá, duyệt đơn hàng. Thiếu Logic, mọi thứ đứng im.': 'audio/buoi1/tts_009.mp3',
-  'Chính xác! Bạn thấy giao diện đẹp, dữ liệu sản phẩm hiển thị — nhưng khi bấm "Mua ngay", không có Logic nào xử lý → không có gì xảy ra. Đây chính xác là tình trạng của giao diện bạn sẽ làm hôm nay — và buổi 2 sẽ fix điều này.': 'audio/buoi1/tts_010.mp3',
-  'Không. Data nằm riêng trong database, không liên quan đến Logic có tồn tại hay không. Thiếu Logic thì Data vẫn ở đó, chỉ là không ai đọc được nó đúng cách.': 'audio/buoi1/tts_011.mp3',
-  'Không đúng. UI là lớp hiển thị độc lập. Thiếu Logic thì UI vẫn hiển thị được — chỉ là không có gì hoạt động khi bạn click.': 'audio/buoi1/tts_012.mp3',
-  'Vậy hôm nay chúng ta build cái gì? Chúng ta sẽ build tầng UI — giao diện Ứng dụng Quản Lý Công Việc. Chỉ HTML và CSS. Nút Thêm sẽ hiển thị nhưng chưa thêm được công việc vì chưa có Logic. Buổi 2 sẽ thêm Logic. Buổi 3 thêm Data lưu trữ. Buổi 4 làm sạch code. Buổi 5 deploy thành app thật. Hôm nay là bước đầu tiên.': 'audio/buoi1/tts_013.mp3',
-  'Ứng dụng đầu tiên chúng ta sẽ làm là Ứng dụng Quản Lý Công Việc. Đây là app đơn giản nhất để học web — giống như một cuốn sổ note điện tử. Bạn có thể ghi danh sách công việc cần làm, tick vào khi hoàn thành, và xóa đi khi không cần nữa. Hôm nay chúng ta chỉ tạo giao diện thôi.': 'audio/buoi1/tts_014.mp3',
-  'Câu hỏi kiểm tra: Ứng dụng Quản Lý Công Việc sẽ có những phần gì trên giao diện? Hãy chọn câu trả lời đầy đủ nhất.': 'audio/buoi1/tts_015.mp3',
-  'Chưa đủ! Có ô nhập thôi thì bạn ghi xong rồi không biết danh sách việc ở đâu. Cần thêm nơi hiển thị danh sách các công việc đã ghi.': 'audio/buoi1/tts_016.mp3',
-  'Chính xác! 3 phần quan trọng: (1) Tiêu đề để người dùng biết đây là app gì. (2) ô nhập + nút Thêm để ghi việc mới. (3) Danh sách hiển thị các việc đã ghi — có ô tích và nút Xóa. Đây chính là cấu trúc chuẩn!': 'audio/buoi1/tts_017.mp3',
-  'Thiếu ô nhập! Nếu không có ô nhập thì bạn thêm việc mới bằng cách nào? Người dùng cần nơi để gõ text và bấm nút Thêm.': 'audio/buoi1/tts_018.mp3',
-  'Nút Thêm và Xóa là hành động — nhưng bạn cần giao diện để HIỂN THỊ: ô nhập text, danh sách công việc. Không có giao diện thì nút bấm vào làm gì?': 'audio/buoi1/tts_019.mp3',
-  'Bây giờ đến kỹ năng quan trọng nhất hôm nay: cách nói chuyện với AI. AI không tự đoán được bạn muốn gì. AI chỉ làm đúng khi bạn mô tả đúng. Kỹ năng viết prompt tốt chính là kỹ năng tư duy rõ ràng. Tôi sẽ cho bạn xem sự khác biệt.': 'audio/buoi1/tts_020.mp3',
-  'Xem 2 prompt này. Prompt xấu chỉ có 1 câu mơ hồ — AI sẽ tự quyết định stack, thiết kế, màu sắc, tính năng, và kết quả không ai đoán được. Prompt tốt thì ngược lại: nói rõ bạn là ai, mô tả từng phần cần tạo theo số thứ tự, giới hạn công nghệ dùng, và yêu cầu AI ô tích. Kết quả predictable hơn rất nhiều.': 'audio/buoi1/tts_021.mp3',
-  'Kiểm tra nhanh. Bạn cần AI tạo phần header cho Ứng dụng Quản Lý Công Việc. Prompt nào sau đây sẽ cho kết quả tốt nhất?': 'audio/buoi1/tts_022.mp3',
-  '"Header" theo AI có thể là navigation bar, có thể là hero section, có thể là badge text. Quá mơ hồ. AI sẽ đoán và kết quả khó đoán.': 'audio/buoi1/tts_023.mp3',
-  'Hoàn hảo! 5 yếu tố đủ cả: (1) Bối cảnh Ứng dụng Quản Lý Công Việc, (2) Mô tả chi tiết 2 phần logo + counter, (3) Giới hạn dùng Flexbox, (4) Font cụ thể, (5) Yêu cầu ô tích. AI sẽ tạo đúng ngay lần đầu.': 'audio/buoi1/tts_024.mp3',
-  '"Đẹp" và "professional" là chủ quan — 10 người có 10 định nghĩa khác nhau. AI cần thông số cụ thể: màu hex cụ thể, layout mô tả, font size...': 'audio/buoi1/tts_025.mp3',
-  'Đây là câu hỏi, không phải prompt. AI sẽ hỏi ngược lại. Luôn bắt đầu bằng yêu cầu rõ ràng, không hỏi "có thể... không".': 'audio/buoi1/tts_026.mp3',
-  'Tổng kết lại thành công thức 5 yếu tố. Một: cho AI biết bạn đang làm dự án gì. Hai: mô tả yêu cầu từng bước, đánh số thứ tự. Ba: giới hạn công nghệ, ví dụ chỉ dùng HTML CSS không cần JavaScript. Bốn: chỉ định style nếu có — màu sắc, font. Năm: yêu cầu AI ô tích để bạn học được. Đây là công thức bạn dùng suốt 5 buổi.': 'audio/buoi1/tts_027.mp3',
-  'Bắt đầu thực hành. Bước một: mở VS Code, tạo folder task-manager, tạo file index.html bên trong. Bước hai: cài extension Live Server nếu chưa có. Bước ba: click chuột phải vào index.html, chọn Open with Live Server. Trình duyệt sẽ mở localhost 5500. Khi bạn lưu file, trình duyệt tự reload. Làm xong bước này rồi tiếp tục.': 'audio/buoi1/tts_028.mp3',
-  'Bước hai: mở ChatGPT, Claude, hoặc Gemini. Gửi đúng prompt mẫu này. Đọc lướt code AI trả về trước khi copy — nhận ra các phần: đây là header, đây là form, đây là danh sách. Sau đó copy toàn bộ vào index.html, lưu Ctrl+S, xem kết quả.': 'audio/buoi1/tts_029.mp3',
-  'Câu hỏi về quy trình. Sau khi AI trả về code, bạn làm gì đầu tiên?': 'audio/buoi1/tts_030.mp3',
-  'Không sai hoàn toàn — code chạy được, nhưng bạn không học được gì. Nếu sau này có lỗi, bạn không biết sửa ở đâu. Và nếu AI hiểu sai yêu cầu, bạn cũng không nhận ra.': 'audio/buoi1/tts_031.mp3',
-  'Đúng! Không cần hiểu từng ký tự. Chỉ cần nhận ra: "đây là phần header", "đây là form", "đây là list item". Như đọc mục lục sách trước khi đọc chi tiết. Rồi mới copy và chạy.': 'audio/buoi1/tts_032.mp3',
-  'Tốt nhưng không hiệu quả — 80 dòng ô tích từng dòng sẽ mất 20 phút. Đọc lướt trước, chạy thử, rồi chỉ hỏi những đoạn bạn không hiểu là đủ.': 'audio/buoi1/tts_033.mp3',
-  'Đây là bước kiểm tra sau khi code đã chạy ổn. Ưu tiên số 1 là đọc qua để hiểu cấu trúc, rồi mới chạy, rồi mới kiểm tra cross-browser.': 'audio/buoi1/tts_034.mp3',
-  'Bạn vừa tạo được giao diện Ứng dụng Quản Lý Công Việc đầu tiên. Lưu ý quan trọng: thử click nút Thêm — công việc không được thêm vào danh sách. Tại sao? Vì chúng ta chỉ có UI — chưa có Logic. Đây là trạng thái "poster đẹp nhưng không hoạt động". Và đây chính xác là điểm dừng hôm nay.': 'audio/buoi1/tts_035.mp3',
-  'Câu hỏi tổng kết: Tại sao nút Thêm trong Ứng dụng Quản Lý Công Việc hiện tại không hoạt động?': 'audio/buoi1/tts_036.mp3',
-  'Không phải lỗi HTML. HTML ổn — nó render ra button trên màn hình. Vấn đề không phải là "cái gì bị hỏng", mà là "cái gì chưa được thêm vào".': 'audio/buoi1/tts_037.mp3',
-  'Chính xác! JavaScript là phần Logic. Khi button được click, cần có event listener để nhận sự kiện đó và hành động. Không có JS = không có Logic = nút click không có gì xảy ra. Đây là nhiệm vụ của Buổi 2.': 'audio/buoi1/tts_038.mp3',
-  'CSS chỉ quyết định cách button trông như thế nào — màu sắc, kích thước, border radius. CSS không xử lý hành vi (behavior) của button.': 'audio/buoi1/tts_039.mp3',
-  'Database (Data) là tầng thứ 3, cần đến Buổi 3. Ngay cả khi có database, bạn vẫn cần Logic để đọc/ghi dữ liệu. Thiếu Logic là vấn đề chính.': 'audio/buoi1/tts_040.mp3',
-  'Checklist cuối buổi. Kiểm tra 5 điều. Một: giao diện Ứng dụng Quản Lý Công Việc hiển thị được trên trình duyệt. Hai: có header, ô nhập công việc, và danh sách công việc mẫu. Ba: responsive — thu nhỏ cửa sổ không vỡ layout. Bốn: bạn có thể ô tích ít nhất 3 dòng CSS. Năm: bạn hiểu tại sao nút Thêm chưa hoạt động. Nếu cả 5 đều có, buổi 1 thành công.': 'audio/buoi1/tts_041.mp3',
-  'Hôm nay bạn đã học và làm được 3 thứ quan trọng. Thứ nhất: Mental Model số 1 — Web bằng UI cộng Logic cộng Data. Thứ hai: Kỹ năng prompt AI với 5 yếu tố để ra lệnh chính xác. Thứ ba: Build giao diện thật bằng HTML CSS không cần biết syntax trước. Đây là nền tảng. Các buổi tiếp theo sẽ thêm từng tầng vào project này.': 'audio/buoi1/tts_042.mp3',
-  'Buổi 2 sẽ chữa đứt điểm của hôm nay: nút Add sẽ hoạt động thật sự. Chúng ta sẽ học State là gì, tại sao giao diện phải phản ánh đúng trạng thái dữ liệu, và hoàn thiện toàn bộ CRUD. Hẹn gặp lại buổi 2.': 'audio/buoi1/tts_043.mp3',
+  'Chào mừng bạn đến với Buổi 1 của Web Builder Foundation. Hôm nay chúng ta sẽ trả lời 1 câu hỏi thôi: Web thực ra là gì? Và cuối buổi, bạn sẽ có giao diện Ứng dụng Quản Lý Công Việc đầu tiên của mình — được tạo bằng AI.': 'audio/buoi1/tts_000.wav',
+  'Trước khi tôi nói bất cứ điều gì, tôi muốn nghe câu trả lời của bạn. Theo bạn, khi bạn mở Facebook lên, thứ gì đang chạy phía sau? Web được tạo từ những gì? Chọn câu trả lời gần đúng nhất với suy nghĩ của bạn.': 'audio/buoi1/tts_001.wav',
+  'Đúng một phần! HTML và CSS tạo ra giao diện. Nhưng nếu chỉ có giao diện, bạn không thể thêm task, ô nhập, hay lưu dữ liệu. Còn thiếu Logic và Data.': 'audio/buoi1/tts_002.wav',
+  'Code là Logic — bạn đúng khi nghĩ đến đây! Nhưng Logic mà không có UI thì người dùng không thấy gì, và không có Data thì không lưu được gì.': 'audio/buoi1/tts_003.wav',
+  'Hoàn toàn bình thường! Đó là lý do bạn ở đây. Câu trả lời thật ra rất gọn: Web = UI + Logic + Data. Tôi sẽ ô tích ngay bây giờ.': 'audio/buoi1/tts_004.wav',
+  'Chính xác! Bạn đã có trực giác rất đúng. Web = UI (giao diện) + Logic (xử lý) + Data (dữ liệu). Đây là Mental Model số 1 của khóa học.': 'audio/buoi1/tts_005.wav',
+  'Mọi website — từ đơn giản nhất đến Facebook hay Shopee — đều được tạo từ đúng 3 thứ. Thứ nhất là UI — giao diện, thứ người dùng thấy và chạm vào. Thứ hai là Logic — code xử lý nghiệp vụ, chạy phía sau. Thứ ba là Data — dữ liệu được lưu trữ. Thiếu 1 trong 3 thì không thành hệ thống thật sự. Đây là thứ quan trọng nhất hôm nay.': 'audio/buoi1/tts_006.wav',
+  'Lấy ví dụ Shopee. UI là trang sản phẩm, giỏ hàng, trang thanh toán — thứ bạn nhìn thấy. Logic là kiểm tra tồn kho, tính giá giảm, xử lý đơn hàng — chạy phía sau. Data là toàn bộ thông tin: sản phẩm, tài khoản, lịch sử đơn hàng — được lưu vào database. Bây giờ tôi sẽ hỏi bạn một câu để kiểm tra bạn đã hiểu chưa.': 'audio/buoi1/tts_007.wav',
+  'Câu hỏi kiểm tra: Nếu Shopee có UI đẹp và Data đầy đủ, nhưng không có Logic — điều gì sẽ xảy ra?': 'audio/buoi1/tts_008.wav',
+  'Không đúng. Logic là phần xử lý tất cả hành động: kiểm tra tồn kho, tính giá, duyệt đơn hàng. Thiếu Logic, mọi thứ đứng im.': 'audio/buoi1/tts_009.wav',
+  'Chính xác! Bạn thấy giao diện đẹp, dữ liệu sản phẩm hiển thị — nhưng khi bấm "Mua ngay", không có Logic nào xử lý → không có gì xảy ra. Đây chính xác là tình trạng của giao diện bạn sẽ làm hôm nay — và buổi 2 sẽ fix điều này.': 'audio/buoi1/tts_010.wav',
+  'Không. Data nằm riêng trong database, không liên quan đến Logic có tồn tại hay không. Thiếu Logic thì Data vẫn ở đó, chỉ là không ai đọc được nó đúng cách.': 'audio/buoi1/tts_011.wav',
+  'Không đúng. UI là lớp hiển thị độc lập. Thiếu Logic thì UI vẫn hiển thị được — chỉ là không có gì hoạt động khi bạn click.': 'audio/buoi1/tts_012.wav',
+  'Vậy hôm nay chúng ta build cái gì? Chúng ta sẽ build tầng UI — giao diện Ứng dụng Quản Lý Công Việc. Chỉ HTML và CSS. Nút Thêm sẽ hiển thị nhưng chưa thêm được công việc vì chưa có Logic. Buổi 2 sẽ thêm Logic. Buổi 3 thêm Data lưu trữ. Buổi 4 làm sạch code. Buổi 5 deploy thành app thật. Hôm nay là bước đầu tiên.': 'audio/buoi1/tts_013.wav',
+  'Ứng dụng đầu tiên chúng ta sẽ làm là Ứng dụng Quản Lý Công Việc. Đây là app đơn giản nhất để học web — giống như một cuốn sổ note điện tử. Bạn có thể ghi danh sách công việc cần làm, tick vào khi hoàn thành, và xóa đi khi không cần nữa. Hôm nay chúng ta chỉ tạo giao diện thôi.': 'audio/buoi1/tts_014.wav',
+  'Câu hỏi kiểm tra: Ứng dụng Quản Lý Công Việc sẽ có những phần gì trên giao diện? Hãy chọn câu trả lời đầy đủ nhất.': 'audio/buoi1/tts_015.wav',
+  'Chưa đủ! Có ô nhập thôi thì bạn ghi xong rồi không biết danh sách việc ở đâu. Cần thêm nơi hiển thị danh sách các công việc đã ghi.': 'audio/buoi1/tts_016.wav',
+  'Chính xác! 3 phần quan trọng: (1) Tiêu đề để người dùng biết đây là app gì. (2) ô nhập + nút Thêm để ghi việc mới. (3) Danh sách hiển thị các việc đã ghi — có ô tích và nút Xóa. Đây chính là cấu trúc chuẩn!': 'audio/buoi1/tts_017.wav',
+  'Thiếu ô nhập! Nếu không có ô nhập thì bạn thêm việc mới bằng cách nào? Người dùng cần nơi để gõ text và bấm nút Thêm.': 'audio/buoi1/tts_018.wav',
+  'Nút Thêm và Xóa là hành động — nhưng bạn cần giao diện để HIỂN THỊ: ô nhập text, danh sách công việc. Không có giao diện thì nút bấm vào làm gì?': 'audio/buoi1/tts_019.wav',
+  'Bây giờ đến kỹ năng quan trọng nhất hôm nay: cách nói chuyện với AI. AI không tự đoán được bạn muốn gì. AI chỉ làm đúng khi bạn mô tả đúng. Kỹ năng viết prompt tốt chính là kỹ năng tư duy rõ ràng. Tôi sẽ cho bạn xem sự khác biệt.': 'audio/buoi1/tts_020.wav',
+  'Xem 2 prompt này. Prompt xấu chỉ có 1 câu mơ hồ — AI sẽ tự quyết định stack, thiết kế, màu sắc, tính năng, và kết quả không ai đoán được. Prompt tốt thì ngược lại: nói rõ bạn là ai, mô tả từng phần cần tạo theo số thứ tự, giới hạn công nghệ dùng, và yêu cầu AI ô tích. Kết quả predictable hơn rất nhiều.': 'audio/buoi1/tts_021.wav',
+  'Kiểm tra nhanh. Bạn cần AI tạo phần header cho Ứng dụng Quản Lý Công Việc. Prompt nào sau đây sẽ cho kết quả tốt nhất?': 'audio/buoi1/tts_022.wav',
+  '"Header" theo AI có thể là navigation bar, có thể là hero section, có thể là badge text. Quá mơ hồ. AI sẽ đoán và kết quả khó đoán.': 'audio/buoi1/tts_023.wav',
+  'Hoàn hảo! 5 yếu tố đủ cả: (1) Bối cảnh Ứng dụng Quản Lý Công Việc, (2) Mô tả chi tiết 2 phần logo + counter, (3) Giới hạn dùng Flexbox, (4) Font cụ thể, (5) Yêu cầu ô tích. AI sẽ tạo đúng ngay lần đầu.': 'audio/buoi1/tts_024.wav',
+  '"Đẹp" và "professional" là chủ quan — 10 người có 10 định nghĩa khác nhau. AI cần thông số cụ thể: màu hex cụ thể, layout mô tả, font size...': 'audio/buoi1/tts_025.wav',
+  'Đây là câu hỏi, không phải prompt. AI sẽ hỏi ngược lại. Luôn bắt đầu bằng yêu cầu rõ ràng, không hỏi "có thể... không".': 'audio/buoi1/tts_026.wav',
+  'Tổng kết lại thành công thức 5 yếu tố. Một: cho AI biết bạn đang làm dự án gì. Hai: mô tả yêu cầu từng bước, đánh số thứ tự. Ba: giới hạn công nghệ, ví dụ chỉ dùng HTML CSS không cần JavaScript. Bốn: chỉ định style nếu có — màu sắc, font. Năm: yêu cầu AI ô tích để bạn học được. Đây là công thức bạn dùng suốt 5 buổi.': 'audio/buoi1/tts_027.wav',
+  'Bắt đầu thực hành. Bước một: mở VS Code, tạo folder task-manager, tạo file index.html bên trong. Bước hai: cài extension Live Server nếu chưa có. Bước ba: click chuột phải vào index.html, chọn Open with Live Server. Trình duyệt sẽ mở localhost 5500. Khi bạn lưu file, trình duyệt tự reload. Làm xong bước này rồi tiếp tục.': 'audio/buoi1/tts_028.wav',
+  'Bước hai: mở ChatGPT, Claude, hoặc Gemini. Gửi đúng prompt mẫu này. Đọc lướt code AI trả về trước khi copy — nhận ra các phần: đây là header, đây là form, đây là danh sách. Sau đó copy toàn bộ vào index.html, lưu Ctrl+S, xem kết quả.': 'audio/buoi1/tts_029.wav',
+  'Câu hỏi về quy trình. Sau khi AI trả về code, bạn làm gì đầu tiên?': 'audio/buoi1/tts_030.wav',
+  'Không sai hoàn toàn — code chạy được, nhưng bạn không học được gì. Nếu sau này có lỗi, bạn không biết sửa ở đâu. Và nếu AI hiểu sai yêu cầu, bạn cũng không nhận ra.': 'audio/buoi1/tts_031.wav',
+  'Đúng! Không cần hiểu từng ký tự. Chỉ cần nhận ra: "đây là phần header", "đây là form", "đây là list item". Như đọc mục lục sách trước khi đọc chi tiết. Rồi mới copy và chạy.': 'audio/buoi1/tts_032.wav',
+  'Tốt nhưng không hiệu quả — 80 dòng ô tích từng dòng sẽ mất 20 phút. Đọc lướt trước, chạy thử, rồi chỉ hỏi những đoạn bạn không hiểu là đủ.': 'audio/buoi1/tts_033.wav',
+  'Đây là bước kiểm tra sau khi code đã chạy ổn. Ưu tiên số 1 là đọc qua để hiểu cấu trúc, rồi mới chạy, rồi mới kiểm tra cross-browser.': 'audio/buoi1/tts_034.wav',
+  'Bạn vừa tạo được giao diện Ứng dụng Quản Lý Công Việc đầu tiên. Lưu ý quan trọng: thử click nút Thêm — công việc không được thêm vào danh sách. Tại sao? Vì chúng ta chỉ có UI — chưa có Logic. Đây là trạng thái "poster đẹp nhưng không hoạt động". Và đây chính xác là điểm dừng hôm nay.': 'audio/buoi1/tts_035.wav',
+  'Câu hỏi tổng kết: Tại sao nút Thêm trong Ứng dụng Quản Lý Công Việc hiện tại không hoạt động?': 'audio/buoi1/tts_036.wav',
+  'Không phải lỗi HTML. HTML ổn — nó render ra button trên màn hình. Vấn đề không phải là "cái gì bị hỏng", mà là "cái gì chưa được thêm vào".': 'audio/buoi1/tts_037.wav',
+  'Chính xác! JavaScript là phần Logic. Khi button được click, cần có event listener để nhận sự kiện đó và hành động. Không có JS = không có Logic = nút click không có gì xảy ra. Đây là nhiệm vụ của Buổi 2.': 'audio/buoi1/tts_038.wav',
+  'CSS chỉ quyết định cách button trông như thế nào — màu sắc, kích thước, border radius. CSS không xử lý hành vi (behavior) của button.': 'audio/buoi1/tts_039.wav',
+  'Database (Data) là tầng thứ 3, cần đến Buổi 3. Ngay cả khi có database, bạn vẫn cần Logic để đọc/ghi dữ liệu. Thiếu Logic là vấn đề chính.': 'audio/buoi1/tts_040.wav',
+  'Checklist cuối buổi. Kiểm tra 5 điều. Một: giao diện Ứng dụng Quản Lý Công Việc hiển thị được trên trình duyệt. Hai: có header, ô nhập công việc, và danh sách công việc mẫu. Ba: responsive — thu nhỏ cửa sổ không vỡ layout. Bốn: bạn có thể ô tích ít nhất 3 dòng CSS. Năm: bạn hiểu tại sao nút Thêm chưa hoạt động. Nếu cả 5 đều có, buổi 1 thành công.': 'audio/buoi1/tts_041.wav',
+  'Hôm nay bạn đã học và làm được 3 thứ quan trọng. Thứ nhất: Mental Model số 1 — Web bằng UI cộng Logic cộng Data. Thứ hai: Kỹ năng prompt AI với 5 yếu tố để ra lệnh chính xác. Thứ ba: Build giao diện thật bằng HTML CSS không cần biết syntax trước. Đây là nền tảng. Các buổi tiếp theo sẽ thêm từng tầng vào project này.': 'audio/buoi1/tts_042.wav',
+  'Buổi 2 sẽ chữa đứt điểm của hôm nay: nút Add sẽ hoạt động thật sự. Chúng ta sẽ học State là gì, tại sao giao diện phải phản ánh đúng trạng thái dữ liệu, và hoàn thiện toàn bộ CRUD. Hẹn gặp lại buổi 2.': 'audio/buoi1/tts_043.wav',
 };
 
 const ttsCache = new Map();
 // Seed cache từ audio offline
-Object.entries(TTS_PRELOAD).forEach(([t,u])=>ttsCache.set(t,u)); // cache audio URL by text to avoid repeated API calls
+Object.entries(TTS_PRELOAD).forEach(([t,u])=>ttsCache.set(t,u));
 
 function stopVoice(){
   speakGen++;
